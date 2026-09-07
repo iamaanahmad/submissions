@@ -1,0 +1,66 @@
+{
+  "project": "Acorn studio handoff (synthetic demo)",
+  "classification": "synthetic",
+  "status": "ready_for_human_review",
+  "verified": 5,
+  "blocked": 0,
+  "manifest_sha256": "ce8693b621cbc85777f7b349182a47a4bd5881d5d12aa72c8397ebedbff547bb",
+  "findings": [
+    {
+      "id": "LANDING",
+      "title": "Landing page acceptance record",
+      "artifact": "landing.txt",
+      "sha256": "b68c248a32e64966fe5bbb89438679e3fc6f39bdde2ada577e528f2510d84dbc",
+      "check": "passed",
+      "approval": "approved",
+      "actual_sha256": "b68c248a32e64966fe5bbb89438679e3fc6f39bdde2ada577e528f2510d84dbc",
+      "status": "verified",
+      "blockers": []
+    },
+    {
+      "id": "CHECKOUT",
+      "title": "No-charge checkout acceptance record",
+      "artifact": "checkout.txt",
+      "sha256": "3c71a91495da733b2e7628759a28e736530b5863f5c4b9acc248c8d5063aa940",
+      "check": "passed",
+      "approval": "approved",
+      "actual_sha256": "3c71a91495da733b2e7628759a28e736530b5863f5c4b9acc248c8d5063aa940",
+      "status": "verified",
+      "blockers": []
+    },
+    {
+      "id": "POLICY",
+      "title": "Policy copy review record",
+      "artifact": "policy.txt",
+      "sha256": "b78cd97b98aa75b2ef7e818452e21631d3e0359b27658da1894dbd4f71149035",
+      "check": "passed",
+      "approval": "approved",
+      "actual_sha256": "b78cd97b98aa75b2ef7e818452e21631d3e0359b27658da1894dbd4f71149035",
+      "status": "verified",
+      "blockers": []
+    },
+    {
+      "id": "EXPORT",
+      "title": "Customer export acceptance record",
+      "artifact": "export.txt",
+      "sha256": "313f456e704c87745a5f2591d6747a0edef823314631db04dacee561e412dddf",
+      "check": "passed",
+      "approval": "approved",
+      "actual_sha256": "313f456e704c87745a5f2591d6747a0edef823314631db04dacee561e412dddf",
+      "status": "verified",
+      "blockers": []
+    },
+    {
+      "id": "REPORT",
+      "title": "Weekly report acceptance record",
+      "artifact": "report.txt",
+      "sha256": "07f04e25c79ee33c2b7de13d83fb11112a546e6d70c440ff7be68de1aac5a2cf",
+      "check": "passed",
+      "approval": "approved",
+      "actual_sha256": "07f04e25c79ee33c2b7de13d83fb11112a546e6d70c440ff7be68de1aac5a2cf",
+      "status": "verified",
+      "blockers": []
+    }
+  ],
+  "created_at": "2026-09-07T15:23:12.084674+00:00"
+}

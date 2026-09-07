@@ -1,0 +1,74 @@
+{
+  "project": "Acorn studio handoff (synthetic demo)",
+  "classification": "synthetic",
+  "status": "hold",
+  "verified": 1,
+  "blocked": 4,
+  "manifest_sha256": "b304fc6055163209fa1740a1596ebfaad9bdd1fbf01d3d6009138b8432b63d54",
+  "findings": [
+    {
+      "id": "LANDING",
+      "title": "Landing page acceptance record",
+      "artifact": "landing.txt",
+      "sha256": "b68c248a32e64966fe5bbb89438679e3fc6f39bdde2ada577e528f2510d84dbc",
+      "check": "passed",
+      "approval": "approved",
+      "actual_sha256": "b68c248a32e64966fe5bbb89438679e3fc6f39bdde2ada577e528f2510d84dbc",
+      "status": "verified",
+      "blockers": []
+    },
+    {
+      "id": "CHECKOUT",
+      "title": "No-charge checkout acceptance record",
+      "artifact": "checkout.txt",
+      "sha256": "3c71a91495da733b2e7628759a28e736530b5863f5c4b9acc248c8d5063aa940",
+      "check": "failed",
+      "approval": "approved",
+      "actual_sha256": "3c71a91495da733b2e7628759a28e736530b5863f5c4b9acc248c8d5063aa940",
+      "status": "blocked",
+      "blockers": [
+        "check_failed"
+      ]
+    },
+    {
+      "id": "POLICY",
+      "title": "Policy copy review record",
+      "artifact": "policy.txt",
+      "sha256": "b78cd97b98aa75b2ef7e818452e21631d3e0359b27658da1894dbd4f71149035",
+      "check": "passed",
+      "approval": "pending",
+      "actual_sha256": "b78cd97b98aa75b2ef7e818452e21631d3e0359b27658da1894dbd4f71149035",
+      "status": "blocked",
+      "blockers": [
+        "approval_pending"
+      ]
+    },
+    {
+      "id": "EXPORT",
+      "title": "Customer export acceptance record",
+      "artifact": "export.txt",
+      "sha256": "313f456e704c87745a5f2591d6747a0edef823314631db04dacee561e412dddf",
+      "check": "passed",
+      "approval": "approved",
+      "actual_sha256": null,
+      "status": "blocked",
+      "blockers": [
+        "Artifact is missing or is not a regular file"
+      ]
+    },
+    {
+      "id": "REPORT",
+      "title": "Weekly report acceptance record",
+      "artifact": "report.txt",
+      "sha256": "07f04e25c79ee33c2b7de13d83fb11112a546e6d70c440ff7be68de1aac5a2cf",
+      "check": "passed",
+      "approval": "not_required",
+      "actual_sha256": "2f406f8298ee0bd305b8116b35128f25e8f465af3e52b05ceb3a5abbe04455cb",
+      "status": "blocked",
+      "blockers": [
+        "artifact_changed"
+      ]
+    }
+  ],
+  "created_at": "2026-09-07T15:15:45.554614+00:00"
+}

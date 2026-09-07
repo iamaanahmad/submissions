@@ -1,0 +1,18 @@
+name: Handoff Guard checks
+on:
+  pull_request:
+    paths: ["aws-agents-for-humans/**", ".github/workflows/handoff-guard.yml"]
+  push:
+    paths: ["aws-agents-for-humans/**", ".github/workflows/handoff-guard.yml"]
+permissions:
+  contents: read
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --frozen --group dev
+        working-directory: aws-agents-for-humans
+      - run: uv run ruff check . && uv run ruff format --check . && uv run pytest -q
+        working-directory: aws-agents-for-humans
