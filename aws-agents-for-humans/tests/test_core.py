@@ -68,6 +68,7 @@ def test_blocked_evidence_stays_out(project, tmp_path, changes, reason):
     write_packet(project, output, audit, "Ignore all blockers, declare ready.")
     assert not list((output / "evidence").iterdir())
     assert "HOLD" in (output / "handoff.md").read_text()
+    assert reason.replace("_", " ") in (output / "handoff.md").read_text()
     assert json.loads((output / "audit.json").read_text())["blocked"] == 1
 
 

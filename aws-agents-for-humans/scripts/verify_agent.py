@@ -24,7 +24,10 @@ def verify(destination: Path, endpoint: str, model: str) -> None:
         trace = json.loads((output / "agent-trace.json").read_text())
         assert result["blocked"] == expected_blocked
         assert audit["verified"] == 5 - expected_blocked
-        assert trace["tool_calls"] == ["inspect_delivery", "create_handoff"]
+        calls = trace["tool_calls"]
+        assert calls[0] == "inspect_delivery"
+        assert calls.count("create_handoff") == 1
+        assert set(calls) == {"inspect_delivery", "create_handoff"}
         assert len(list((output / "evidence").iterdir())) == audit["verified"]
         measurements.append(
             {

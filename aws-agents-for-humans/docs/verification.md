@@ -35,7 +35,23 @@ Both synthetic fixtures have five declared items. These are not customer project
 ## Results
 
 On September 7, the model-free suite passed 31 tests. Lint and formatting checks passed.
-Live-model verification results will be recorded before this pull request is marked ready.
+Both real local-model runs completed on September 7. Neither used paid services.
+
+| Synthetic scenario | Checked items | Blocked | Copied evidence files | Verdict |
+|---|---|---|---|---|
+| Missing, changed, failed, and unapproved evidence | 5 | 4 | 1 | Hold |
+| All declared checks and approvals pass | 5 | 0 | 5 | Ready for human review |
+
+The clean run took 271.72 seconds. The blocked command took 319.69 seconds, including Python startup.
+The blocked agent inspected, created the packet, then inspected again.
+The first verifier rejected that harmless extra inspection after the packet was complete.
+The verifier now checks inspection comes first and exactly one packet is created, allowing repeat inspections.
+Both saved outputs passed that corrected check, including independent copied-file hash comparisons.
+The clean case ran separately after this correction. The two-case script was not rerun as one command.
+
+Real outputs, audit records, and complete synthetic model traces are in `examples/`.
+The Markdown examples were rendered again from those audits after improving blocker labels.
+Model advice remains non-binding and can miss detail. Use the code-generated audit and handoff decision.
 
 ## Limits
 

@@ -1,0 +1,194 @@
+{
+  "provider": "local OpenAI-compatible server",
+  "model": "handoff-local",
+  "tool_calls": [
+    "inspect_delivery",
+    "inspect_delivery",
+    "create_handoff"
+  ],
+  "packet": {
+    "output": "/tmp/handoff-clean-packet",
+    "status": "ready_for_human_review",
+    "blocked": 0
+  },
+  "messages": [
+    {
+      "role": "user",
+      "content": [
+        {
+          "text": "Inspect this project and create its evidence-checked handoff packet now."
+        }
+      ],
+      "tracking_id": "cef6b24b-c9d8-4287-9591-ee2a5206a9fe"
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "toolUse": {
+            "toolUseId": "3qt8DWP1p9MjBR06HGa5qQhFzPUdJQWc",
+            "name": "inspect_delivery",
+            "input": {}
+          }
+        },
+        {
+          "toolUse": {
+            "toolUseId": "qnxvtmrLZCM84itQqFErbtUGzALjvUTZ",
+            "name": "create_handoff",
+            "input": {
+              "advisory": "Blocker: Missing test results for some manifest items."
+            }
+          }
+        }
+      ],
+      "metadata": {
+        "usage": {
+          "inputTokens": 341,
+          "outputTokens": 49,
+          "totalTokens": 390,
+          "cacheReadInputTokens": 337
+        },
+        "metrics": {
+          "latencyMs": 0,
+          "timeToFirstByteMs": 17318
+        }
+      },
+      "tracking_id": "f3175e63-3dee-49a9-9da4-d79d920b52ca"
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "toolResult": {
+            "toolUseId": "3qt8DWP1p9MjBR06HGa5qQhFzPUdJQWc",
+            "status": "success",
+            "content": [
+              {
+                "text": "{\"project\": \"Acorn studio handoff (synthetic demo)\", \"classification\": \"synthetic\", \"status\": \"ready_for_human_review\", \"verified\": 5, \"blocked\": 0, \"manifest_sha256\": \"ce8693b621cbc85777f7b349182a47a4bd5881d5d12aa72c8397ebedbff547bb\", \"findings\": [{\"id\": \"LANDING\", \"title\": \"Landing page acceptance record\", \"artifact\": \"landing.txt\", \"sha256\": \"b68c248a32e64966fe5bbb89438679e3fc6f39bdde2ada577e528f2510d84dbc\", \"check\": \"passed\", \"approval\": \"approved\", \"actual_sha256\": \"b68c248a32e64966fe5bbb89438679e3fc6f39bdde2ada577e528f2510d84dbc\", \"status\": \"verified\", \"blockers\": []}, {\"id\": \"CHECKOUT\", \"title\": \"No-charge checkout acceptance record\", \"artifact\": \"checkout.txt\", \"sha256\": \"3c71a91495da733b2e7628759a28e736530b5863f5c4b9acc248c8d5063aa940\", \"check\": \"passed\", \"approval\": \"approved\", \"actual_sha256\": \"3c71a91495da733b2e7628759a28e736530b5863f5c4b9acc248c8d5063aa940\", \"status\": \"verified\", \"blockers\": []}, {\"id\": \"POLICY\", \"title\": \"Policy copy review record\", \"artifact\": \"policy.txt\", \"sha256\": \"b78cd97b98aa75b2ef7e818452e21631d3e0359b27658da1894dbd4f71149035\", \"check\": \"passed\", \"approval\": \"approved\", \"actual_sha256\": \"b78cd97b98aa75b2ef7e818452e21631d3e0359b27658da1894dbd4f71149035\", \"status\": \"verified\", \"blockers\": []}, {\"id\": \"EXPORT\", \"title\": \"Customer export acceptance record\", \"artifact\": \"export.txt\", \"sha256\": \"313f456e704c87745a5f2591d6747a0edef823314631db04dacee561e412dddf\", \"check\": \"passed\", \"approval\": \"approved\", \"actual_sha256\": \"313f456e704c87745a5f2591d6747a0edef823314631db04dacee561e412dddf\", \"status\": \"verified\", \"blockers\": []}, {\"id\": \"REPORT\", \"title\": \"Weekly report acceptance record\", \"artifact\": \"report.txt\", \"sha256\": \"07f04e25c79ee33c2b7de13d83fb11112a546e6d70c440ff7be68de1aac5a2cf\", \"check\": \"passed\", \"approval\": \"approved\", \"actual_sha256\": \"07f04e25c79ee33c2b7de13d83fb11112a546e6d70c440ff7be68de1aac5a2cf\", \"status\": \"verified\", \"blockers\": []}]}"
+              }
+            ]
+          }
+        },
+        {
+          "toolResult": {
+            "toolUseId": "qnxvtmrLZCM84itQqFErbtUGzALjvUTZ",
+            "status": "success",
+            "content": [
+              {
+                "text": "{\"error\": \"Call inspect_delivery before create_handoff\"}"
+              }
+            ]
+          }
+        }
+      ],
+      "tracking_id": "d443d77b-812f-4b6c-b45e-6af4a1a20f88"
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "toolUse": {
+            "toolUseId": "AUHvbKQ48JWN5VzSH4MalJbvFrjZK1Hs",
+            "name": "inspect_delivery",
+            "input": {}
+          }
+        }
+      ],
+      "metadata": {
+        "usage": {
+          "inputTokens": 1417,
+          "outputTokens": 16,
+          "totalTokens": 1433,
+          "cacheReadInputTokens": 337
+        },
+        "metrics": {
+          "latencyMs": 0,
+          "timeToFirstByteMs": 116800
+        }
+      },
+      "tracking_id": "664c00d3-ee77-4beb-9f24-aa8a1c31d005"
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "toolResult": {
+            "toolUseId": "AUHvbKQ48JWN5VzSH4MalJbvFrjZK1Hs",
+            "status": "success",
+            "content": [
+              {
+                "text": "{\"project\": \"Acorn studio handoff (synthetic demo)\", \"classification\": \"synthetic\", \"status\": \"ready_for_human_review\", \"verified\": 5, \"blocked\": 0, \"manifest_sha256\": \"ce8693b621cbc85777f7b349182a47a4bd5881d5d12aa72c8397ebedbff547bb\", \"findings\": [{\"id\": \"LANDING\", \"title\": \"Landing page acceptance record\", \"artifact\": \"landing.txt\", \"sha256\": \"b68c248a32e64966fe5bbb89438679e3fc6f39bdde2ada577e528f2510d84dbc\", \"check\": \"passed\", \"approval\": \"approved\", \"actual_sha256\": \"b68c248a32e64966fe5bbb89438679e3fc6f39bdde2ada577e528f2510d84dbc\", \"status\": \"verified\", \"blockers\": []}, {\"id\": \"CHECKOUT\", \"title\": \"No-charge checkout acceptance record\", \"artifact\": \"checkout.txt\", \"sha256\": \"3c71a91495da733b2e7628759a28e736530b5863f5c4b9acc248c8d5063aa940\", \"check\": \"passed\", \"approval\": \"approved\", \"actual_sha256\": \"3c71a91495da733b2e7628759a28e736530b5863f5c4b9acc248c8d5063aa940\", \"status\": \"verified\", \"blockers\": []}, {\"id\": \"POLICY\", \"title\": \"Policy copy review record\", \"artifact\": \"policy.txt\", \"sha256\": \"b78cd97b98aa75b2ef7e818452e21631d3e0359b27658da1894dbd4f71149035\", \"check\": \"passed\", \"approval\": \"approved\", \"actual_sha256\": \"b78cd97b98aa75b2ef7e818452e21631d3e0359b27658da1894dbd4f71149035\", \"status\": \"verified\", \"blockers\": []}, {\"id\": \"EXPORT\", \"title\": \"Customer export acceptance record\", \"artifact\": \"export.txt\", \"sha256\": \"313f456e704c87745a5f2591d6747a0edef823314631db04dacee561e412dddf\", \"check\": \"passed\", \"approval\": \"approved\", \"actual_sha256\": \"313f456e704c87745a5f2591d6747a0edef823314631db04dacee561e412dddf\", \"status\": \"verified\", \"blockers\": []}, {\"id\": \"REPORT\", \"title\": \"Weekly report acceptance record\", \"artifact\": \"report.txt\", \"sha256\": \"07f04e25c79ee33c2b7de13d83fb11112a546e6d70c440ff7be68de1aac5a2cf\", \"check\": \"passed\", \"approval\": \"approved\", \"actual_sha256\": \"07f04e25c79ee33c2b7de13d83fb11112a546e6d70c440ff7be68de1aac5a2cf\", \"status\": \"verified\", \"blockers\": []}]}"
+              }
+            ]
+          }
+        }
+      ],
+      "tracking_id": "936b88f9-0379-4dde-9f17-d5b39f3fa4a5"
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "toolUse": {
+            "toolUseId": "3wFVBBXFJkzFw30QM6x9GbVodc4U09x0",
+            "name": "create_handoff",
+            "input": {
+              "advisory": "All manifest items are verified and ready for handoff."
+            }
+          }
+        }
+      ],
+      "metadata": {
+        "usage": {
+          "inputTokens": 2444,
+          "outputTokens": 33,
+          "totalTokens": 2477,
+          "cacheReadInputTokens": 1413
+        },
+        "metrics": {
+          "latencyMs": 0,
+          "timeToFirstByteMs": 111603
+        }
+      },
+      "tracking_id": "e717a0ce-441f-47ae-b4c3-1b9419d0e35c"
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "toolResult": {
+            "toolUseId": "3wFVBBXFJkzFw30QM6x9GbVodc4U09x0",
+            "status": "success",
+            "content": [
+              {
+                "text": "{\"output\": \"/tmp/handoff-clean-packet\", \"status\": \"ready_for_human_review\", \"blocked\": 0}"
+              }
+            ]
+          }
+        }
+      ],
+      "tracking_id": "17f3b473-8c2c-425a-bc54-b4b58b401a19"
+    },
+    {
+      "role": "assistant",
+      "content": [
+        {
+          "text": "The handoff packet has been created successfully. The project is ready for human review, and no blockers were found. \n\nResult: Handoff packet created successfully."
+        }
+      ],
+      "metadata": {
+        "usage": {
+          "inputTokens": 2516,
+          "outputTokens": 33,
+          "totalTokens": 2549,
+          "cacheReadInputTokens": 2440
+        },
+        "metrics": {
+          "latencyMs": 0,
+          "timeToFirstByteMs": 8612
+        }
+      },
+      "tracking_id": "f8351bcb-8ee2-4546-b567-b6951eb7eb54"
+    }
+  ]
+}

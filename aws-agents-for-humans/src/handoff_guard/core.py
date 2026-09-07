@@ -142,7 +142,7 @@ def report_markdown(audit: dict) -> str:
         "|---|---|---|---|",
     ]
     for finding in audit["findings"]:
-        action = ", ".join(finding["blockers"]) or "Review the included evidence"
+        action = ", ".join(finding["blockers"]).replace("_", " ") or "Review the included evidence"
         lines.append(
             f"| {finding['id']} | {plain(finding['title'])} | "
             f"{finding['status']} | {plain(action)} |"
