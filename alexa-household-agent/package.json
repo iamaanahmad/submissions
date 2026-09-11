@@ -1,1 +1,1 @@
-{"name":"household-relay","private":true,"type":"module","scripts":{"test":"node --test","start":"node server.mjs"}}
+{"name":"household-relay","private":true,"type":"module","scripts":{"test":"node --test","start":"node server.mjs","judge":"node judge.mjs"}}

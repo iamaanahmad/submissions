@@ -17,3 +17,5 @@ jobs:
           node-version: '22'
       - run: npm test
         working-directory: alexa-household-agent
+      - run: npm run judge
+        working-directory: alexa-household-agent
