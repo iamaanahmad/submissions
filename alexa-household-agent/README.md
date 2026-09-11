@@ -51,6 +51,8 @@ These are fixture results, not user outcomes. No real household or live-service 
 
 The app has no external runtime requests, third-party scripts, accounts, or secrets. User-facing values use `textContent`. State is validated when loaded. Storage errors remain visible and do not claim successful persistence. The local server rejects non-GET/HEAD methods and unknown files. Malformed request URLs return 400 without stopping the server. HTTP tests verify that normal requests still work afterward. Do not put private household data into this public demonstration.
 
+If browser storage is full or denied, the planner still shows an unsaved preview. The warning explains that refreshing can restore an older saved plan. Service retries work within the current tab. A later successful save replaces the old checkpoint. If clearing storage fails, reset reports the failure and keeps the current plan.
+
 ## Contest and rights
 
 Prepared for the Alexa+ experience simulation path in [Amazon's 2026 app-development contest](https://amazonappdev2026.devpost.com/rules). Rules were checked on September 11, 2026. Submission closes October 23 at 19:00 UTC. The entrant must still confirm eligibility, registration, rights, a qualifying open-source license, a public YouTube/Vimeo video under three minutes, and legal acceptance.
