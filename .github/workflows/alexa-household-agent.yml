@@ -1,0 +1,19 @@
+name: Household Relay checks
+on:
+  pull_request:
+    paths: ['alexa-household-agent/**', '.github/workflows/alexa-household-agent.yml']
+  push:
+    branches: [main]
+    paths: ['alexa-household-agent/**', '.github/workflows/alexa-household-agent.yml']
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: npm test
+        working-directory: alexa-household-agent
