@@ -43,9 +43,9 @@ Dinner search filters three recipes by stock, incremental budget, and available 
 
 ## Evidence and limits
 
-The test suite has 21 tests, including an exhaustive matrix of 144 deadline, budget, group-size, and pantry combinations. Accepted dinner plans fit the simulated constraints. Blocked plans have no saved dinner steps. Tests also cover stock exclusions, corrupted storage, quota errors, retry recovery, and duplicate prevention.
+The test suite has 24 tests, including an exhaustive matrix of 144 deadline, budget, group-size, and pantry combinations. Accepted dinner plans fit the simulated constraints. Blocked plans have no saved dinner steps. Tests also cover stock exclusions, corrupted storage, quota errors, retry recovery, and duplicate prevention.
 
-These are fixture results, not user outcomes. No real household or live-service reliability has been measured. Pantry items assume enough quantity. Ingredient prices are synthetic $3 units per two people. The morning routine is fixed. The app does not resolve conflicts across separate goals or understand free-form speech. Shopping lists are drafts, not orders. This prototype does not claim Amazon SDK compatibility.
+These are fixture results, not user outcomes. No real household or live-service reliability has been measured. Pantry items assume enough quantity. Ingredient prices are synthetic $3 units per two people. The morning routine is fixed. Dinner and shopping share one evening plan: either replan retires both prior evening checkpoints, including during refusal or an outage. Morning steps remain separate. The app does not understand free-form speech. Shopping lists are drafts, not orders. This prototype does not claim Amazon SDK compatibility.
 
 ## Security and privacy
 

@@ -17,3 +17,36 @@ test('storage quota failure is surfaced',()=>assert.throws(()=>save({setItem:()=
 test('malformed saved result resets rather than breaking the page',()=>assert.deepEqual(load({getItem:()=>JSON.stringify({...seed(),last:{status:'ready'}})}),seed()));
 test('blocked replan removes stale reminders for that goal',()=>{let s=plan(seed(),'dinner');s=plan({...s,budget:0,pantry:[]},'dinner');assert.equal(s.events.length,0);});
 test('constraint sweep: every accepted dinner fits budget and deadline',()=>{let checked=0;for(const deadline of [1110,1140,1170,1200])for(const budget of [0,3,6,9,12,24])for(const people of [2,4,6])for(const pantry of [[],['rice','beans','tomato']]){const s=plan({...seed(),deadline,budget,people,pantry},'dinner');if(s.last.status==='ready'){assert.ok(s.last.cost<=budget);const times=s.last.steps.map(e=>e.time);assert.equal(times.at(-1),`${Math.floor(deadline/60)}:${String(deadline%60).padStart(2,'0')}`);assert.ok(times.every((t,i)=>i===0 || times[i-1]<=t));}else assert.equal(s.events.length,0);checked++;}assert.equal(checked,144);});
+
+test('new dinner retires the previous shopping list while preserving morning',()=>{
+ let s=plan(plan({...seed(),pantry:[]},'morning'),'shopping');
+ assert.ok(s.events.some(e=>e.goal==='shopping'));
+ s=plan({...s,pantry:seed().pantry,budget:0},'dinner');
+ assert.equal(s.last.cost,0);
+ assert.equal(s.events.filter(e=>e.goal==='shopping').length,0);
+ assert.equal(s.events.filter(e=>e.goal==='morning').length,3);
+ assert.deepEqual(s.goals,['morning','dinner']);
+});
+test('shopping replacement clears dinner on success, refusal, and outage',()=>{
+ for(const variant of [{budget:12,outage:false},{budget:0,outage:false},{budget:12,outage:true}]){
+  let s=plan(seed(),'dinner');
+  s=plan({...s,pantry:[],...variant},'shopping');
+  assert.equal(s.events.filter(e=>e.goal==='dinner').length,0);
+  assert.ok(!s.goals.includes('dinner'));
+  if(s.last.status==='retry'){
+   s=plan({...s,outage:false},'shopping');
+   s=plan(s,'shopping');
+   assert.equal(s.events.length,1);
+   assert.equal(s.events[0].goal,'shopping');
+  }
+ }
+});
+test('blocked dinner clears a prior shopping checkpoint across persistence',()=>{
+ let s=plan({...seed(),pantry:[]},'shopping');
+ s=plan({...s,budget:0},'dinner');
+ assert.equal(s.last.status,'blocked');
+ let raw;save({setItem:(_,v)=>{raw=v;}},s);
+ const restored=load({getItem:()=>raw});
+ assert.deepEqual(restored.events,[]);
+ assert.deepEqual(restored.goals,[]);
+});
