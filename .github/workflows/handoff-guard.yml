@@ -16,3 +16,5 @@ jobs:
         working-directory: aws-agents-for-humans
       - run: uv run ruff check . && uv run ruff format --check . && uv run pytest -q
         working-directory: aws-agents-for-humans
+      - run: uv run python scripts/judge_check.py
+        working-directory: aws-agents-for-humans

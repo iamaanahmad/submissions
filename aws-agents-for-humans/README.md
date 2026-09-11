@@ -17,6 +17,24 @@ A model cannot turn a blocked item into an accepted item.
 
 ## Run without a model
 
+### Judge quick check
+
+After installing the dependencies below, run:
+
+```sh
+uv run python scripts/judge_check.py
+```
+
+This exercises the installed command-line tool with temporary synthetic evidence.
+It checks four blocked items, a corrected five-file packet, refusal to overwrite,
+invalid input, and recovery after failure. It verifies copied hashes and removes its temporary files.
+The command exits unsuccessfully if any expectation fails.
+It needs no account, model download, cloud service, or customer data.
+This checks the deterministic engine, not Strands inference or real customer outcomes.
+For the actual model workflow, use the separate instructions below.
+
+### Inspect your own demo packet
+
 Install Python 3.11 or later and [uv](https://docs.astral.sh/uv/).
 From this directory:
 
