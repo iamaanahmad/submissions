@@ -18,7 +18,11 @@ export function validate(s) {
 export function plan(input, goal) {
  const s=structuredClone(validate(input));
  if(!['dinner','morning','shopping'].includes(goal)) throw Error('Choose dinner, morning, or shopping');
- s.events=s.events.filter(e=>e.goal!==goal); // Retire the replaced goal, including stale reminders on a blocked replan.
+ // Dinner and shopping share one meal decision. Retire both before a replan,
+ // including blocked plans and outages, so stale shopping or dinner cannot survive.
+ const replaced=goal==='morning'?['morning']:['dinner','shopping'];
+ s.events=s.events.filter(e=>!replaced.includes(e.goal));
+ s.goals=s.goals.filter(g=>!replaced.includes(g));
  const trace=[]; const call=(tool,detail)=>trace.push({tool,detail});
  call('calendar.read','Synthetic calendar: pickup 18:00–18:30; work ends 17:30.');
  call('pantry.read',`Available: ${s.pantry.join(', ') || 'none'}.`);
