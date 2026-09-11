@@ -43,13 +43,13 @@ Dinner search filters three recipes by stock, incremental budget, and available 
 
 ## Evidence and limits
 
-The test suite has 18 tests, including an exhaustive matrix of 144 deadline, budget, group-size, and pantry combinations. Accepted dinner plans fit the simulated constraints. Blocked plans have no saved dinner steps. Tests also cover stock exclusions, corrupted storage, quota errors, retry recovery, and duplicate prevention.
+The test suite has 21 tests, including an exhaustive matrix of 144 deadline, budget, group-size, and pantry combinations. Accepted dinner plans fit the simulated constraints. Blocked plans have no saved dinner steps. Tests also cover stock exclusions, corrupted storage, quota errors, retry recovery, and duplicate prevention.
 
 These are fixture results, not user outcomes. No real household or live-service reliability has been measured. Pantry items assume enough quantity. Ingredient prices are synthetic $3 units per two people. The morning routine is fixed. The app does not resolve conflicts across separate goals or understand free-form speech. Shopping lists are drafts, not orders. This prototype does not claim Amazon SDK compatibility.
 
 ## Security and privacy
 
-The app has no external runtime requests, third-party scripts, accounts, or secrets. User-facing values use `textContent`. State is validated when loaded. Storage errors remain visible and do not claim successful persistence. The local server rejects non-GET/HEAD methods and unknown files. Do not put private household data into this public demonstration.
+The app has no external runtime requests, third-party scripts, accounts, or secrets. User-facing values use `textContent`. State is validated when loaded. Storage errors remain visible and do not claim successful persistence. The local server rejects non-GET/HEAD methods and unknown files. Malformed request URLs return 400 without stopping the server. HTTP tests verify that normal requests still work afterward. Do not put private household data into this public demonstration.
 
 ## Contest and rights
 
