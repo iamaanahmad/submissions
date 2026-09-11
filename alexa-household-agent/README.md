@@ -16,6 +16,10 @@ npm start
 
 Open http://localhost:4173. The browser stores only this demo's synthetic state. Use **Try a service failure → Reset this demo** to remove it. Serve the four browser files together on any static host: `index.html`, `style.css`, `app.mjs`, and `engine.mjs`.
 
+## Verify the main scenarios
+
+Run `npm run judge` for a single-command check of five real planner scenarios. It checks pantry savings, shopping, safe refusal, saved outage recovery, and linked plans. It prints a JSON result and exits nonzero if any assertion fails. It uses temporary in-memory storage and needs no account or network. This command does not verify the browser interface or a live Amazon integration.
+
 ## Try the workflow
 
 1. Keep the pantry selected and make a dinner plan. The result costs $0 extra and preserves school pickup.
