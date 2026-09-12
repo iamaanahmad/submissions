@@ -1,4 +1,4 @@
-import test from 'node:test';import assert from 'node:assert/strict';import {seed,plan,load,save} from './engine.mjs';
+import test from 'node:test';import assert from 'node:assert/strict';import {seed,plan,load,save,checkSnapshot} from './engine.mjs';
 test('dinner respects pickup and uses pantry without spending',()=>{const s=plan(seed(),'dinner');assert.equal(s.last.status,'ready');assert.equal(s.last.cost,0);assert.equal(s.last.title,'Tomato rice bowls');assert.deepEqual(s.last.steps.map(x=>x.time),['18:00','18:35','19:00']);});
 test('impossible deadline abstains without writing reminders',()=>{const s=plan({...seed(),deadline:1110},'dinner');assert.equal(s.last.status,'blocked');assert.equal(s.events.length,0);});
 test('empty pantry chooses the fastest equal-cost feasible meal',()=>{const s=plan({...seed(),pantry:[]},'dinner');assert.equal(s.last.title,'Chickpea wraps');assert.equal(s.last.cost,9);});
@@ -49,4 +49,42 @@ test('blocked dinner clears a prior shopping checkpoint across persistence',()=>
  const restored=load({getItem:()=>raw});
  assert.deepEqual(restored.events,[]);
  assert.deepEqual(restored.goals,[]);
+});
+
+test('stale tabs cannot overwrite another tab, even after repeated attempts',()=>{
+ let raw=null;
+ const storage={getItem:()=>raw,setItem:(_,value)=>{raw=value;}};
+ const first=plan(seed(),'morning');
+ const current=save(storage,first,null);
+ let stale=plan(seed(),'dinner');
+ for(let i=0;i<3;i++){
+  assert.throws(()=>save(storage,stale,null),{code:'STATE_CONFLICT'});
+  assert.equal(raw,current);
+  assert.throws(()=>checkSnapshot(storage,null),{code:'STATE_CONFLICT'});
+  stale=plan(stale,'dinner');
+ }
+ const refreshed=plan(load(storage),'dinner');
+ save(storage,refreshed,current);
+ assert.deepEqual(load(storage).goals,['morning','dinner']);
+});
+
+test('a reset in another tab cannot resurrect the old saved plan',()=>{
+ let raw=null;
+ const storage={getItem:()=>raw,setItem:(_,value)=>{raw=value;}};
+ const first=plan(seed(),'morning');
+ const snapshot=save(storage,first,null);
+ raw=null;
+ assert.throws(()=>save(storage,plan(first,'dinner'),snapshot),{code:'STATE_CONFLICT'});
+ assert.equal(raw,null);
+});
+
+test('same-revision replacements are detected by content, not just revision',()=>{
+ let raw=null;
+ const storage={getItem:()=>raw,setItem:(_,value)=>{raw=value;}};
+ const first=plan(seed(),'morning');
+ const snapshot=save(storage,first,null);
+ raw=JSON.stringify(plan(seed(),'dinner'));
+ const changed=raw;
+ assert.throws(()=>save(storage,plan(first,'morning'),snapshot),{code:'STATE_CONFLICT'});
+ assert.equal(raw,changed);
 });
