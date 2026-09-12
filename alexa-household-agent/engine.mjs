@@ -75,3 +75,18 @@ export function save(storage,state,expectedSnapshot) {
  validate(state);checkSnapshot(storage,expectedSnapshot);
  const snapshot=JSON.stringify(state);storage.setItem('household-relay-v1',snapshot);return snapshot;
 }
+// Every browser save and reset must use this same origin-scoped lock.
+// Fail closed when locking is unavailable rather than risk another tab's data.
+export async function withStorageLock(locks, mutate) {
+ if(!locks?.request) {
+  const error=Error('Safe saving is unavailable. Use a current browser on HTTPS or localhost.');
+  error.code='STORAGE_LOCK_UNAVAILABLE';throw error;
+ }
+ return locks.request('household-relay-v1', {mode:'exclusive',ifAvailable:true}, lock=>{
+  if(!lock) {
+   const error=Error('Another tab is saving. Try again after it finishes.');
+   error.code='STATE_BUSY';throw error;
+  }
+  return mutate();
+ });
+}
