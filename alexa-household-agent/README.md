@@ -47,7 +47,7 @@ Dinner search filters three recipes by stock, incremental budget, and available 
 
 ## Evidence and limits
 
-The test suite has 27 tests, including an exhaustive matrix of 144 deadline, budget, group-size, and pantry combinations. Accepted dinner plans fit the simulated constraints. Blocked plans have no saved dinner steps. Tests also cover stock exclusions, corrupted storage, quota errors, retry recovery, and duplicate prevention.
+The test suite has 31 tests, including an exhaustive matrix of 144 deadline, budget, group-size, and pantry combinations. Accepted dinner plans fit the simulated constraints. Blocked plans have no saved dinner steps. Tests also cover stock exclusions, corrupted storage, quota errors, retry recovery, duplicate prevention, competing saves and resets, and unavailable locks.
 
 These are fixture results, not user outcomes. No real household or live-service reliability has been measured. Pantry items assume enough quantity. Ingredient prices are synthetic $3 units per two people. The morning routine is fixed. Dinner and shopping share one evening plan: either replan retires both prior evening checkpoints, including during refusal or an outage. Morning steps remain separate. The app does not understand free-form speech. Shopping lists are drafts, not orders. This prototype does not claim Amazon SDK compatibility.
 
@@ -57,7 +57,7 @@ The app has no external runtime requests, third-party scripts, accounts, or secr
 
 If browser storage is full or denied, the planner still shows an unsaved preview. The warning explains that refreshing can restore an older saved plan. Service retries work within the current tab. A later successful save replaces the old checkpoint. If clearing storage fails, reset reports the failure and keeps the current plan.
 
-A stale tab checks its original saved snapshot before saving or resetting. If another tab has changed or reset it, refresh first. The preview stays unsaved and the newer stored plan remains intact. This detects completed changes before a save; localStorage does not provide an atomic lock for simultaneous writes.
+A stale tab checks its original saved snapshot before saving or resetting. If another tab has changed or reset it, refresh first. The preview stays unsaved and the newer stored plan remains intact. Saves and resets acquire the same exclusive Web Lock before checking and changing storage. A busy tab keeps an unsaved preview. Retry after the other tab finishes, or refresh if it changed the saved plan. Browsers without Web Locks keep previews only; use a current browser on HTTPS or localhost for saving. Refresh all previously opened tabs after upgrading: old app versions do not participate in the lock. This coordinates tabs on one browser origin, not different devices.
 
 ## Contest and rights
 

@@ -26,7 +26,7 @@ Clear the pantry and run again. Show the $9 wraps plan. Set budget to zero and s
 
 Restore the budget and enable the reminder outage. Run, refresh, disable the outage, and retry. Show the saved steps once.
 
-Close with the measured checks: 27 automated tests, including 144 fixture combinations. State that the planner is simulated, with no real purchases or messages.
+Close with the measured checks: 31 automated tests, including 144 fixture combinations. State that the planner is simulated, with no real purchases or messages.
 
 Browser storage failure also permits an explicitly unsaved preview, service retry, and recovery when saving works again. These browser checks were tested with injected storage failures, not measured household usage.
 
