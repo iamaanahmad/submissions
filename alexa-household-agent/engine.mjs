@@ -65,4 +65,13 @@ export function load(storage) {
  try {const raw=storage.getItem('household-relay-v1');return raw?validate(JSON.parse(raw)):seed();}
  catch{return seed();}
 }
-export function save(storage,state) { validate(state);storage.setItem('household-relay-v1',JSON.stringify(state)); }
+export function checkSnapshot(storage,expectedSnapshot) {
+ if(expectedSnapshot!==undefined && storage.getItem('household-relay-v1')!==expectedSnapshot) {
+  const error=Error('Another tab changed the saved plan. Refresh to load it before saving or resetting.');
+  error.code='STATE_CONFLICT';throw error;
+ }
+}
+export function save(storage,state,expectedSnapshot) {
+ validate(state);checkSnapshot(storage,expectedSnapshot);
+ const snapshot=JSON.stringify(state);storage.setItem('household-relay-v1',snapshot);return snapshot;
+}
