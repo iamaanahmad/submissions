@@ -59,6 +59,11 @@ If browser storage is full or denied, the planner still shows an unsaved preview
 
 A stale tab checks its original saved snapshot before saving or resetting. If another tab has changed or reset it, refresh first. The preview stays unsaved and the newer stored plan remains intact. Saves and resets acquire the same exclusive Web Lock before checking and changing storage. A busy tab keeps an unsaved preview. Retry after the other tab finishes, or refresh if it changed the saved plan. Browsers without Web Locks keep previews only; use a current browser on HTTPS or localhost for saving. Refresh all previously opened tabs after upgrading: old app versions do not participate in the lock. This coordinates tabs on one browser origin, not different devices.
 
+## Submission package
+
+The [current submission package](ENTRY.md) links the public 65-second video, source download, judge instructions, and tool feedback.
+The entry remains unsubmitted. This package separates verified evidence from unresolved entrant and licensing requirements.
+
 ## Contest and rights
 
 Prepared for the Alexa+ experience simulation path in [Amazon's 2026 app-development contest](https://amazonappdev2026.devpost.com/rules). Rules were checked on September 12, 2026. Submission closes October 23 at 19:00 UTC. The entrant must still confirm eligibility, registration, rights, a qualifying open-source license, a public YouTube/Vimeo video under three minutes, and legal acceptance.
