@@ -47,13 +47,15 @@ const sleep=ms=>new Promise(r=>setTimeout(r,ms));
       result[label]=await ev('('+fs.readFileSync(path,'utf8')+')()');
     }
 
+    result.savedRefresh=await require('./checks/saved-refresh.cjs')({c,reload,injectReload});
     const checks = Object.entries(result).filter(([,v])=>typeof v==='boolean');
     for(const group of ['story','seed']) {
       for(const [name,value] of Object.entries(result[group].results))checks.push([group+'.'+name,value]);
     }
+    for(const [name,value] of Object.entries(result.savedRefresh))checks.push(['savedRefresh.'+name,value]);
     const failures=checks.filter(([,v])=>v!==true);
     for(const [name,value] of checks)console.log(`${value?'PASS':'FAIL'} ${name}`);
     console.log(`${checks.length-failures.length}/${checks.length} checks passed. AI endpoint blocked; responses mocked or offline.`);
-    if(checks.length!==41 || failures.length)process.exitCode=1;
+    if(checks.length!==50 || failures.length)process.exitCode=1;
  } finally {await browser.close();}
 })().catch(e=>{console.error(e.message);process.exitCode=1;});

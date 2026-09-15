@@ -35,7 +35,7 @@ The runner launches a separate headless browser with a temporary profile.
 It tests the public app, then closes that browser and deletes its profile.
 It never connects to your personal browser session or reads your saved seeds.
 
-Expected result: **41/41 checks passed** and exit code 0.
+Expected result: **50/50 checks passed** and exit code 0.
 Any failed check, missing app, or setup error exits nonzero.
 
 | Checks | Count | What they cover |
@@ -43,6 +43,7 @@ Any failed check, missing app, or setup error exits nonzero.
 | Unfinished work | 14 | Reload, word selection, prompt recovery, reset, malformed storage and blocked writes |
 | Finished stories | 14 | Cancellation, timeout, failure, stale replies, replacement and live/demo labels |
 | Story seeds | 13 | Current edits, saved fallback, reuse, copying and recovery |
+| Saved-seed refresh | 9 | Same-tab copying and generation, explicit resets, legacy and invalid optional values |
 
 The AI endpoint is blocked during automated checks. Test responses are mocked or use the labeled offline demo.
 These checks prove browser behavior. They do not measure live AI quality, server security, availability or speed.
