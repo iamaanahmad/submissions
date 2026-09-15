@@ -9,3 +9,11 @@ Policy Change Radar reviews vendor policy-update emails in a Mermail inbox. It c
 - Safety: the workflow does not send email or accept terms
 
 The demo covers the prompt, Mermail connection, live inbox searches, source email reads, agent completion, and the final ranked result.
+
+## Pocket Intermission
+
+A word game that keeps ideas useful while AI writes a story.
+
+- [Try the public app](https://pocket-intermission.vibe.commonsmade.com/)
+- [Judge guide and 41 automated checks](pocket-intermission/README.md)
+- [Live demo and recovery recordings](https://github.com/iamaanahmad/submissions/releases/tag/pocket-current-demo-20260914)
