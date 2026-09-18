@@ -1,0 +1,14 @@
+[
+  {
+    "name": "eval_public.jsonl",
+    "url": "https://drive.google.com/uc?export=download&id=1wpIdvUDOJDfG5c1A_o6IXi_uHpRTY8cG",
+    "sha256": "abddb7d18a6d8ed908f514a7e560fe4950ebe479ebb2cdb75a7456887c10c6e5",
+    "rows": 100
+  },
+  {
+    "name": "eval_hidden.jsonl",
+    "url": "https://drive.google.com/uc?export=download&id=1L-3Aum_nZ0FsGwVpWv_IpzREzALYRm2E",
+    "sha256": "a2742f449765bb66c7ccc87a281560de3327894fe656a3b2f415f68d990c7d0a",
+    "rows": 50
+  }
+]
