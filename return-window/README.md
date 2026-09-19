@@ -2,7 +2,7 @@
 
 A shared return board for households. Track the money still in the return pile, save shop policies, and hand off the next step.
 
-[Open the live app](https://brazen-newt-717.convex.site) · [Watch the 59-second demo](https://brazen-newt-717.convex.site/demo.mp4)
+[Open the live app](https://brazen-newt-717.convex.site) · [Watch the 59-second demo](https://brazen-newt-717.convex.site/demo.html)
 
 ## Try it in two minutes
 
