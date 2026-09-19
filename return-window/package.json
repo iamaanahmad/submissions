@@ -1,0 +1,29 @@
+{
+  "name": "return-window",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0 --port 5180",
+    "build": "tsc --noEmit && vite build",
+    "test": "vitest run",
+    "deploy": "convex deploy -y && npx @convex-dev/static-hosting upload --build --prod"
+  },
+  "dependencies": {
+    "@convex-dev/static-hosting": "latest",
+    "convex": "latest",
+    "lucide-react": "latest",
+    "react": "latest",
+    "react-dom": "latest"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.2",
+    "@types/react": "latest",
+    "@types/react-dom": "latest",
+    "@vitejs/plugin-react": "latest",
+    "convex-test": "latest",
+    "typescript": "latest",
+    "vite": "latest",
+    "vitest": "latest"
+  }
+}
