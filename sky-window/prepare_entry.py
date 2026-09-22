@@ -68,9 +68,9 @@ def prepare(output, kit_zip=None):
             result_dir = root / scenario
             result = subprocess.run(
                 [str(python), str(kit / 'local_runner.py'), '--scenario', str(kit / 'scenarios' / scenario),
-                 '--agent', str(isolated / 'minimal_agent.py'), '--python', str(python), '--wallclock', '120',
+                 '--agent', str(isolated / 'minimal_agent.py'), '--python', str(python), '--wallclock', '600',
                  '--out', str(result_dir), '--quiet'], check=True, env=env, cwd=isolated,
-                capture_output=True, text=True, timeout=150)
+                capture_output=True, text=True, timeout=660)
             summary = json.loads(result.stdout)
             require_complete(summary, (result_dir / 'agent.log').read_text())
             rows.append({'scenario': scenario, 'total': summary['total'],
