@@ -1,0 +1,79 @@
+# Sky Window
+
+A free, deterministic telescope scheduler for [GOSIM Agentic Observer](https://create.gosim.org/survey26/platform/).
+It chooses among legal observations using current gain, confirmed coverage, and remaining viewing time.
+It uses no model key, network call, or hidden scenario data.
+
+## Current status
+
+Working local entry, **not registered or submitted**. Registration requires the entrant's astronomy and AI experience levels.
+Award eligibility also excludes organizers, evaluation-platform maintainers, and their immediate collaborators.
+The live [rules](https://create.gosim.org/survey26/platform/rules) currently open judged submissions
+**October 4, 2026 at 16:00 UTC**, closing October 7 at 15:59 UTC. Awards are October 17.
+Playground scores do not qualify as judged submissions. Recheck the live phase table before uploading.
+
+The organizer supplies a coding-assistant guide in its starter kit. Ordinary local development is available now.
+Prize acceptance can be remote. No registration fee or paid model is needed.
+
+## Local evidence
+
+Same official runner, scorer, time budget, and scenario for each pair. No strategy fallback occurred.
+All six runs reached `survey_complete`. Scores are local evidence, not a predicted rank or win.
+
+| Scenario | Nights | Starter | Sky Window | Change |
+|---|---:|---:|---:|---:|
+| Published dev reference | 180 | 12,287.478365 | 12,281.384139 | -0.05% |
+| Published finals preview | 7 | 8,214.257133 | 9,353.018251 | +13.86% |
+| Generated seed 29, finals settings | 90 | 16,019.115685 | 16,157.905325 | +0.87% |
+
+The strategy was fixed before the 90-night scenario ran. In the seven-night preview,
+missed required tiles fell from one to zero. Both 90-night runs completed all 64 tiles.
+Both inherited a 150-point wrong-tag penalty from the organizer's anomaly detector.
+The small practice regression is retained and disclosed, rather than selecting only winning scores.
+Raw score and completion fields are in [results.json](results.json).
+
+## Reproduce
+
+Use Python 3.12, matching the platform runtime. The strategy also runs on Python 3.11.
+
+```sh
+python3 -m unittest discover -s sky-window -v
+python3 sky-window/benchmark.py --output sky-window-rerun.json
+```
+
+The benchmark downloads the official kit into a temporary directory, checks its SHA-256,
+then compares the unchanged starter against our strategy. It generates the 90-night seed-29 scenario
+from the supplied finals-preview configuration. It removes downloaded code and temporary runs afterward.
+Allow several minutes. `--kit-zip /path/to/kit.zip` reuses a download with the same verified hash.
+A changed organizer kit stops the run until its rules and protocol have been checked.
+
+Only our strategy, tests, benchmark driver, and measured results are distributed here.
+The official engine, wrapper, and anomaly detector remain organizer-supplied dependencies.
+No rights to redistribute the starter kit are assumed.
+
+## Entry artifact
+
+[my_strategy.py](my_strategy.py) implements the organizer's `choose_action(candidates, snapshot, memory)` interface.
+Install it as `agent/my_strategy.py` in the official starter kit. The platform's beginner upload path
+accepts a `my_strategy.py` strategy and supplies its wrapper; verify this on the current upload page.
+If that path changes, do not upload this hook as a standalone JSONL executable.
+The [official getting-started guide](https://create.gosim.org/survey26/platform/start) explains both paths.
+
+## Approach and limits
+
+- Prefer gain per exposure second, with a maximum 15% preference for windows closing soon.
+- Estimate coverage effects using confirmed completed tile IDs, not attempted observations.
+- Keep each tile's best reported score. Repeated feedback and weaker repeats never inflate the ledger.
+- Return only supplied legal candidates. With none, wait.
+- Leave anomaly reporting and protocol validation to the official wrapper.
+
+Coverage uses the regions seen in public snapshots and realized scores that include program bonuses.
+It is a ranking heuristic, not an exact forecast of the final coverage reward.
+Weather may change during an exposure. The policy cannot see future weather or guarantee completion.
+The organizer's score constants are provisional. Local seed-29 results are no longer an untouched
+holdout for future tuning; use new seeds for subsequent validation.
+
+## AI assistance
+
+An OpenAI coding agent implemented this scheduling policy, tests, and benchmark driver for Amaan Ahmad.
+The official wrapper contributes candidate estimates, protocol handling, and anomaly detection.

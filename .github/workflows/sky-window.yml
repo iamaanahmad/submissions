@@ -1,0 +1,16 @@
+name: Sky Window
+on:
+  push:
+    paths: ['sky-window/**', '.github/workflows/sky-window.yml']
+  pull_request:
+    paths: ['sky-window/**', '.github/workflows/sky-window.yml']
+jobs:
+  strategy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m unittest discover -s sky-window -v
+      - run: python sky-window/benchmark.py --help
