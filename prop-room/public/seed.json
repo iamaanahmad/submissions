@@ -1,0 +1,236 @@
+{
+  "production": {
+    "_id": "production-last-platform",
+    "_type": "production",
+    "title": "The last platform",
+    "subtitle": "An original rehearsal exercise",
+    "status": "draft",
+    "cues": [
+      {
+        "_type": "reference",
+        "_ref": "cue-01",
+        "_key": "cue-01"
+      },
+      {
+        "_type": "reference",
+        "_ref": "cue-02",
+        "_key": "cue-02"
+      },
+      {
+        "_type": "reference",
+        "_ref": "cue-03",
+        "_key": "cue-03"
+      },
+      {
+        "_type": "reference",
+        "_ref": "cue-04",
+        "_key": "cue-04"
+      },
+      {
+        "_type": "reference",
+        "_ref": "cue-05",
+        "_key": "cue-05"
+      },
+      {
+        "_type": "reference",
+        "_ref": "cue-06",
+        "_key": "cue-06"
+      }
+    ],
+    "description": "A fictional three-scene performance. All names and timings are sample data."
+  },
+  "props": [
+    {
+      "_id": "prop-umbrella",
+      "_type": "prop",
+      "title": "Ivory umbrella",
+      "kind": "umbrella",
+      "resetMinutes": 4,
+      "home": "Stage left · hook 02",
+      "note": "Dry canopy and fold before handoff.",
+      "color": "#d8cfab"
+    },
+    {
+      "_id": "prop-umbrella-spare",
+      "_type": "prop",
+      "title": "Red umbrella",
+      "kind": "umbrella",
+      "resetMinutes": 2,
+      "home": "Stage right · hook 04",
+      "note": "Spare. Same silhouette; different color.",
+      "color": "#b94632"
+    },
+    {
+      "_id": "prop-lantern",
+      "_type": "prop",
+      "title": "Brass lantern",
+      "kind": "lantern",
+      "resetMinutes": 2,
+      "home": "Stage right · shelf 01",
+      "note": "Battery light only. Check switch.",
+      "color": "#c19a48"
+    },
+    {
+      "_id": "prop-lantern-spare",
+      "_type": "prop",
+      "title": "Tin lantern",
+      "kind": "lantern",
+      "resetMinutes": 1,
+      "home": "Stage left · shelf 03",
+      "note": "Spare. Check light level in rehearsal.",
+      "color": "#8b9795"
+    },
+    {
+      "_id": "prop-letter",
+      "_type": "prop",
+      "title": "Sealed letter",
+      "kind": "letter",
+      "resetMinutes": 1,
+      "home": "Stage left · tray 01",
+      "note": "Replace paper seal after each use.",
+      "color": "#dfcabc"
+    }
+  ],
+  "scenes": [
+    {
+      "_id": "scene-platform",
+      "_type": "scene",
+      "title": "The platform",
+      "order": 1
+    },
+    {
+      "_id": "scene-storm",
+      "_type": "scene",
+      "title": "The storm",
+      "order": 2
+    },
+    {
+      "_id": "scene-return",
+      "_type": "scene",
+      "title": "The return",
+      "order": 3
+    }
+  ],
+  "cues": [
+    {
+      "_id": "cue-01",
+      "_type": "cue",
+      "title": "Station arrival",
+      "start": 8,
+      "end": 16,
+      "prop": {
+        "_type": "reference",
+        "_ref": "prop-umbrella"
+      },
+      "scene": {
+        "_type": "reference",
+        "_ref": "scene-platform"
+      },
+      "crew": "Mira",
+      "location": "Stage left",
+      "confirmed": true,
+      "propId": "prop-umbrella",
+      "sceneId": "scene-platform"
+    },
+    {
+      "_id": "cue-02",
+      "_type": "cue",
+      "title": "A light in the rain",
+      "start": 10,
+      "end": 14,
+      "prop": {
+        "_type": "reference",
+        "_ref": "prop-lantern"
+      },
+      "scene": {
+        "_type": "reference",
+        "_ref": "scene-platform"
+      },
+      "crew": "Dev",
+      "location": "Stage right",
+      "confirmed": true,
+      "propId": "prop-lantern",
+      "sceneId": "scene-platform"
+    },
+    {
+      "_id": "cue-03",
+      "_type": "cue",
+      "title": "The last train",
+      "start": 17,
+      "end": 25,
+      "prop": {
+        "_type": "reference",
+        "_ref": "prop-umbrella"
+      },
+      "scene": {
+        "_type": "reference",
+        "_ref": "scene-storm"
+      },
+      "crew": "Mira",
+      "location": "Stage right",
+      "confirmed": false,
+      "propId": "prop-umbrella",
+      "sceneId": "scene-storm"
+    },
+    {
+      "_id": "cue-04",
+      "_type": "cue",
+      "title": "Search the platform",
+      "start": 19,
+      "end": 27,
+      "prop": {
+        "_type": "reference",
+        "_ref": "prop-lantern"
+      },
+      "scene": {
+        "_type": "reference",
+        "_ref": "scene-storm"
+      },
+      "crew": "Dev",
+      "location": "Stage left",
+      "confirmed": false,
+      "propId": "prop-lantern",
+      "sceneId": "scene-storm"
+    },
+    {
+      "_id": "cue-05",
+      "_type": "cue",
+      "title": "Someone came back",
+      "start": 26,
+      "end": 32,
+      "prop": {
+        "_type": "reference",
+        "_ref": "prop-lantern"
+      },
+      "scene": {
+        "_type": "reference",
+        "_ref": "scene-return"
+      },
+      "crew": "Jo",
+      "location": "Stage right",
+      "confirmed": false,
+      "propId": "prop-lantern",
+      "sceneId": "scene-return"
+    },
+    {
+      "_id": "cue-06",
+      "_type": "cue",
+      "title": "The unopened letter",
+      "start": 29,
+      "end": 34,
+      "prop": {
+        "_type": "reference",
+        "_ref": "prop-letter"
+      },
+      "scene": {
+        "_type": "reference",
+        "_ref": "scene-return"
+      },
+      "crew": "Jo",
+      "location": "Stage left",
+      "confirmed": false,
+      "propId": "prop-letter",
+      "sceneId": "scene-return"
+    }
+  ]
+}
