@@ -59,6 +59,29 @@ accepts a `my_strategy.py` strategy and supplies its wrapper; verify this on the
 If that path changes, do not upload this hook as a standalone JSONL executable.
 The [official getting-started guide](https://create.gosim.org/survey26/platform/start) explains both paths.
 
+## Verify the upload files
+
+```sh
+python3 sky-window/prepare_entry.py --output /tmp/sky-window-entry
+```
+
+Use a new output directory. `--kit-zip /path/to/kit.zip` avoids downloading again.
+The command checks the official kit hash, installs our strategy, and uses the official packager.
+It unpacks the result and runs both the 180-night reference and seven-night finals preview
+in a fresh Python environment with no third-party packages or inherited credentials.
+It rejects incomplete runs, strategy fallback, and accidental model-provider configuration.
+This is a local compatibility check, not the platform's sandbox or an online submission.
+
+Only three files survive verification:
+
+- `my_strategy.py`: upload as **Agent run** during the online judged phase.
+- `dev-reference-decisions.csv`: upload as **Results file** for the matching practice scenario only.
+- `verification.json`: strategy and kit hashes, interpreter version, scores, and completion status.
+
+The live getting-started guide distinguishes these phase-specific routes. Practice does not count as a judged entry.
+The command never registers or uploads. It deletes the temporary wrapper package and runtime after checking them.
+Only our single strategy file goes to the judged upload; no organizer wrapper is redistributed here.
+
 ## Approach and limits
 
 - Prefer gain per exposure second, with a maximum 15% preference for windows closing soon.
