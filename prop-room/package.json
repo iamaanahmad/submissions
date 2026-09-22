@@ -1,0 +1,1 @@
+{"name":"prop-room","private":true,"type":"module","scripts":{"dev":"astro dev --host 0.0.0.0 --port 5190","build":"astro build","preview":"astro preview --host 0.0.0.0 --port 5190","test":"node --test test/*.test.mjs"},"dependencies":{"astro":"7.3.3"}}

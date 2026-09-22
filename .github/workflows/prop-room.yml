@@ -1,0 +1,23 @@
+name: Prop Room checks
+on:
+  pull_request:
+    paths: ['prop-room/**', '.github/workflows/prop-room.yml']
+  push:
+    branches: [main]
+    paths: ['prop-room/**', '.github/workflows/prop-room.yml']
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: prop-room
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: prop-room/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
