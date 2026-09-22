@@ -8,6 +8,10 @@ Node 22.12 or later. Run npm ci, npm test, npm run dev. Production: npm run buil
 
 ## Judge walkthrough
 
+Run `npm run judge:live` to check the real Sanity sample without an account or key. This reads 15 published fictional documents, checks cue references, resolves both conflicts in memory, and confirms six handoffs. It also checks rehearsal serialization. It never writes to Sanity. Network errors and changed sample records fail explicitly; the command never substitutes offline data. The output includes a timestamp and each substitution. Browser storage, private demo access and submission status require separate checks.
+
+The read uses Sanity's [documented Query API](https://www.sanity.io/docs/http-reference/query) with the published perspective. The live check stays separate from offline CI tests so a network outage cannot masquerade as an engine defect.
+
 1. Load the board. It reads six published cues, three scenes and five props from Sanity. The source label identifies live versus offline data.
 2. Review the conflicts. The ivory umbrella has only one minute to reset, but needs four. Assign the red umbrella. The brass lantern overlaps its earlier cue. Assign the tin lantern.
 3. Confirm the four remaining handoffs. The board reports zero timing conflicts and six confirmed handoffs.
