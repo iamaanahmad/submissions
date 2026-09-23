@@ -1,0 +1,265 @@
+{
+  "kit_sha256": "db871ba723d8ba7aa3b91fc38bb81d6172f3e827f3e9b830cba18f6ba23430c2",
+  "strategy_sha256": "4a494b99717013b089b86095eb122843a47053057db00ff7ac1df37ec4b3b749",
+  "generated_seeds": [
+    41,
+    73,
+    101
+  ],
+  "generated_days": 90,
+  "comparisons": [
+    {
+      "scenario": "heldout-41",
+      "results": {
+        "baseline": {
+          "base_science": 11693.734731,
+          "committed_actions": 4486,
+          "completed_tiles": 64,
+          "final_cursor": "2027-01-03T13:30:00Z",
+          "flexible_shortfall_tiles": 0,
+          "global_wallclock_seconds": 600.0,
+          "penalties": {
+            "flexible_shortfall": 0.0,
+            "request_miss": 0.0,
+            "required_miss": 0.0
+          },
+          "program_bonus": 2810.892785,
+          "request_reward": 840.0,
+          "requests": {
+            "completed": 5,
+            "excused_unobservable": 1
+          },
+          "required_missing": 0,
+          "runner_seconds": 30.887,
+          "termination_reason": "survey_complete",
+          "total": 19737.434672,
+          "wall_seconds": 30.778,
+          "full_score": {
+            "base_science": 11693.734731,
+            "coverage_bonus": 4092.807156,
+            "coverage_evenness": 1.0,
+            "penalties": {
+              "flexible_shortfall": 0.0,
+              "request_miss": 0.0,
+              "required_miss": 0.0
+            },
+            "program_bonus": 2810.892785,
+            "report_reward": 300.0,
+            "request_reward": 840.0,
+            "total": 19737.434672
+          }
+        },
+        "sky-window": {
+          "base_science": 11697.804978,
+          "committed_actions": 4490,
+          "completed_tiles": 64,
+          "final_cursor": "2027-01-03T13:30:00Z",
+          "flexible_shortfall_tiles": 0,
+          "global_wallclock_seconds": 600.0,
+          "penalties": {
+            "flexible_shortfall": 0.0,
+            "request_miss": 0.0,
+            "required_miss": 0.0
+          },
+          "program_bonus": 2825.988487,
+          "request_reward": 840.0,
+          "requests": {
+            "completed": 5,
+            "excused_unobservable": 1
+          },
+          "required_missing": 0,
+          "runner_seconds": 68.654,
+          "termination_reason": "survey_complete",
+          "total": 19758.025208,
+          "wall_seconds": 68.398,
+          "full_score": {
+            "base_science": 11697.804978,
+            "coverage_bonus": 4094.231742,
+            "coverage_evenness": 1.0,
+            "penalties": {
+              "flexible_shortfall": 0.0,
+              "request_miss": 0.0,
+              "required_miss": 0.0
+            },
+            "program_bonus": 2825.988487,
+            "report_reward": 300.0,
+            "request_reward": 840.0,
+            "total": 19758.025208
+          }
+        }
+      },
+      "delta": 20.5905359999997
+    },
+    {
+      "scenario": "heldout-73",
+      "results": {
+        "baseline": {
+          "base_science": 12365.817518,
+          "committed_actions": 6575,
+          "completed_tiles": 64,
+          "final_cursor": "2027-01-03T13:30:00Z",
+          "flexible_shortfall_tiles": 0,
+          "global_wallclock_seconds": 600.0,
+          "penalties": {
+            "flexible_shortfall": 0.0,
+            "request_miss": 0.0,
+            "required_miss": 0.0
+          },
+          "program_bonus": 3042.145418,
+          "request_reward": 1820.0,
+          "requests": {
+            "completed": 7,
+            "excused_unobservable": 2
+          },
+          "required_missing": 0,
+          "runner_seconds": 45.224,
+          "termination_reason": "survey_complete",
+          "total": 21955.999067,
+          "wall_seconds": 45.036,
+          "full_score": {
+            "base_science": 12365.817518,
+            "coverage_bonus": 4328.036131,
+            "coverage_evenness": 1.0,
+            "penalties": {
+              "flexible_shortfall": 0.0,
+              "request_miss": 0.0,
+              "required_miss": 0.0
+            },
+            "program_bonus": 3042.145418,
+            "report_reward": 400.0,
+            "request_reward": 1820.0,
+            "total": 21955.999067
+          }
+        },
+        "sky-window": {
+          "base_science": 12380.010495,
+          "committed_actions": 6563,
+          "completed_tiles": 64,
+          "final_cursor": "2027-01-03T13:30:00Z",
+          "flexible_shortfall_tiles": 0,
+          "global_wallclock_seconds": 600.0,
+          "penalties": {
+            "flexible_shortfall": 0.0,
+            "request_miss": 0.0,
+            "required_miss": 0.0
+          },
+          "program_bonus": 3041.165865,
+          "request_reward": 1820.0,
+          "requests": {
+            "completed": 7,
+            "excused_unobservable": 2
+          },
+          "required_missing": 0,
+          "runner_seconds": 46.449,
+          "termination_reason": "survey_complete",
+          "total": 21974.180033,
+          "wall_seconds": 46.26,
+          "full_score": {
+            "base_science": 12380.010495,
+            "coverage_bonus": 4333.003673,
+            "coverage_evenness": 1.0,
+            "penalties": {
+              "flexible_shortfall": 0.0,
+              "request_miss": 0.0,
+              "required_miss": 0.0
+            },
+            "program_bonus": 3041.165865,
+            "report_reward": 400.0,
+            "request_reward": 1820.0,
+            "total": 21974.180033
+          }
+        }
+      },
+      "delta": 18.1809659999999
+    },
+    {
+      "scenario": "heldout-101",
+      "results": {
+        "baseline": {
+          "base_science": 11690.104323,
+          "committed_actions": 3179,
+          "completed_tiles": 64,
+          "final_cursor": "2027-01-03T13:30:00Z",
+          "flexible_shortfall_tiles": 0,
+          "global_wallclock_seconds": 600.0,
+          "penalties": {
+            "flexible_shortfall": 0.0,
+            "request_miss": 0.0,
+            "required_miss": 0.0
+          },
+          "program_bonus": 2832.275412,
+          "request_reward": 1680.0,
+          "requests": {
+            "completed": 6,
+            "excused_unobservable": 2
+          },
+          "required_missing": 0,
+          "runner_seconds": 30.132,
+          "termination_reason": "survey_complete",
+          "total": 20693.916248,
+          "wall_seconds": 29.977,
+          "full_score": {
+            "base_science": 11690.104323,
+            "coverage_bonus": 4091.536513,
+            "coverage_evenness": 1.0,
+            "penalties": {
+              "flexible_shortfall": 0.0,
+              "request_miss": 0.0,
+              "required_miss": 0.0
+            },
+            "program_bonus": 2832.275412,
+            "report_reward": 400.0,
+            "request_reward": 1680.0,
+            "total": 20693.916248
+          }
+        },
+        "sky-window": {
+          "base_science": 11716.92881,
+          "committed_actions": 3170,
+          "completed_tiles": 64,
+          "final_cursor": "2027-01-03T13:30:00Z",
+          "flexible_shortfall_tiles": 0,
+          "global_wallclock_seconds": 600.0,
+          "penalties": {
+            "flexible_shortfall": 0.0,
+            "request_miss": 0.0,
+            "required_miss": 0.0
+          },
+          "program_bonus": 2867.007648,
+          "request_reward": 1680.0,
+          "requests": {
+            "completed": 6,
+            "excused_unobservable": 2
+          },
+          "required_missing": 0,
+          "runner_seconds": 29.465,
+          "termination_reason": "survey_complete",
+          "total": 20764.861542,
+          "wall_seconds": 29.291,
+          "full_score": {
+            "base_science": 11716.92881,
+            "coverage_bonus": 4100.925084,
+            "coverage_evenness": 1.0,
+            "penalties": {
+              "flexible_shortfall": 0.0,
+              "request_miss": 0.0,
+              "required_miss": 0.0
+            },
+            "program_bonus": 2867.007648,
+            "report_reward": 400.0,
+            "request_reward": 1680.0,
+            "total": 20764.861542
+          }
+        }
+      },
+      "delta": 70.94529399999738
+    }
+  ],
+  "aggregate": {
+    "baseline_total": 62387.349987,
+    "strategy_total": 62497.066783,
+    "wins": 3,
+    "losses": 0,
+    "ties": 0
+  }
+}
