@@ -59,7 +59,10 @@ python3 sky-window/benchmark.py --output sky-window-rerun.json
 ```
 
 The benchmark downloads the official kit into a temporary directory, checks its SHA-256,
-then compares the unchanged starter against our strategy. It generates the 90-night seed-29 scenario
+then compares the unchanged starter against our strategy. Both agents use the deterministic provider,
+without inheriting model credentials or provider settings from your shell. Strategy observations must pass
+the same policy-evidence checks as the entry exporter; a completed run with no policy observations is rejected.
+It generates the 90-night seed-29 scenario
 from the supplied finals-preview configuration. It removes downloaded code and temporary runs afterward.
 Allow several minutes. `--kit-zip /path/to/kit.zip` reuses a download with the same verified hash.
 A changed organizer kit stops the run until its rules and protocol have been checked.
