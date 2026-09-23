@@ -42,8 +42,11 @@ class EntryChecks(unittest.TestCase):
 
     def test_requires_policy_evidence_for_every_observation(self):
         own = 'current gain, confirmed coverage, and remaining viewing time'
+        detector = 'repeat observation to confirm an anomalous realized-score deviation'
         cases = [
-            ([('observe', own), ('wait', 'no candidates')], 1),
+            ([('observe', own), ('observe', detector)], {'strategy': 1, 'organizer_detector': 1}),
+            ([('observe', detector)], None),
+            ([('observe', own), ('wait', 'no candidates')], {'strategy': 1, 'organizer_detector': 0}),
             ([('observe', 'default ranking')], None),
             ([('observe', own), ('observe', '')], None),
             ([('wait', 'no candidates')], None),

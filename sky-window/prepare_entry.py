@@ -29,19 +29,23 @@ def require_strategy_decisions(path):
     # This is the current policy's own reason, preserved by the pinned wrapper.
     # Completion and logs alone cannot detect its silent default-policy branches.
     expected = 'current gain, confirmed coverage, and remaining viewing time'
-    observations = 0
+    detector_reason = 'repeat observation to confirm an anomalous realized-score deviation'
+    observations = detector_observations = 0
     with path.open(newline='') as source:
         rows = csv.DictReader(source)
         if not {'action', 'reason'}.issubset(rows.fieldnames or []):
             raise ValueError('Missing strategy decision evidence')
         for row in rows:
             if row['action'] == 'observe':
+                if row['reason'] == detector_reason:
+                    detector_observations += 1
+                    continue
                 if row['reason'] != expected:
                     raise ValueError('Strategy fallback or unrecognized observation reason')
                 observations += 1
     if not observations:
         raise ValueError('No strategy observations were verified')
-    return observations
+    return {'strategy': observations, 'organizer_detector': detector_observations}
 
 
 def prepare(output, kit_zip=None):
@@ -95,7 +99,7 @@ def prepare(output, kit_zip=None):
             require_complete(summary, (result_dir / 'agent.log').read_text())
             observations = require_strategy_decisions(result_dir / 'decisions.csv')
             rows.append({'scenario': scenario, 'total': summary['total'],
-                         'verified_strategy_observations': observations,
+                         'verified_observations': observations,
                          'termination_reason': summary['termination_reason']})
         report = {'kit_sha256': SHA256, 'strategy_sha256': hashlib.sha256(strategy).hexdigest(),
                   'python_version': sys.version.split()[0], 'third_party_packages_installed': 0,
