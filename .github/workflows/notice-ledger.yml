@@ -1,0 +1,15 @@
+name: Notice Ledger
+on:
+  push:
+    paths: ['notice-ledger/**', '.github/workflows/notice-ledger.yml']
+  pull_request:
+    paths: ['notice-ledger/**', '.github/workflows/notice-ledger.yml']
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m unittest discover -s notice-ledger -v
