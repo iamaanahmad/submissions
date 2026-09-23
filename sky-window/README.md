@@ -99,6 +99,10 @@ The command checks the official kit hash, installs our strategy, and uses the of
 It unpacks the result and runs both the 180-night reference and seven-night finals preview
 in a fresh Python environment with no third-party packages or inherited credentials.
 It rejects incomplete runs, strategy fallback, and accidental model-provider configuration.
+Every observation must carry the current policy's reason or the pinned organizer detector's reason.
+The check requires at least one policy observation and counts detector overrides separately.
+This catches silent starter-policy substitution that completion status and logs alone miss.
+The report counts these verified observations; it does not prove competitive performance.
 This is a local compatibility check, not the platform's sandbox or an online submission.
 
 Only three files survive verification:

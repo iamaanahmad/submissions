@@ -1,8 +1,9 @@
+import csv
 import tempfile
 import unittest
 from pathlib import Path
 
-from prepare_entry import prepare, require_complete
+from prepare_entry import prepare, require_complete, require_strategy_decisions
 
 
 class EntryChecks(unittest.TestCase):
@@ -38,3 +39,31 @@ class EntryChecks(unittest.TestCase):
             with self.assertRaisesRegex(ValueError, 'kit changed'):
                 prepare(output, kit)
             self.assertFalse(output.exists())
+
+    def test_requires_policy_evidence_for_every_observation(self):
+        own = 'current gain, confirmed coverage, and remaining viewing time'
+        detector = 'repeat observation to confirm an anomalous realized-score deviation'
+        cases = [
+            ([('observe', own), ('observe', detector)], {'strategy': 1, 'organizer_detector': 1}),
+            ([('observe', detector)], None),
+            ([('observe', own), ('wait', 'no candidates')], {'strategy': 1, 'organizer_detector': 0}),
+            ([('observe', 'default ranking')], None),
+            ([('observe', own), ('observe', '')], None),
+            ([('wait', 'no candidates')], None),
+        ]
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / 'decisions.csv'
+            for decisions, count in cases:
+                with self.subTest(decisions=decisions):
+                    with path.open('w', newline='') as target:
+                        writer = csv.writer(target)
+                        writer.writerow(['action', 'reason'])
+                        writer.writerows(decisions)
+                    if count is None:
+                        with self.assertRaises(ValueError):
+                            require_strategy_decisions(path)
+                    else:
+                        self.assertEqual(require_strategy_decisions(path), count)
+            path.write_text('action,tile_id\nobserve,tile-1\n')
+            with self.assertRaisesRegex(ValueError, 'Missing'):
+                require_strategy_decisions(path)
