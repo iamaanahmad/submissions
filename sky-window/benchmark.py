@@ -6,6 +6,7 @@ our strategy. Does not register, upload, contact organizers, or use API keys.
 import argparse
 import hashlib
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -13,6 +14,8 @@ import tempfile
 import urllib.request
 import zipfile
 from pathlib import Path
+
+from verification import require_complete, require_strategy_decisions
 
 URL = "https://create.gosim.org/survey26/platform/downloads/agent-observer-starter-kit.zip"
 SHA256 = "db871ba723d8ba7aa3b91fc38bb81d6172f3e827f3e9b830cba18f6ba23430c2"
@@ -66,26 +69,39 @@ def main():
                             "--base", str(kit / "scenarios/finals-preview")],
                            check=True, capture_output=True, text=True)
             scenarios.append((name, generated))
+        # Do not inherit model credentials or a provider selected in the caller shell.
+        env = {"PATH": str(Path(sys.executable).parent), "PYTHONNOUSERSITE": "1",
+               "MODEL_PROVIDER": "deterministic"}
+        if os.name == "nt":
+            env["SYSTEMROOT"] = os.environ["SYSTEMROOT"]
         rows = []
         for name, scenario in scenarios:
             scores = {}
             for label, entry in [("baseline", kit / "agent/minimal_agent.py"), ("sky-window", agent / "minimal_agent.py")]:
                 output = root / (name + "-" + label)
                 result = subprocess.run([sys.executable, str(kit / "local_runner.py"), "--scenario", str(scenario),
-                                         "--agent", str(entry), "--wallclock", "600", "--out", str(output), "--quiet"],
-                                        check=True, capture_output=True, text=True)
+                                         "--agent", str(entry), "--python", sys.executable,
+                                         "--wallclock", "600", "--out", str(output), "--quiet"],
+                                        check=True, capture_output=True, text=True, env=env, timeout=660)
                 summary = json.loads(result.stdout)
                 log = (output / "agent.log").read_text()
-                if summary["termination_reason"] != "survey_complete" or "using the default ranking" in log:
-                    raise SystemExit(f"{name}/{label}: incomplete run or strategy fallback")
+                try:
+                    require_complete(summary, log)
+                    observations = (require_strategy_decisions(output / "decisions.csv")
+                                    if label == "sky-window" else None)
+                except ValueError as error:
+                    raise SystemExit(f"{name}/{label}: {error}") from error
                 report = json.loads((output / "score_report.json").read_text())
                 scores[label] = {k: v for k, v in summary.items() if k != "outputs"}
                 scores[label]["full_score"] = report["score"]
+                if observations is not None:
+                    scores[label]["verified_observations"] = observations
                 print(name, label, summary["total"], flush=True)
             rows.append({"scenario": name, "results": scores,
                          "delta": scores["sky-window"]["total"] - scores["baseline"]["total"]})
         args.output.write_text(json.dumps({
             "kit_sha256": SHA256, "strategy_sha256": strategy_hash,
+            "model_provider": "deterministic", "credential_environment_inherited": False,
             "generated_seeds": args.seeds, "generated_days": args.days,
             "comparisons": rows,
             "aggregate": {
