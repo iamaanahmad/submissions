@@ -22,7 +22,18 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--output", type=Path, default=Path("benchmark-results.json"))
     parser.add_argument("--kit-zip", type=Path, help="Use a previously downloaded official kit; its hash must match")
+    parser.add_argument("--seeds", type=int, nargs="+", default=[29],
+                        help="Generated scenario seeds; choose unused seeds before evaluating a fixed strategy")
+    parser.add_argument("--days", type=int, default=90, help="Nights per generated scenario (default: 90)")
+    parser.add_argument("--generated-only", action="store_true", help="Skip the two already published scenarios")
     args = parser.parse_args()
+    if args.days < 1 or args.days > 366:
+        parser.error("--days must be between 1 and 366")
+    if len(args.seeds) != len(set(args.seeds)):
+        parser.error("--seeds must be unique")
+    if args.output.exists():
+        parser.error("output already exists; use a new path to preserve prior evidence")
+    strategy_hash = hashlib.sha256(Path(__file__).with_name("my_strategy.py").read_bytes()).hexdigest()
     with tempfile.TemporaryDirectory(prefix="sky-window-") as temp:
         root = Path(temp)
         archive = root / "kit.zip"
@@ -44,13 +55,19 @@ def main():
         agent = root / "sky-window-agent"
         shutil.copytree(kit / "agent", agent)
         shutil.copyfile(Path(__file__).with_name("my_strategy.py"), agent / "my_strategy.py")
-        heldout = root / "heldout-29"
-        subprocess.run([sys.executable, str(kit / "make_scenario.py"), "--out", str(heldout),
-                        "--seed", "29", "--days", "90", "--base", str(kit / "scenarios/finals-preview")],
-                       check=True, capture_output=True, text=True)
+        scenarios = [] if args.generated_only else [
+            ("dev-reference", kit / "scenarios/dev-reference"),
+            ("finals-preview", kit / "scenarios/finals-preview")]
+        for seed in args.seeds:
+            name = f"heldout-{seed}"
+            generated = root / name
+            subprocess.run([sys.executable, str(kit / "make_scenario.py"), "--out", str(generated),
+                            "--seed", str(seed), "--days", str(args.days),
+                            "--base", str(kit / "scenarios/finals-preview")],
+                           check=True, capture_output=True, text=True)
+            scenarios.append((name, generated))
         rows = []
-        for name, scenario in [("dev-reference", kit / "scenarios/dev-reference"),
-                               ("finals-preview", kit / "scenarios/finals-preview"), ("heldout-29", heldout)]:
+        for name, scenario in scenarios:
             scores = {}
             for label, entry in [("baseline", kit / "agent/minimal_agent.py"), ("sky-window", agent / "minimal_agent.py")]:
                 output = root / (name + "-" + label)
@@ -67,7 +84,17 @@ def main():
                 print(name, label, summary["total"], flush=True)
             rows.append({"scenario": name, "results": scores,
                          "delta": scores["sky-window"]["total"] - scores["baseline"]["total"]})
-        args.output.write_text(json.dumps({"kit_sha256": SHA256, "comparisons": rows}, indent=2) + "\n")
+        args.output.write_text(json.dumps({
+            "kit_sha256": SHA256, "strategy_sha256": strategy_hash,
+            "generated_seeds": args.seeds, "generated_days": args.days,
+            "comparisons": rows,
+            "aggregate": {
+                "baseline_total": sum(r["results"]["baseline"]["total"] for r in rows),
+                "strategy_total": sum(r["results"]["sky-window"]["total"] for r in rows),
+                "wins": sum(r["delta"] > 0 for r in rows),
+                "losses": sum(r["delta"] < 0 for r in rows),
+                "ties": sum(r["delta"] == 0 for r in rows),
+            }}, indent=2) + "\n")
 
 
 if __name__ == "__main__":

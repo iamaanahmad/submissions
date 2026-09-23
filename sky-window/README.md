@@ -32,6 +32,23 @@ Both inherited a 150-point wrong-tag penalty from the organizer's anomaly detect
 The small practice regression is retained and disclosed, rather than selecting only winning scores.
 Raw score and completion fields are in [results.json](results.json).
 
+## Unseen-weather validation
+
+With the strategy unchanged, six matched runs completed on September 23 across three new 90-night scenarios.
+Seeds 41, 73 and 101 were selected before any scores were read. Each run completed all 64 tiles.
+There were no missing required tiles or strategy fallbacks.
+
+| Seed | Starter | Sky Window | Change |
+|---|---:|---:|---:|
+| 41 | 19,737.434672 | 19,758.025208 | +0.10% |
+| 73 | 21,955.999067 | 21,974.180033 | +0.08% |
+| 101 | 20,693.916248 | 20,764.861542 | +0.34% |
+
+The combined score rose 0.18% against the starter. All three gains were small; this does not establish a competitive lead.
+These are local comparisons, not new gains from a strategy change and not platform submissions.
+The original reference regression remains disclosed above. Full scores and the frozen strategy hash are in
+[unseen-results.json](unseen-results.json). These seeds are now used validation data, not fresh holdouts.
+
 ## Reproduce
 
 Use Python 3.12, matching the platform runtime. The strategy also runs on Python 3.11.
@@ -46,6 +63,18 @@ then compares the unchanged starter against our strategy. It generates the 90-ni
 from the supplied finals-preview configuration. It removes downloaded code and temporary runs afterward.
 Allow several minutes. `--kit-zip /path/to/kit.zip` reuses a download with the same verified hash.
 A changed organizer kit stops the run until its rules and protocol have been checked.
+
+To test a fixed strategy on more weather, preselect new seeds and run:
+
+```sh
+python3 sky-window/benchmark.py --seeds 41 73 101 --days 90 --generated-only --output unseen-results.json
+```
+
+`--generated-only` skips the two published scenarios. Without these options, the original six-run comparison remains unchanged.
+The report includes the strategy hash, seeds, duration, every paired score, and aggregate wins/losses/ties.
+Duplicate seeds and existing output paths are rejected to avoid inflating comparisons or overwriting evidence.
+Choose unused seeds for future validation; a seed stops being unseen after its first evaluation.
+No aggregate result predicts hidden-platform rank, prize eligibility, or payment.
 
 Only our strategy, tests, benchmark driver, and measured results are distributed here.
 The official engine, wrapper, and anomaly detector remain organizer-supplied dependencies.
