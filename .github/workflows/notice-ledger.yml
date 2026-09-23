@@ -13,3 +13,4 @@ jobs:
         with:
           python-version: '3.12'
       - run: python -m unittest discover -s notice-ledger -v
+      - run: python notice-ledger/demo.py
