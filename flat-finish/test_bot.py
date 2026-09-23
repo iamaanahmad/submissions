@@ -122,7 +122,7 @@ class Tests(unittest.TestCase):
         self.assertEqual(self.bot.decide(self.o)['action'], 'HOLD')
 
     def test_malformed(self):
-        for value in [None, [], {}, {'timestamp': True}, {'timestamp': float('inf')}]:
+        for value in [None, [], {}, {'timestamp': True}, {'timestamp': float('inf')}, {'timestamp': 1000, 'account': [], 'market': {'secondsToClose': 100}}]:
             self.assertEqual(Policy().decide(value)['action'], 'HOLD')
 
     def test_http_contract(self):

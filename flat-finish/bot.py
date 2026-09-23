@@ -49,7 +49,7 @@ class Policy:
     def decide(self, observation):
         try:
             return self._decide(observation)
-        except (KeyError, TypeError, ValueError, IndexError, OverflowError):
+        except (KeyError, TypeError, ValueError, IndexError, OverflowError, AttributeError):
             self.signal = None
             return {'action': 'HOLD'}
 
