@@ -18,7 +18,7 @@ from pathlib import Path
 from verification import require_complete, require_strategy_decisions
 
 URL = "https://create.gosim.org/survey26/platform/downloads/agent-observer-starter-kit.zip"
-SHA256 = "db871ba723d8ba7aa3b91fc38bb81d6172f3e827f3e9b830cba18f6ba23430c2"
+SHA256 = "3677c9c3a038c05c1c0282afca720ca8d5bdcdf860c2e48f13f6398406ea6d5d"
 
 
 def main():

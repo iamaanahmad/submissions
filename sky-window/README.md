@@ -83,40 +83,71 @@ Only our strategy, tests, benchmark driver, and measured results are distributed
 The official engine, wrapper, and anomaly detector remain organizer-supplied dependencies.
 No rights to redistribute the starter kit are assumed.
 
-## Entry artifact
+## Results-only upload, updated September 24
 
-[my_strategy.py](my_strategy.py) implements the organizer's `choose_action(candidates, snapshot, memory)` interface.
-Install it as `agent/my_strategy.py` in the official starter kit. The platform's beginner upload path
-accepts a `my_strategy.py` strategy and supplies its wrapper; verify this on the current upload page.
-If that path changes, do not upload this hook as a standalone JSONL executable.
-The [official getting-started guide](https://create.gosim.org/survey26/platform/start) explains both paths.
+GOSIM stopped accepting agent files on September 24. Both phases now accept only `decisions.csv`.
+The [official rules](https://create.gosim.org/survey26/platform/rules) and
+[upload guide](https://create.gosim.org/survey26/platform/start) describe this change.
 
-## Verify the upload files
+[my_strategy.py](my_strategy.py) is reproduction source, **not an upload file**.
+The online competition ranks the mean of each team's best result on **both `eval-a` and `eval-b`**.
+Each scenario needs its own results file. The limit is 20 MB per file and ten online submissions daily.
+Practice and finals-preview output cannot substitute for either judged scenario.
+
+The required competition weather arrives when the window opens: October 4 at 16:00 UTC.
+The deadline remains October 7 at 15:59 UTC. Awards are October 17.
+No judged results file or receipt exists yet. Registration still needs truthful experience tiers and organizer ties.
+
+## Verify local rehearsal files
 
 ```sh
-python3 sky-window/prepare_entry.py --output /tmp/sky-window-entry
+python3 sky-window/prepare_entry.py --output /tmp/sky-window-rehearsal
 ```
 
-Use a new output directory. `--kit-zip /path/to/kit.zip` avoids downloading again.
-The command checks the official kit hash, installs our strategy, and uses the official packager.
-It unpacks the result and runs both the 180-night reference and seven-night finals preview
-in a fresh Python environment with no third-party packages or inherited credentials.
-It rejects incomplete runs, strategy fallback, and accidental model-provider configuration.
-Every observation must carry the current policy's reason or the pinned organizer detector's reason.
-The check requires at least one policy observation and counts detector overrides separately.
-This catches silent starter-policy substitution that completion status and logs alone miss.
-The report counts these verified observations; it does not prove competitive performance.
-This is a local compatibility check, not the platform's sandbox or an online submission.
+Use a new output directory. `--kit-zip /path/to/kit.zip` reuses the pinned official download.
+The command checks its hash, installs the unchanged strategy and verifies the official packaging round trip.
+It runs both bundled scenarios in an isolated environment without packages or inherited credentials.
+It rejects incomplete runs, fallback policies and oversized results. Every observation needs policy or detector evidence.
 
-Only three files survive verification:
+The output contains:
 
-- `my_strategy.py`: upload as **Agent run** during the online judged phase.
-- `dev-reference-decisions.csv`: upload as **Results file** for the matching practice scenario only.
-- `verification.json`: strategy and kit hashes, interpreter version, scores, and completion status.
+- `dev-reference-decisions.csv`: results for the matching practice scenario only.
+- `finals-preview-decisions.csv`: local rehearsal only, not a judged entry.
+- `my_strategy.py`: reproduction source only.
+- `verification.json`: scenario input hashes, output hashes, policy counts, kit hash and local scores.
 
-The live getting-started guide distinguishes these phase-specific routes. Practice does not count as a judged entry.
-The command never registers or uploads. It deletes the temporary wrapper package and runtime after checking them.
-Only our single strategy file goes to the judged upload; no organizer wrapper is redistributed here.
+The reviewed September 24 kit hash is `3677c9c3a038c05c1c0282afca720ca8d5bdcdf860c2e48f13f6398406ea6d5d`.
+Only organizer documentation, fetching guidance and submission tooling changed from the previous pinned kit.
+The runner, scorer and agent files are unchanged. Historical benchmark reports retain their original kit hashes.
+
+## Prepare judged results when weather is published
+
+Download the kit from the [official resources page](https://create.gosim.org/survey26/platform/resources).
+Recheck its hash and any rule changes. From inside the unpacked official kit, run:
+
+```sh
+python3 fetch_scenario.py eval-a
+python3 fetch_scenario.py eval-b
+```
+
+The official fetcher verifies published file checksums. Do not run incomplete downloads or manufacture missing weather.
+From this repository, supply the two downloaded directories:
+
+```sh
+python3 sky-window/prepare_entry.py --output /tmp/sky-window-online \
+  --scenario eval-a=/absolute/path/to/agent-observer-starter-kit/scenarios/eval-a \
+  --scenario eval-b=/absolute/path/to/agent-observer-starter-kit/scenarios/eval-b
+```
+
+The exporter rejects missing weather, forecasts or events before running. It never registers, submits or claims eligibility.
+Local totals omit hidden competition anomaly answers. Only the platform can establish final judged scores.
+
+Once registration and eligibility pass, open Dashboard → Submit during the online window.
+Select Online Competition and `eval-a`; upload `eval-a-decisions.csv`.
+Repeat for `eval-b` using `eval-b-decisions.csv`. Confirm both results are scored and non-excluded.
+Save each submission ID, URL, scenario, UTC timestamp and status. Record October 17 as the review date.
+These are two scenario receipts for one project entry, not two distinct daily deliveries.
+Keep the strategy and input hashes for any organizer rerun request. Do not redistribute the organizer kit.
 
 ## Approach and limits
 
