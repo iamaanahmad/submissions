@@ -11,7 +11,7 @@ from __future__ import annotations
 
 def coverage_weights(ra: list[float], factor: list[float], required: list[bool],
                      required_threshold: float) -> tuple[float, ...]:
-    """Return one multiplier per sector, in [1, 1.12]."""
+    """Return one multiplier per sector, in [1, 1.04]."""
     totals = [0] * 8
     done = [0] * 8
     for angle, progress, must_finish in zip(ra, factor, required):
@@ -26,7 +26,7 @@ def coverage_weights(ra: list[float], factor: list[float], required: list[bool],
     if overall == 0:
         return (1.0,) * 8
     return tuple(
-        1.0 + min(0.12, 0.12 * max(0.0, overall - done[i] / totals[i]))
+        1.0 + min(0.04, 0.04 * max(0.0, overall - done[i] / totals[i]))
         if totals[i] else 1.0
         for i in range(8)
     )

@@ -12,10 +12,13 @@ published under CC BY-NC 4.0. `agent_core/window_policy.py` and its integration
 in `agent_core/planner.py` are Sky Window's adaptation. The previous results-only
 policy and its benchmarks remain in the parent directory for reference.
 
-On official practice card L1, both agents completed the survey with model calls
-disabled. Sky Window scored 4,292.693; the unmodified example scored 4,458.556.
-The adaptation trails by 3.72% on this card. These local scores do not establish
-judged performance. Keep this result visible while improving the policy.
+The first coverage setting scored 4,292.693 on local card L1, versus 4,458.556
+for the unmodified example. We reduced its maximum sector preference from 12%
+to 4% after a matched practice check. With model calls disabled, the revised
+agent scored 4,501.564 on L1, 4,673.593 on L2, and 4,341.919 on L3. The
+previous 12% setting scored 4,292.693, 4,013.478, and 4,072.207 on those
+cards. All six runs completed. These local scores do not establish judged
+performance or satisfy the contest's two-stage LLM requirement.
 
 Run the local policy checks with `python3 -m unittest test_window_policy.py`.
 For a protocol and score check, use the organizer's local runner on practice

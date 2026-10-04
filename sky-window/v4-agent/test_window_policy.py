@@ -13,7 +13,7 @@ class CoveragePolicyTests(unittest.TestCase):
                                    [True] * 4, 0.8)
         self.assertGreater(target_coverage_weight(90, weights),
                            target_coverage_weight(5, weights))
-        self.assertLessEqual(max(weights), 1.12)
+        self.assertLessEqual(max(weights), 1.04)
 
     def test_partial_progress_is_not_counted_as_completion(self):
         weights = coverage_weights([5, 90], [0.79, 1.0], [True, True], 0.8)
