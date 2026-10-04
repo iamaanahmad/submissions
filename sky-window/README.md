@@ -1,19 +1,22 @@
 # Sky Window
 
-A free, deterministic telescope scheduler for [GOSIM Agentic Observer](https://create.gosim.org/survey26/platform/).
-It chooses among legal observations using current gain, confirmed coverage, and remaining viewing time.
-It uses no model key, network call, or hidden scenario data.
+A telescope scheduler for [GOSIM Agentic Observer](https://create.gosim.org/survey26/platform/).
+The current [v4 agent project](v4-agent/README.md) combines the organizer's complete Python agent
+with Sky Window's coverage policy. The older deterministic scheduler and benchmarks below
+remain as historical research; GOSIM no longer accepts their CSV output as an entry.
 
-## Current status
+## Current status, October 4
 
-Working local entry, **not registered or submitted**. Registration requires the entrant's astronomy and AI experience levels.
+The v4 project completes the official L1 practice card locally. It is **not registered or submitted**.
+Registration requires the entrant's astronomy and AI experience levels.
 Award eligibility also excludes organizers, evaluation-platform maintainers, and their immediate collaborators.
 The live [rules](https://create.gosim.org/survey26/platform/rules) currently open judged submissions
 **October 4, 2026 at 16:00 UTC**, closing October 7 at 15:59 UTC. Awards are October 17.
 Playground scores do not qualify as judged submissions. Recheck the live phase table before uploading.
 
-The organizer supplies a coding-assistant guide in its starter kit. Ordinary local development is available now.
-Prize acceptance can be remote. No registration fee or paid model is needed.
+The official v4 protocol requires two LLM advice stages for award eligibility. The local
+practice run disables those calls because this workspace has no configured model key.
+An eligible scored evaluation needs a team-owned model key and the founder's registration facts.
 
 ## Local evidence
 
@@ -83,11 +86,10 @@ Only our strategy, tests, benchmark driver, and measured results are distributed
 The official engine, wrapper, and anomaly detector remain organizer-supplied dependencies.
 No rights to redistribute the starter kit are assumed.
 
-## Results-only upload, updated September 24
+## Historical results-only upload, September 24
 
-GOSIM stopped accepting agent files on September 24. Both phases now accept only `decisions.csv`.
-The [official rules](https://create.gosim.org/survey26/platform/rules) and
-[upload guide](https://create.gosim.org/survey26/platform/start) describe this change.
+GOSIM accepted only `decisions.csv` in September. Its October 4 v4 rules replaced this
+path with complete agent projects. The instructions below record the earlier format.
 
 [my_strategy.py](my_strategy.py) is reproduction source, **not an upload file**.
 The online competition ranks the mean of each team's best result on **both `eval-a` and `eval-b`**.
