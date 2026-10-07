@@ -6,7 +6,7 @@ from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import patch
-from ledger import canonical, snapshot, compare, run, save
+from ledger import canonical, snapshot, compare, review, run, save
 
 
 def response(rows=None):
@@ -37,6 +37,20 @@ class LedgerTests(unittest.TestCase):
         self.assertEqual(compare(old, new), {'new': ['https://gov.in/b'],
                          'changed_excerpt': ['https://gov.in/a'], 'not_returned': []})
         self.assertEqual(compare(new, old)['not_returned'], ['https://gov.in/b'])
+
+    def test_review_exposes_both_saved_excerpts(self):
+        old = snapshot(response([{'link': 'https://gov.in/a', 'title': 'Grant',
+                                  'snippet': 'Old indexed text'},
+                                 {'link': 'https://gov.in/old', 'title': 'Old result'}]), 'grant', 'gov.in')
+        new = snapshot(response([{'link': 'https://gov.in/a', 'title': 'Grant',
+                                  'snippet': 'New indexed text'},
+                                 {'link': 'https://gov.in/new', 'title': 'New result'}]), 'grant', 'gov.in')
+        rows = review(old, new, compare(old, new))
+        self.assertEqual([r['status'] for r in rows], ['new', 'changed_excerpt', 'not_returned'])
+        self.assertEqual(rows[1]['previous']['snippet'], 'Old indexed text')
+        self.assertEqual(rows[1]['current']['snippet'], 'New indexed text')
+        self.assertIsNone(rows[0]['previous'])
+        self.assertIsNone(rows[2]['current'])
 
     def test_scope_not_comparable(self):
         old = snapshot(response(), 'grant', 'gov.in')

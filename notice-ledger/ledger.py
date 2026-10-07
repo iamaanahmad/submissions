@@ -58,6 +58,18 @@ def compare(old, new):
             'not_returned': sorted(previous.keys() - current.keys())}
 
 
+def review(old, new, delta):
+    """Show the saved evidence behind each label without claiming page changes."""
+    previous = old['items'] if old else {}
+    current = new['items']
+    rows = []
+    for status in ('new', 'changed_excerpt', 'not_returned'):
+        for url in delta[status]:
+            rows.append({'status': status, 'url': url,
+                         'previous': previous.get(url), 'current': current.get(url)})
+    return rows
+
+
 def save(path, data):
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -103,9 +115,12 @@ def run(args):
     new['previous_items'] = old.get('items', {}) if old else {}
     new['delta'] = delta
     save(path, new)
-    print(json.dumps({'search_id': new['search_id'], 'source_count': len(new['items']),
-                      'delta': delta,
-                      'note': 'Search excerpts only. Not returned does not mean removed. Verify the publisher before acting.'}, indent=2))
+    output = {'search_id': new['search_id'], 'previous_search_id': new['previous_search_id'],
+              'source_count': len(new['items']), 'delta': delta,
+              'note': 'Search excerpts only. Not returned does not mean removed. Verify the publisher before acting.'}
+    if getattr(args, 'review', False):
+        output['review'] = review(old, new, delta)
+    print(json.dumps(output, indent=2))
 
 
 if __name__ == '__main__':
@@ -114,6 +129,7 @@ if __name__ == '__main__':
     p.add_argument('--query', required=True)
     p.add_argument('--baseline', required=True)
     p.add_argument('--fixture', help='Offline SerpApi response; makes no API call')
+    p.add_argument('--review', action='store_true', help='Show the before and after search evidence behind each label')
     try:
         run(p.parse_args())
     except (ValueError, OSError, KeyError, TypeError):
