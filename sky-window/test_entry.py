@@ -3,10 +3,31 @@ import tempfile
 import unittest
 from pathlib import Path
 
-from prepare_entry import prepare, require_complete, require_strategy_decisions
+from prepare_entry import prepare, require_complete, require_strategy_decisions, scenario_inputs
 
 
 class EntryChecks(unittest.TestCase):
+    def test_refuses_unpublished_weather_and_unsafe_labels(self):
+        with tempfile.TemporaryDirectory() as directory:
+            for value in ('eval-a=' + directory, '../eval-a=' + directory, 'eval-a'):
+                with self.subTest(value=value), self.assertRaises(ValueError):
+                    scenario_inputs([value])
+
+    def test_keeps_scenarios_separate_and_rejects_duplicates(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            for name in ('eval-a', 'eval-b'):
+                reference = root / name / 'outputs/reference'
+                reference.mkdir(parents=True)
+                for filename in ('weather.csv', 'weather_forecasts.csv', 'weather_events.csv'):
+                    (reference / filename).write_text('header\n')
+            first = 'eval-a=' + str(root / 'eval-a')
+            second = 'eval-b=' + str(root / 'eval-b')
+            self.assertEqual(scenario_inputs([first, second]),
+                             [('eval-a', root / 'eval-a'), ('eval-b', root / 'eval-b')])
+            with self.assertRaisesRegex(ValueError, 'Duplicate'):
+                scenario_inputs([first, first])
+
     def test_rejects_wrapper_fallback_even_when_survey_completes(self):
         with self.assertRaisesRegex(ValueError, 'fallback'):
             require_complete({'termination_reason': 'survey_complete'},
