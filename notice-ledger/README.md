@@ -61,7 +61,8 @@ This prototype is intended for public publisher searches, not private or persona
 
 September 23, 2026: one live query to SerpApi returned 10 allowed `dst.gov.in` links.
 Search ID: `6ab385411de0646c6802b17a`.
-Eight regression tests cover domain boundaries, canonicalization, comparisons, failures, atomic storage and secret exclusion.
+Nine regression tests passed October 7. They cover domain boundaries, canonicalization,
+comparisons, evidence review, failures, atomic storage and secret exclusion.
 The local live baseline stays outside this repository. No private credentials are included.
 
 ## Entry status and assistance
