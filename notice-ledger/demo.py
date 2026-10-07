@@ -24,7 +24,7 @@ def walkthrough(pause=0):
         fixture = root / 'response.json'
         command = [sys.executable, str(CLI), '--domain', 'publisher.example',
                    '--query', 'research grants', '--baseline', str(baseline),
-                   '--fixture', str(fixture)]
+                   '--fixture', str(fixture), '--review']
 
         def observe(search_id, rows=None, error=None):
             payload = {'search_metadata': {'status': 'Success', 'id': search_id},
@@ -52,7 +52,12 @@ def walkthrough(pause=0):
             'new': ['https://publisher.example/gamma'],
             'changed_excerpt': ['https://publisher.example/alpha'],
             'not_returned': ['https://publisher.example/beta']}
+        assert [(item['status'], item['url'].rsplit('/', 1)[-1]) for item in output['review']] == [
+            ('new', 'gamma'), ('changed_excerpt', 'alpha'), ('not_returned', 'beta')]
+        assert output['review'][1]['previous']['snippet'] == 'First excerpt'
+        assert output['review'][1]['current']['snippet'] == 'Updated excerpt'
         print('NEW: gamma\nCHANGED EXCERPT: alpha\nNOT RETURNED: beta\nNot returned does NOT mean removed.\n', flush=True)
+        print('REVIEW: alpha changed from "First excerpt" to "Updated excerpt" in search results.\n', flush=True)
         envelope = json.loads(baseline.read_text())
         assert envelope['previous_search_id'] == 'synthetic-first'
         assert len(envelope['previous_items']) == 2

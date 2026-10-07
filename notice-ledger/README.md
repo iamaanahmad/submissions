@@ -15,6 +15,7 @@ Python 3.11 or later. No dependencies.
 python3 -m unittest discover -s notice-ledger -v
 # Supply your own free SerpApi key privately in SERPAPI_API_KEY.
 python3 notice-ledger/ledger.py --domain dst.gov.in --query 'call for proposals' --baseline /tmp/notices.json
+# Add --review to see the saved before and after search excerpts behind each change label.
 ```
 
 Each live invocation makes at most one SerpApi request with no automatic retries.
@@ -22,6 +23,8 @@ SerpApi's default cache applies. Repeated queries can reuse cached results; they
 Only the first organic result page is observed. Search ranking is incomplete and can vary.
 Use separate baseline files for different searches and for offline fixtures.
 The baseline contains the latest and immediately preceding observations, search IDs and the comparison.
+`--review` prints those evidence pairs for new, changed and not-returned links. It makes the
+comparison inspectable without claiming that a publisher page itself changed or disappeared.
 Copy it elsewhere for longer archival retention.
 
 ## Reproducible demo
