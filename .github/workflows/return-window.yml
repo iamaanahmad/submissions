@@ -1,0 +1,25 @@
+name: Return Window checks
+on:
+  pull_request:
+    paths: ['return-window/**', '.github/workflows/return-window.yml']
+  push:
+    branches: [main]
+    paths: ['return-window/**', '.github/workflows/return-window.yml']
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: return-window
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: return-window/package-lock.json
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
