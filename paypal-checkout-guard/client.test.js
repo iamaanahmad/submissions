@@ -34,3 +34,51 @@ test('editing during an AI response does not restore stale PayPal approval', asy
   assert.equal(element('#success').hidden, true);
   assert.equal(scripts, 0);
 });
+
+test('buyer approval is required before capture and a changed purchase blocks it', async () => {
+  const handlers = new Map();
+  const elements = new Map();
+  const element = selector => {
+    if (!elements.has(selector)) elements.set(selector, {
+      hidden: false, disabled: false, textContent: '', innerHTML: '',
+      replaceChildren() {}, addEventListener(name, handler) { handlers.set(name, handler); }
+    });
+    return elements.get(selector);
+  };
+  let buttonOptions;
+  let captures = 0;
+  const document = {
+    querySelector: element,
+    createElement: tag => tag === 'li' ? { textContent: '' } : { onload: null },
+    head: { append(script) { queueMicrotask(() => script.onload()); } }
+  };
+  const fetcher = async path => {
+    if (path === '/api/config') return { ok: true, json: async () => ({ paypalReady: true, aiReady: true, clientId: 'test' }) };
+    if (path === '/api/review') return { ok: true, json: async () => ({ reviewId: 'review-1', review: { summary: 'Check delivery.', questions: ['When?'], risk: 'caution' } }) };
+    if (path === '/api/order') return { ok: true, json: async () => ({ orderId: 'ORDER123' }) };
+    if (path === '/api/capture') { captures++; return { ok: true, json: async () => ({ orderId: 'ORDER123', captureId: 'CAPTURE123', amount: '25.00' }) }; }
+    throw new Error(`Unexpected request: ${path}`);
+  };
+  class FakeFormData { *[Symbol.iterator]() { yield ['item', 'Logo']; yield ['amount', '25.00']; yield ['description', 'A logo draft arrives tomorrow.']; } }
+  const source = await readFile(new URL('./client.js', import.meta.url), 'utf8');
+  const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+  await new AsyncFunction('document', 'fetch', 'FormData', 'window', source)(document, fetcher, FakeFormData, {
+    paypal: { Buttons(options) { buttonOptions = options; return { async render() {} }; } }
+  });
+  await handlers.get('submit')({ preventDefault() {} });
+  assert.equal(element('#review-risk').textContent, 'AI review · use caution');
+  assert.equal(captures, 0);
+  assert.equal(await buttonOptions.createOrder(), 'ORDER123');
+  assert.equal(captures, 0);
+  buttonOptions.onCancel();
+  assert.equal(captures, 0);
+  await buttonOptions.onApprove({ orderID: 'ORDER123' });
+  assert.equal(captures, 1);
+  assert.equal(element('#success').hidden, false);
+
+  await handlers.get('submit')({ preventDefault() {} });
+  handlers.get('input')();
+  await buttonOptions.onApprove({ orderID: 'ORDER123' });
+  assert.equal(captures, 1);
+  assert.match(element('#message').textContent, /Purchase changed/);
+});

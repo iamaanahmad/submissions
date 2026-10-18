@@ -25,6 +25,7 @@ function showReview(review) {
   document.querySelector('#empty-review').hidden = true;
   document.querySelector('#success').hidden = true;
   document.querySelector('#review-result').hidden = false;
+  document.querySelector('#review-risk').textContent = review.risk === 'caution' ? 'AI review · use caution' : 'AI review · check it yourself';
   document.querySelector('#summary').textContent = review.summary;
   const questions = document.querySelector('#questions');
   questions.replaceChildren(...review.questions.map(question => {
