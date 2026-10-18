@@ -42,3 +42,22 @@ test('capture amount mismatch never reports success', async () => {
     assert.equal(response.status, 502);
   });
 });
+
+test('concurrent buyer requests create and capture one sandbox order', async () => {
+  let creates = 0;
+  let captures = 0;
+  const paypal = {
+    createOrder: async () => { creates++; await new Promise(resolve => setTimeout(resolve, 20)); return { id: 'ORDER789' }; },
+    captureOrder: async () => { captures++; await new Promise(resolve => setTimeout(resolve, 20)); return { orderId: 'ORDER789', captureId: 'CAPTURE789', status: 'COMPLETED', amount: '25.00', currency: 'USD' }; }
+  };
+  const ai = { review: async () => ({ summary: 'Review the terms.', questions: [], risk: 'review' }) };
+  await withServer(createApp({ paypal, ai }), async base => {
+    const review = await (await post(base, '/api/review', { item: 'Logo milestone', amount: '25.00', description: 'A logo draft is due tomorrow.' })).json();
+    const orders = await Promise.all(Array.from({ length: 3 }, async () => (await post(base, '/api/order', { reviewId: review.reviewId })).json()));
+    assert.deepEqual(orders.map(order => order.orderId), ['ORDER789', 'ORDER789', 'ORDER789']);
+    assert.equal(creates, 1);
+    const results = await Promise.all(Array.from({ length: 3 }, async () => (await post(base, '/api/capture', { reviewId: review.reviewId, orderId: 'ORDER789' })).json()));
+    assert.deepEqual(results.map(result => result.captureId), ['CAPTURE789', 'CAPTURE789', 'CAPTURE789']);
+    assert.equal(captures, 1);
+  });
+});

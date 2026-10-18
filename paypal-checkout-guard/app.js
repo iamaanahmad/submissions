@@ -7,6 +7,7 @@ import { AIReview } from './ai.js';
 const pages = new Map();
 const sessions = new Map();
 const MAX_BODY = 5000;
+const REVIEW_TTL = 30 * 60_000;
 const json = (res, status, data) => { res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' }); res.end(JSON.stringify(data)); };
 
 async function body(req) {
@@ -46,19 +47,35 @@ export function createApp({ paypal, ai, clientId = '', fileReader = readFile }) 
       if (!paypal) return json(res, 503, { error: 'PayPal sandbox is not configured' });
       if (path === '/api/order') {
         const session = sessions.get(input.reviewId);
-        if (!session || Date.now() - session.created > 30 * 60_000) return json(res, 400, { error: 'Review expired. Start again.' });
+        if (!session || Date.now() - session.created > REVIEW_TTL) return json(res, 400, { error: 'Review expired. Start again.' });
         if (session.order) return json(res, 200, { orderId: session.order.id });
+        if (session.orderPending) {
+          const order = await session.orderPending;
+          return json(res, 200, { orderId: order.id });
+        }
         const reference = `guard_${session.created}_${randomUUID().replaceAll('-', '').slice(0, 12)}`;
-        const order = await paypal.createOrder({ amount: session.amount, reference });
+        session.orderPending = paypal.createOrder({ amount: session.amount, reference });
+        let order;
+        try { order = await session.orderPending; }
+        finally { session.orderPending = null; }
         session.order = order;
         pages.set(order.id, { reviewId: input.reviewId, reference: `${reference}_capture`, amount: session.amount });
         return json(res, 200, { orderId: order.id });
       }
       const record = pages.get(input.orderId);
       if (!record || record.reviewId !== input.reviewId) return json(res, 400, { error: 'Order does not match this review' });
+      const session = sessions.get(input.reviewId);
+      if (!session || Date.now() - session.created > REVIEW_TTL) return json(res, 400, { error: 'Review expired. Start again.' });
       if (record.capture) return json(res, 200, record.capture);
-      const capture = await paypal.captureOrder(input.orderId, record.reference);
-      if (capture.amount !== record.amount || capture.currency !== 'USD') throw new Error('Sandbox capture amount mismatch');
+      if (record.capturePending) return json(res, 200, await record.capturePending);
+      record.capturePending = (async () => {
+        const result = await paypal.captureOrder(input.orderId, record.reference);
+        if (result.amount !== record.amount || result.currency !== 'USD') throw new Error('Sandbox capture amount mismatch');
+        return result;
+      })();
+      let capture;
+      try { capture = await record.capturePending; }
+      finally { record.capturePending = null; }
       record.capture = capture;
       return json(res, 200, capture);
     } catch (error) {

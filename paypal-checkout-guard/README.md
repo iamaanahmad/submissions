@@ -29,6 +29,20 @@ Run `npm test` for local checks. Tests use fake transports. They do not prove a 
 
 Editing the purchase clears the old review and its PayPal button. The server accepts captures only for an order it created for the active review. A missing or failed provider call never becomes a success message. Review and order state is held in memory and expires after 30 minutes. Restarting the server clears that state.
 
+If a buyer edits details while the AI response or PayPal buttons load, the old review cannot reopen checkout. Concurrent requests for one review share one order and one capture. A review that expires before capture must be started again.
+
+## Video plan (record only after real provider checks)
+
+Keep the public YouTube video below three minutes. Show the actual browser and sandbox buyer account. Do not replace provider actions with local test responses.
+
+1. **0:00–0:25:** Show the buyer problem: a purchase description may omit delivery and refund terms.
+2. **0:25–1:05:** Enter a sample purchase. Show the real AI response and the questions it raises.
+3. **1:05–1:50:** Open PayPal's sandbox approval. Show that the buyer decides whether to approve.
+4. **1:50–2:20:** Approve and return. Show the completed sandbox capture ID and amount.
+5. **2:20–2:45:** Change the purchase details. Show that the old review and payment button disappear. Close on the project source and setup instructions.
+
+Record one uninterrupted working path plus any brief cuts needed for privacy. Hide sandbox account credentials and API keys. The current local preview and fake-provider tests are development evidence, not this video.
+
 ## Real verification and contest gates
 
 - Supply sandbox credentials and a model key through a secure runtime connection. Verify one real AI response, then one real PayPal buyer approval and capture. Record IDs and timestamps without exposing secrets.

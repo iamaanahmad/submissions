@@ -4,6 +4,7 @@ const setup = document.querySelector('#setup');
 const reviewButton = document.querySelector('#review-button');
 let config;
 let reviewId;
+let revision = 0;
 
 async function request(path, data) {
   const response = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
@@ -13,6 +14,7 @@ async function request(path, data) {
 }
 function notice(text) { message.textContent = text; }
 function clearReview() {
+  revision++;
   reviewId = undefined;
   document.querySelector('#review-result').hidden = true;
   document.querySelector('#paypal-button-container').replaceChildren();
@@ -37,15 +39,20 @@ function loadPayPal() {
     document.head.append(script);
   });
 }
-async function renderPayPal() {
+async function renderPayPal(currentRevision, currentReviewId) {
   await loadPayPal();
+  if (revision !== currentRevision) return;
   document.querySelector('#paypal-button-container').replaceChildren();
   await window.paypal.Buttons({
     style: { layout: 'vertical', shape: 'rect', label: 'pay' },
-    createOrder: async () => (await request('/api/order', { reviewId })).orderId,
+    createOrder: async () => {
+      if (revision !== currentRevision) throw new Error('Purchase changed. Review it again.');
+      return (await request('/api/order', { reviewId: currentReviewId })).orderId;
+    },
     onApprove: async ({ orderID }) => {
       try {
-        const capture = await request('/api/capture', { reviewId, orderId: orderID });
+        if (revision !== currentRevision) throw new Error('Purchase changed. Review it again.');
+        const capture = await request('/api/capture', { reviewId: currentReviewId, orderId: orderID });
         document.querySelector('#review-result').hidden = true;
         document.querySelector('#success').hidden = false;
         document.querySelector('#receipt').textContent = `Order ${capture.orderId} · Capture ${capture.captureId} · USD ${capture.amount}`;
@@ -67,14 +74,16 @@ form.addEventListener('submit', async event => {
   event.preventDefault(); notice('');
   clearReview();
   reviewButton.disabled = true; reviewButton.textContent = 'Reviewing purchase…';
+  const submittedRevision = revision;
   try {
     const data = Object.fromEntries(new FormData(form));
     data.amount = Number(data.amount).toFixed(2);
     const result = await request('/api/review', data);
+    if (revision !== submittedRevision) return;
     reviewId = result.reviewId;
     showReview(result.review);
-    await renderPayPal();
-  } catch (error) { notice(error.message); }
+    await renderPayPal(submittedRevision, reviewId);
+  } catch (error) { if (revision === submittedRevision) notice(error.message); }
   finally { reviewButton.disabled = false; reviewButton.innerHTML = 'Review purchase <span aria-hidden="true">↗</span>'; }
 });
 form.addEventListener('input', clearReview);
