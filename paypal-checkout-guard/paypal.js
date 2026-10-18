@@ -48,16 +48,27 @@ export class PayPalSandbox {
     };
   }
 
-  async captureOrder(orderId, reference) {
+  async captureOrder(orderId, reference, expectedAmount) {
     if (!/^[A-Z0-9]{8,32}$/.test(orderId)) throw new Error('Invalid order ID');
     if (!/^[a-zA-Z0-9_-]{8,127}$/.test(reference)) throw new Error('Invalid reference');
+    if (!/^(0|[1-9]\d*)\.\d{2}$/.test(expectedAmount) || Number(expectedAmount) <= 0) throw new Error('Invalid amount');
     const token = await this.token();
+    const details = await this.fetcher(`${SANDBOX}/v2/checkout/orders/${orderId}`, {
+      method: 'GET', headers: { Authorization: `Bearer ${token}` }
+    });
+    const order = await details.json();
+    const unit = order.purchase_units?.[0];
+    if (!details.ok || order.id !== orderId || order.status !== 'APPROVED' ||
+      order.purchase_units?.length !== 1 || unit.reference_id !== reference ||
+      unit.amount?.value !== expectedAmount || unit.amount?.currency_code !== 'USD') {
+      throw new Error('Sandbox order is not approved for this reviewed purchase');
+    }
     const response = await this.fetcher(`${SANDBOX}/v2/checkout/orders/${orderId}/capture`, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
-        'PayPal-Request-Id': reference
+        'PayPal-Request-Id': `${reference}_capture`
       },
       body: '{}'
     });

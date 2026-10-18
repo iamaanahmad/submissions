@@ -36,6 +36,8 @@ If the buyer edits a new purchase after PayPal approval but before the capture r
 
 An incomplete AI response, refusal, or empty review blocks checkout. The app never turns these into a reassuring review.
 
+Before capture, the server reads the sandbox order from PayPal. It requires PayPal's `APPROVED` status, the same purchase reference, and the reviewed USD amount. A browser callback alone cannot authorize capture. A changed or unapproved order stops before the capture request. This guard is covered by fake-provider tests; a real sandbox buyer action remains unverified.
+
 A receipt appears only when PayPal reports one completed USD capture with an ID for the same order and reviewed amount. Missing capture details or a different order cannot become a success message.
 
 ## Video plan (record only after real provider checks)

@@ -59,7 +59,7 @@ export function createApp({ paypal, ai, clientId = '', fileReader = readFile }) 
         try { order = await session.orderPending; }
         finally { session.orderPending = null; }
         session.order = order;
-        pages.set(order.id, { reviewId: input.reviewId, reference: `${reference}_capture`, amount: session.amount });
+        pages.set(order.id, { reviewId: input.reviewId, reference, amount: session.amount });
         return json(res, 200, { orderId: order.id });
       }
       const record = pages.get(input.orderId);
@@ -69,7 +69,7 @@ export function createApp({ paypal, ai, clientId = '', fileReader = readFile }) 
       if (record.capture) return json(res, 200, record.capture);
       if (record.capturePending) return json(res, 200, await record.capturePending);
       record.capturePending = (async () => {
-        const result = await paypal.captureOrder(input.orderId, record.reference);
+        const result = await paypal.captureOrder(input.orderId, record.reference, record.amount);
         if (result.orderId !== input.orderId || result.status !== 'COMPLETED' ||
           typeof result.captureId !== 'string' || !result.captureId ||
           result.amount !== record.amount || result.currency !== 'USD') {
