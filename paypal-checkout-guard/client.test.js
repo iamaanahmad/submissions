@@ -82,3 +82,40 @@ test('buyer approval is required before capture and a changed purchase blocks it
   assert.equal(captures, 1);
   assert.match(element('#message').textContent, /Purchase changed/);
 });
+
+test('editing while PayPal buttons render removes the stale checkout', async () => {
+  const handlers = new Map();
+  const elements = new Map();
+  const element = selector => {
+    if (!elements.has(selector)) elements.set(selector, {
+      hidden: false, disabled: false, textContent: '', innerHTML: '', children: [],
+      replaceChildren(...children) { this.children = children; },
+      addEventListener(name, handler) { handlers.set(name, handler); }
+    });
+    return elements.get(selector);
+  };
+  let finishRender;
+  const document = {
+    querySelector: element,
+    createElement: tag => tag === 'li' ? { textContent: '' } : { onload: null },
+    head: { append(script) { queueMicrotask(() => script.onload()); } }
+  };
+  const fetcher = async path => path === '/api/config'
+    ? { ok: true, json: async () => ({ paypalReady: true, aiReady: true, clientId: 'test' }) }
+    : { ok: true, json: async () => ({ reviewId: 'review-1', review: { summary: 'Check terms.', questions: [], risk: 'review' } }) };
+  class FakeFormData { *[Symbol.iterator]() { yield ['item', 'Logo']; yield ['amount', '25.00']; yield ['description', 'A logo draft arrives tomorrow.']; } }
+  const source = await readFile(new URL('./client.js', import.meta.url), 'utf8');
+  const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+  await new AsyncFunction('document', 'fetch', 'FormData', 'window', source)(document, fetcher, FakeFormData, {
+    paypal: { Buttons() { return { render() { return new Promise(resolve => {
+      finishRender = () => { element('#paypal-button-container').children = ['stale button']; resolve(); };
+    }); } }; } }
+  });
+  const submit = handlers.get('submit')({ preventDefault() {} });
+  while (!finishRender) await new Promise(resolve => setImmediate(resolve));
+  handlers.get('input')();
+  finishRender();
+  await submit;
+  assert.deepEqual(element('#paypal-button-container').children, []);
+  assert.equal(element('#review-result').hidden, true);
+});

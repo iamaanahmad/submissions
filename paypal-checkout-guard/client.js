@@ -5,6 +5,7 @@ const reviewButton = document.querySelector('#review-button');
 let config;
 let reviewId;
 let revision = 0;
+let paypalScript;
 
 async function request(path, data) {
   const response = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
@@ -33,12 +34,14 @@ function showReview(review) {
   }));
 }
 function loadPayPal() {
-  return new Promise((resolve, reject) => {
+  paypalScript ??= new Promise((resolve, reject) => {
     const script = document.createElement('script');
     script.src = `https://www.paypal.com/sdk/js?client-id=${encodeURIComponent(config.clientId)}&currency=USD&intent=capture&components=buttons`;
-    script.onload = resolve; script.onerror = () => reject(new Error('PayPal buttons could not load'));
+    script.onload = resolve;
+    script.onerror = () => { paypalScript = undefined; reject(new Error('PayPal buttons could not load')); };
     document.head.append(script);
   });
+  return paypalScript;
 }
 async function renderPayPal(currentRevision, currentReviewId) {
   await loadPayPal();
@@ -54,6 +57,10 @@ async function renderPayPal(currentRevision, currentReviewId) {
       try {
         if (revision !== currentRevision) throw new Error('Purchase changed. Review it again.');
         const capture = await request('/api/capture', { reviewId: currentReviewId, orderId: orderID });
+        if (revision !== currentRevision) {
+          notice(`Sandbox payment completed. Order ${capture.orderId} · Capture ${capture.captureId}. Review the new purchase separately.`);
+          return;
+        }
         document.querySelector('#review-result').hidden = true;
         document.querySelector('#success').hidden = false;
         document.querySelector('#receipt').textContent = `Order ${capture.orderId} · Capture ${capture.captureId} · USD ${capture.amount}`;
@@ -63,6 +70,7 @@ async function renderPayPal(currentRevision, currentReviewId) {
     onCancel: () => notice('Payment was cancelled. No capture was requested.'),
     onError: () => notice('PayPal could not complete the sandbox checkout. No capture was confirmed.')
   }).render('#paypal-button-container');
+  if (revision !== currentRevision) document.querySelector('#paypal-button-container').replaceChildren();
 }
 
 config = await fetch('/api/config').then(response => response.json());
