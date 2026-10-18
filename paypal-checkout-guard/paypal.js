@@ -12,10 +12,7 @@ export class PayPalSandbox {
     const basic = Buffer.from(`${this.clientId}:${this.clientSecret}`).toString('base64');
     const response = await this.fetcher(`${SANDBOX}/v1/oauth2/token`, {
       method: 'POST',
-      headers: {
-        Authorization: `Basic ${basic}`,
-        'Content-Type': 'application/x-www-form-urlencoded'
-      },
+      headers: { Authorization: `Basic ${basic}`, 'Content-Type': 'application/x-www-form-urlencoded' },
       body: 'grant_type=client_credentials'
     });
     const data = await response.json();
@@ -49,5 +46,28 @@ export class PayPalSandbox {
       status: data.status,
       approveUrl: data.links?.find(link => link.rel === 'approve')?.href ?? null
     };
+  }
+
+  async captureOrder(orderId, reference) {
+    if (!/^[A-Z0-9]{8,32}$/.test(orderId)) throw new Error('Invalid order ID');
+    if (!/^[a-zA-Z0-9_-]{8,127}$/.test(reference)) throw new Error('Invalid reference');
+    const token = await this.token();
+    const response = await this.fetcher(`${SANDBOX}/v2/checkout/orders/${orderId}/capture`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
+        'PayPal-Request-Id': reference
+      },
+      body: '{}'
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error('Sandbox capture failed');
+    const capture = data.purchase_units?.[0]?.payments?.captures?.[0];
+    if (data.id !== orderId || data.status !== 'COMPLETED' || capture?.status !== 'COMPLETED') {
+      throw new Error('Sandbox capture not completed');
+    }
+    return { orderId: data.id, captureId: capture.id, status: capture.status,
+      amount: capture.amount?.value, currency: capture.amount?.currency_code };
   }
 }

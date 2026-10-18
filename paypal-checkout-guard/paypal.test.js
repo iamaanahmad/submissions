@@ -29,3 +29,22 @@ test('does not expose provider response bodies on an auth failure', async () => 
   const client = new PayPalSandbox({ clientId: 'test-id', clientSecret: 'test-secret', fetcher: async () => ({ ok: false, json: async () => ({ debug_id: 'private' }) }) });
   await assert.rejects(client.token(), /^Error: Sandbox token request failed$/);
 });
+
+test('capture requires a completed sandbox payment', async () => {
+  let urlSeen;
+  const client = new PayPalSandbox({ clientId: 'test-id', clientSecret: 'test-secret', fetcher: async url => {
+    urlSeen = url;
+    return url.endsWith('/token') ? { ok: true, json: async () => ({ access_token: 'test-token' }) }
+      : { ok: true, json: async () => ({ id: 'ORDER123', status: 'COMPLETED', purchase_units: [{ payments: { captures: [{ id: 'CAPTURE123', status: 'COMPLETED', amount: { value: '12.00', currency_code: 'USD' } }] } }] }) };
+  } });
+  const capture = await client.captureOrder('ORDER123', 'test-order-001_capture');
+  assert.equal(urlSeen, 'https://api-m.sandbox.paypal.com/v2/checkout/orders/ORDER123/capture');
+  assert.equal(capture.captureId, 'CAPTURE123');
+});
+
+test('unapproved capture is not reported as success', async () => {
+  const client = new PayPalSandbox({ clientId: 'test-id', clientSecret: 'test-secret', fetcher: async url => url.endsWith('/token')
+    ? { ok: true, json: async () => ({ access_token: 'test-token' }) }
+    : { ok: false, json: async () => ({ name: 'ORDER_NOT_APPROVED', debug_id: 'private' }) } });
+  await assert.rejects(client.captureOrder('ORDER123', 'test-order-001_capture'), /^Error: Sandbox capture failed$/);
+});
