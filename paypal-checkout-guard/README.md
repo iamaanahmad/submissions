@@ -2,7 +2,7 @@
 
 Checkout Guard is a sandbox purchase review for the [PayPal AI Hackathon](https://paypalaihackathon.devpost.com/rules). A buyer describes a purchase, reads an AI summary and questions, then approves a PayPal sandbox payment. The app captures only the order created for that review and checks the captured amount. It never calls PayPal's live API.
 
-**Status:** The local buyer flow and provider adapters are implemented. Thirteen local tests pass with fake provider responses. A real PayPal sandbox approval and capture, and a real AI response, have **not** been verified. This is not a contest submission or a claim of a working live integration.
+**Status:** The local buyer flow and provider adapters are implemented. Fourteen local tests pass with fake provider responses. A real PayPal sandbox approval and capture, and a real AI response, have **not** been verified. This is not a contest submission or a claim of a working live integration.
 
 ## Run locally
 
@@ -33,6 +33,8 @@ Editing the purchase clears the old review and its PayPal button. The server acc
 If a buyer edits details while the AI response or PayPal buttons load, the old review cannot reopen checkout. Concurrent requests for one review share one order and one capture. A review that expires before capture must be started again.
 
 If the buyer edits a new purchase after PayPal approval but before the capture reply arrives, the page shows the completed sandbox receipt separately. It does not present that receipt as payment for the new purchase.
+
+An incomplete AI response, refusal, or empty review blocks checkout. The app never turns these into a reassuring review.
 
 ## Video plan (record only after real provider checks)
 

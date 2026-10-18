@@ -27,11 +27,17 @@ export class AIReview {
     });
     const data = await response.json();
     if (!response.ok) throw new Error('AI review request failed');
+    if (data.status !== 'completed' || data.error || data.incomplete_details ||
+      data.output?.some(part => part.content?.some(content => content.type === 'refusal'))) {
+      throw new Error('AI review did not complete');
+    }
     const output = data.output?.flatMap(x => x.content ?? []).find(x => x.type === 'output_text')?.text;
     let review;
     try { review = JSON.parse(output); } catch { throw new Error('AI review was not valid JSON'); }
-    if (typeof review.summary !== 'string' || review.summary.length > 400 || !Array.isArray(review.questions) || review.questions.length > 3 ||
-      review.questions.some(q => typeof q !== 'string' || q.length > 200) || !['review', 'caution'].includes(review.risk)) {
+    if (typeof review.summary !== 'string' || !review.summary.trim() || review.summary.length > 400 ||
+      !Array.isArray(review.questions) || review.questions.length < 1 || review.questions.length > 3 ||
+      review.questions.some(q => typeof q !== 'string' || !q.trim() || q.length > 200) ||
+      !['review', 'caution'].includes(review.risk)) {
       throw new Error('AI review failed validation');
     }
     return review;
