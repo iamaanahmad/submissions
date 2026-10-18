@@ -63,8 +63,15 @@ export class PayPalSandbox {
     });
     const data = await response.json();
     if (!response.ok) throw new Error('Sandbox capture failed');
-    const capture = data.purchase_units?.[0]?.payments?.captures?.[0];
-    if (data.id !== orderId || data.status !== 'COMPLETED' || capture?.status !== 'COMPLETED') {
+    const units = data.purchase_units;
+    const captures = units?.[0]?.payments?.captures;
+    const capture = captures?.[0];
+    if (data.id !== orderId || data.status !== 'COMPLETED' ||
+      units?.length !== 1 || captures?.length !== 1 ||
+      typeof capture?.id !== 'string' || !capture.id ||
+      capture.status !== 'COMPLETED' ||
+      !/^(0|[1-9]\d*)\.\d{2}$/.test(capture.amount?.value ?? '') ||
+      capture.amount?.currency_code !== 'USD') {
       throw new Error('Sandbox capture not completed');
     }
     return { orderId: data.id, captureId: capture.id, status: capture.status,

@@ -70,7 +70,11 @@ export function createApp({ paypal, ai, clientId = '', fileReader = readFile }) 
       if (record.capturePending) return json(res, 200, await record.capturePending);
       record.capturePending = (async () => {
         const result = await paypal.captureOrder(input.orderId, record.reference);
-        if (result.amount !== record.amount || result.currency !== 'USD') throw new Error('Sandbox capture amount mismatch');
+        if (result.orderId !== input.orderId || result.status !== 'COMPLETED' ||
+          typeof result.captureId !== 'string' || !result.captureId ||
+          result.amount !== record.amount || result.currency !== 'USD') {
+          throw new Error('Sandbox capture did not match the reviewed order');
+        }
         return result;
       })();
       let capture;

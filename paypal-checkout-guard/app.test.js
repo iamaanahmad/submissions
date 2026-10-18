@@ -43,6 +43,18 @@ test('capture amount mismatch never reports success', async () => {
   });
 });
 
+test('capture response for a different order never reports success', async () => {
+  const paypal = { createOrder: async () => ({ id: 'ORDER456' }), captureOrder: async () => ({ orderId: 'OTHER456', captureId: 'CAPTURE456', status: 'COMPLETED', amount: '25.00', currency: 'USD' }) };
+  const ai = { review: async () => ({ summary: 'Review', questions: [], risk: 'review' }) };
+  await withServer(createApp({ paypal, ai }), async base => {
+    const review = await (await post(base, '/api/review', { item: 'Logo milestone', amount: '25.00', description: 'A logo draft is due tomorrow.' })).json();
+    const order = await (await post(base, '/api/order', { reviewId: review.reviewId })).json();
+    const response = await post(base, '/api/capture', { reviewId: review.reviewId, orderId: order.orderId });
+    assert.equal(response.status, 502);
+    assert.match((await response.json()).error, /No payment result was confirmed/);
+  });
+});
+
 test('concurrent buyer requests create and capture one sandbox order', async () => {
   let creates = 0;
   let captures = 0;
