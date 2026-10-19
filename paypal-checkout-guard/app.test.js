@@ -32,6 +32,26 @@ test('review binds an idempotent order and capture to the same amount', async ()
   });
 });
 
+test('order retry reuses PayPal request identity after a lost reply', async () => {
+  const references = [];
+  const paypal = {
+    createOrder: async ({ reference }) => {
+      references.push(reference);
+      if (references.length === 1) throw new Error('PayPal reply lost');
+      return { id: 'ORDER123' };
+    }
+  };
+  const ai = { review: async () => ({ summary: 'Check the terms.', questions: ['When?'], risk: 'review' }) };
+  await withServer(createApp({ paypal, ai }), async base => {
+    const review = await (await post(base, '/api/review', { item: 'Logo milestone', amount: '25.00', description: 'A logo draft is due tomorrow.' })).json();
+    assert.equal((await post(base, '/api/order', { reviewId: review.reviewId })).status, 502);
+    const retry = await (await post(base, '/api/order', { reviewId: review.reviewId })).json();
+    assert.equal(retry.orderId, 'ORDER123');
+    assert.equal(references.length, 2);
+    assert.equal(references[0], references[1]);
+  });
+});
+
 test('capture amount mismatch never reports success', async () => {
   const paypal = { createOrder: async () => ({ id: 'ORDER456' }), captureOrder: async () => ({ orderId: 'ORDER456', captureId: 'CAPTURE456', status: 'COMPLETED', amount: '1.00', currency: 'USD' }) };
   const ai = { review: async () => ({ summary: 'Review', questions: [], risk: 'review' }) };

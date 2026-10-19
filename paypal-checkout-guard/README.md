@@ -2,7 +2,7 @@
 
 Checkout Guard is a sandbox purchase review for the [PayPal AI Hackathon](https://paypalaihackathon.devpost.com/rules). A buyer describes a purchase, reads an AI summary and questions, then approves a PayPal sandbox payment. The app captures only the order created for that review and checks the captured amount. It never calls PayPal's live API.
 
-**Status:** The local buyer flow and provider adapters are implemented. Eighteen local tests pass with fake provider responses. A real PayPal sandbox approval and capture, and a real AI response, have **not** been verified. This is not a contest submission or a claim of a working live integration.
+**Status:** The local buyer flow and provider adapters are implemented. Nineteen local tests pass with fake provider responses. A real PayPal sandbox approval and capture, and a real AI response, have **not** been verified. This is not a contest submission or a claim of a working live integration.
 
 ## Run locally
 
@@ -41,6 +41,8 @@ Before capture, the server reads the sandbox order from PayPal. It requires PayP
 A receipt appears only when PayPal reports one completed USD capture with an ID for the same order and reviewed amount. Missing capture details or a different order cannot become a success message.
 
 If PayPal completes a capture but its first reply is lost, retrying reads PayPal's order. A matching completed capture restores the receipt without another capture request. A missing or changed capture still cannot appear as paid.
+
+If PayPal creates an order but its reply is lost, retrying uses the original request ID. PayPal can return the same order instead of creating a second one. The capture request uses a separate, stable ID within PayPal's documented length limit.
 
 If the browser loses the first capture reply, **Check payment status** retries that same reviewed order. The button appears only after PayPal buyer approval and a capture response error. It stays available if the buyer edits the form or starts another review. A new payment cannot start until the buyer checks the prior order. The server checks PayPal before it displays any receipt. This recovery works while the server retains the review; a restart or review expiry still loses the local order mapping.
 

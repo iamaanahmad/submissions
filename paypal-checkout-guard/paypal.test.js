@@ -32,8 +32,10 @@ test('does not expose provider response bodies on an auth failure', async () => 
 
 test('capture requires a completed sandbox payment', async () => {
   const urls = [];
-  const client = new PayPalSandbox({ clientId: 'test-id', clientSecret: 'test-secret', fetcher: async url => {
+  let captureRequestId;
+  const client = new PayPalSandbox({ clientId: 'test-id', clientSecret: 'test-secret', fetcher: async (url, options) => {
     urls.push(url);
+    if (url.endsWith('/capture')) captureRequestId = options.headers['PayPal-Request-Id'];
     return url.endsWith('/token') ? { ok: true, json: async () => ({ access_token: 'test-token' }) }
       : url.endsWith('/ORDER123') ? { ok: true, json: async () => ({ id: 'ORDER123', status: 'APPROVED', purchase_units: [{ reference_id: 'test-order-001', amount: { value: '12.00', currency_code: 'USD' } }] }) }
       : { ok: true, json: async () => ({ id: 'ORDER123', status: 'COMPLETED', purchase_units: [{ reference_id: 'test-order-001', amount: { value: '12.00', currency_code: 'USD' }, payments: { captures: [{ id: 'CAPTURE123', status: 'COMPLETED', amount: { value: '12.00', currency_code: 'USD' } }] } }] }) };
@@ -41,6 +43,8 @@ test('capture requires a completed sandbox payment', async () => {
   const capture = await client.captureOrder('ORDER123', 'test-order-001', '12.00');
   assert.equal(urls[2], 'https://api-m.sandbox.paypal.com/v2/checkout/orders/ORDER123/capture');
   assert.equal(capture.captureId, 'CAPTURE123');
+  assert.ok(captureRequestId.length <= 38);
+  assert.notEqual(captureRequestId, 'test-order-001');
 });
 
 test('unapproved or changed order cannot reach capture', async () => {

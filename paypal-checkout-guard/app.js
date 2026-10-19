@@ -53,13 +53,14 @@ export function createApp({ paypal, ai, clientId = '', fileReader = readFile }) 
           const order = await session.orderPending;
           return json(res, 200, { orderId: order.id });
         }
-        const reference = `guard_${session.created}_${randomUUID().replaceAll('-', '').slice(0, 12)}`;
-        session.orderPending = paypal.createOrder({ amount: session.amount, reference });
+        // Reuse PayPal's request ID if the first order response was lost.
+        session.reference ??= `guard_${session.created}_${randomUUID().replaceAll('-', '').slice(0, 12)}`;
+        session.orderPending = paypal.createOrder({ amount: session.amount, reference: session.reference });
         let order;
         try { order = await session.orderPending; }
         finally { session.orderPending = null; }
         session.order = order;
-        pages.set(order.id, { reviewId: input.reviewId, reference, amount: session.amount });
+        pages.set(order.id, { reviewId: input.reviewId, reference: session.reference, amount: session.amount });
         return json(res, 200, { orderId: order.id });
       }
       const record = pages.get(input.orderId);

@@ -1,3 +1,5 @@
+import { createHash } from 'node:crypto';
+
 const SANDBOX = 'https://api-m.sandbox.paypal.com';
 
 function completedCapture(data, orderId, reference, expectedAmount) {
@@ -88,7 +90,8 @@ export class PayPalSandbox {
       headers: {
         Authorization: `Bearer ${token}`,
         'Content-Type': 'application/json',
-        'PayPal-Request-Id': `${reference}_capture`
+        // PayPal recommends IDs within 38 bytes. Keep capture distinct from create.
+        'PayPal-Request-Id': createHash('sha256').update(`${reference}:capture`).digest('hex').slice(0, 32)
       },
       body: '{}'
     });
