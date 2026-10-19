@@ -1,11 +1,11 @@
 import { randomUUID } from 'node:crypto';
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
+import { existsSync, mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { dirname } from 'node:path';
 import { PayPalSandbox } from './paypal.js';
 import { AIReview } from './ai.js';
 
-const pages = new Map();
-const sessions = new Map();
 const MAX_BODY = 5000;
 const REVIEW_TTL = 30 * 60_000;
 const json = (res, status, data) => { res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' }); res.end(JSON.stringify(data)); };
@@ -19,7 +19,35 @@ async function body(req) {
   return JSON.parse(raw);
 }
 
-export function createApp({ paypal, ai, clientId = '', fileReader = readFile }) {
+export function createApp({ paypal, ai, clientId = '', fileReader = readFile, stateFile = null }) {
+  let saved = { version: 1, sessions: [], pages: [] };
+  if (stateFile && existsSync(stateFile)) {
+    saved = JSON.parse(readFileSync(stateFile, 'utf8'));
+    if (saved.version !== 1 || !Array.isArray(saved.sessions) || !Array.isArray(saved.pages)) {
+      throw new Error('Checkout state file is invalid');
+    }
+  }
+  const sessions = new Map(saved.sessions.filter(([, session]) =>
+    session && Number.isFinite(session.created) && Date.now() - session.created <= REVIEW_TTL));
+  const pages = new Map(saved.pages.filter(([, page]) => sessions.has(page?.reviewId)));
+  function save() {
+    if (!stateFile) return;
+    mkdirSync(dirname(stateFile), { recursive: true });
+    const temporary = `${stateFile}.${randomUUID()}.tmp`;
+    const data = {
+      version: 1,
+      sessions: [...sessions].map(([id, session]) => [id, {
+        amount: session.amount, created: session.created,
+        reference: session.reference, order: session.order && { id: session.order.id }
+      }]),
+      pages: [...pages].map(([id, page]) => [id, {
+        reviewId: page.reviewId, reference: page.reference,
+        amount: page.amount, capture: page.capture
+      }])
+    };
+    writeFileSync(temporary, JSON.stringify(data), { mode: 0o600, flag: 'wx' });
+    renameSync(temporary, stateFile);
+  }
   return createServer(async (req, res) => {
     try {
       const path = new URL(req.url, 'http://localhost').pathname;
@@ -41,7 +69,8 @@ export function createApp({ paypal, ai, clientId = '', fileReader = readFile }) 
         if (!ai) return json(res, 503, { error: 'AI provider is not configured' });
         const review = await ai.review(input);
         const reviewId = randomUUID();
-        sessions.set(reviewId, { item: input.item, amount: input.amount, description: input.description, review, created: Date.now() });
+        sessions.set(reviewId, { amount: input.amount, created: Date.now() });
+        save();
         return json(res, 200, { reviewId, review });
       }
       if (!paypal) return json(res, 503, { error: 'PayPal sandbox is not configured' });
@@ -55,12 +84,14 @@ export function createApp({ paypal, ai, clientId = '', fileReader = readFile }) 
         }
         // Reuse PayPal's request ID if the first order response was lost.
         session.reference ??= `guard_${session.created}_${randomUUID().replaceAll('-', '').slice(0, 12)}`;
+        save(); // Keep the same PayPal request ID if the server stops during order creation.
         session.orderPending = paypal.createOrder({ amount: session.amount, reference: session.reference });
         let order;
         try { order = await session.orderPending; }
         finally { session.orderPending = null; }
         session.order = order;
         pages.set(order.id, { reviewId: input.reviewId, reference: session.reference, amount: session.amount });
+        save();
         return json(res, 200, { orderId: order.id });
       }
       const record = pages.get(input.orderId);
@@ -82,6 +113,7 @@ export function createApp({ paypal, ai, clientId = '', fileReader = readFile }) 
       try { capture = await record.capturePending; }
       finally { record.capturePending = null; }
       record.capture = capture;
+      save();
       return json(res, 200, capture);
     } catch (error) {
       const invalid = error instanceof SyntaxError || /^(Invalid|Item must|Description must|Request too large)/.test(error.message);
@@ -95,7 +127,9 @@ if (process.argv[1] && import.meta.url === new URL(`file://${process.argv[1]}`).
   const paypal = PAYPAL_CLIENT_ID && PAYPAL_CLIENT_SECRET ? new PayPalSandbox({ clientId: PAYPAL_CLIENT_ID, clientSecret: PAYPAL_CLIENT_SECRET }) : null;
   const ai = OPENAI_API_KEY ? new AIReview({ apiKey: OPENAI_API_KEY, model: OPENAI_MODEL || undefined }) : null;
   const port = Number(process.env.PORT || 4177);
-  createApp({ paypal, ai, clientId: paypal ? PAYPAL_CLIENT_ID : '' }).listen(port, '127.0.0.1', () => {
+  createApp({ paypal, ai, clientId: paypal ? PAYPAL_CLIENT_ID : '',
+    stateFile: process.env.CHECKOUT_STATE_FILE || new URL('.checkout-guard-state.json', import.meta.url).pathname
+  }).listen(port, '127.0.0.1', () => {
     process.stdout.write(`Checkout Guard listening at http://127.0.0.1:${port}\n`);
   });
 }

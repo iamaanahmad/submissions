@@ -1,6 +1,9 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp } from './app.js';
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 async function withServer(app, run) {
   await new Promise(resolve => app.listen(0, '127.0.0.1', resolve));
@@ -92,4 +95,66 @@ test('concurrent buyer requests create and capture one sandbox order', async () 
     assert.deepEqual(results.map(result => result.captureId), ['CAPTURE789', 'CAPTURE789', 'CAPTURE789']);
     assert.equal(captures, 1);
   });
+});
+
+test('restart keeps the order link and recovers a lost capture reply', async () => {
+  const directory = mkdtempSync(join(tmpdir(), 'checkout-guard-'));
+  const stateFile = join(directory, 'state.json');
+  let captureCalls = 0;
+  const paypal = {
+    createOrder: async () => ({ id: 'ORDER123' }),
+    captureOrder: async () => {
+      captureCalls++;
+      return { orderId: 'ORDER123', captureId: 'CAPTURE123', status: 'COMPLETED', amount: '25.00', currency: 'USD' };
+    }
+  };
+  const ai = { review: async () => ({ summary: 'Check the terms.', questions: ['When?'], risk: 'review' }) };
+  let reviewId;
+  try {
+    await withServer(createApp({ paypal, ai, stateFile }), async base => {
+      ({ reviewId } = await (await post(base, '/api/review', {
+        item: 'Logo milestone', amount: '25.00', description: 'A logo draft is due tomorrow.'
+      })).json());
+      const order = await (await post(base, '/api/order', { reviewId })).json();
+      assert.equal(order.orderId, 'ORDER123');
+    });
+    assert.equal(readFileSync(stateFile, 'utf8').includes('A logo draft'), false);
+    await withServer(createApp({ paypal, ai, stateFile }), async base => {
+      const recovered = await (await post(base, '/api/capture', { reviewId, orderId: 'ORDER123' })).json();
+      assert.equal(recovered.captureId, 'CAPTURE123');
+    });
+    await withServer(createApp({ paypal, ai, stateFile }), async base => {
+      const receipt = await (await post(base, '/api/capture', { reviewId, orderId: 'ORDER123' })).json();
+      assert.equal(receipt.captureId, 'CAPTURE123');
+    });
+    assert.equal(captureCalls, 1);
+  } finally { rmSync(directory, { recursive: true, force: true }); }
+});
+
+test('restart after a lost order reply reuses the same PayPal request ID', async () => {
+  const directory = mkdtempSync(join(tmpdir(), 'checkout-guard-'));
+  const stateFile = join(directory, 'state.json');
+  const references = [];
+  const paypal = {
+    createOrder: async ({ reference }) => {
+      references.push(reference);
+      if (references.length === 1) throw new Error('PayPal reply lost');
+      return { id: 'ORDER123' };
+    }
+  };
+  const ai = { review: async () => ({ summary: 'Check the terms.', questions: ['When?'], risk: 'review' }) };
+  let reviewId;
+  try {
+    await withServer(createApp({ paypal, ai, stateFile }), async base => {
+      ({ reviewId } = await (await post(base, '/api/review', {
+        item: 'Logo milestone', amount: '25.00', description: 'A logo draft is due tomorrow.'
+      })).json());
+      assert.equal((await post(base, '/api/order', { reviewId })).status, 502);
+    });
+    await withServer(createApp({ paypal, ai, stateFile }), async base => {
+      assert.equal((await (await post(base, '/api/order', { reviewId })).json()).orderId, 'ORDER123');
+    });
+    assert.equal(references.length, 2);
+    assert.equal(references[0], references[1]);
+  } finally { rmSync(directory, { recursive: true, force: true }); }
 });

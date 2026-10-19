@@ -28,7 +28,7 @@ Run `npm test` for local checks. Tests use fake transports. They do not prove a 
 3. Select the PayPal sandbox button and approve with a sandbox buyer account.
 4. The server captures the order once, checks its amount, and shows the sandbox order and capture IDs.
 
-Editing the purchase clears the old review and its PayPal button. The server accepts captures only for an order it created for the active review. A missing or failed provider call never becomes a success message. Review and order state is held in memory and expires after 30 minutes. Restarting the server clears that state.
+Editing the purchase clears the old review and its PayPal button. The server accepts captures only for an order it created for the active review. A missing or failed provider call never becomes a success message. The server saves the order link in a local, ignored file for 30 minutes. It writes only the review ID, amount, order reference, order ID, and any verified receipt. It does not save the purchase description or AI response. Set `CHECKOUT_STATE_FILE` to a private writable path if needed.
 
 If a buyer edits details while the AI response or PayPal buttons load, the old review cannot reopen checkout. Concurrent requests for one review share one order and one capture. A review that expires before capture must be started again.
 
@@ -44,7 +44,7 @@ If PayPal completes a capture but its first reply is lost, retrying reads PayPal
 
 If PayPal creates an order but its reply is lost, retrying uses the original request ID. PayPal can return the same order instead of creating a second one. The capture request uses a separate, stable ID within PayPal's documented length limit.
 
-If the browser loses the first capture reply, **Check payment status** retries that same reviewed order. The button appears only after PayPal buyer approval and a capture response error. It stays available if the buyer edits the form or starts another review. A new payment cannot start until the buyer checks the prior order. The server checks PayPal before it displays any receipt. This recovery works while the server retains the review; a restart or review expiry still loses the local order mapping.
+If the browser loses the first capture reply, **Check payment status** retries that same reviewed order. The button appears only after PayPal buyer approval and a capture response error. It stays available if the buyer edits the form or starts another review. A new payment cannot start until the buyer checks the prior order. The server checks PayPal before it displays any receipt. The order link survives a server restart while the local state file remains available. Review expiry or loss of that file still prevents recovery.
 
 ## Video plan (record only after real provider checks)
 
@@ -65,6 +65,6 @@ Record one uninterrupted working path plus any brief cuts needed for privacy. Hi
 - Confirm the project idea and open-source licensing rights. Add a license only after project-specific authorization.
 - Publish a working demo with a public YouTube video under three minutes, public source and setup, and a submission receipt before the November 12, 2026 deadline. The open-source license must be visible at the top of the public repository page, as the rules require.
 
-The app is a local prototype. It uses memory for session state and binds to localhost. Deploying it for public use requires persistent sessions, abuse controls, and deployment checks.
+The app is a local prototype. It binds to localhost and saves its short-lived order link in one local file. Deploying it for public use requires a secure shared state store, abuse controls, and deployment checks.
 
 Sources: [official rules](https://paypalaihackathon.devpost.com/rules), [PayPal Checkout guide](https://developer.paypal.com/platforms/checkout/standard/integrate), [PayPal JavaScript SDK reference](https://developer.paypal.com/sdk/js/reference/).
