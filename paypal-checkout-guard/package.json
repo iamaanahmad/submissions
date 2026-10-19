@@ -2,5 +2,5 @@
   "name": "paypal-checkout-guard",
   "private": true,
   "type": "module",
-  "scripts": { "start": "node app.js", "test": "node --test" }
+  "scripts": { "start": "node app.js", "test": "node --test", "verify:live": "node verify-live.js" }
 }

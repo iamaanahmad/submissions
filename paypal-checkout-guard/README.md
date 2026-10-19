@@ -20,6 +20,8 @@ Open `http://127.0.0.1:4177/`. The server binds to localhost. If either provider
 
 Run `npm test` for local checks. Tests use fake transports. They do not prove a real provider call.
 
+Once credentials are available, run `npm run verify:live`. It makes one real AI review and checks PayPal sandbox authentication. It prints only pass or fail flags and a timestamp. It creates no order and moves no money. A passing result does **not** verify buyer approval or capture; complete those steps in the browser with a marked sandbox buyer account.
+
 ## Buyer path
 
 1. Enter an item, a description, and a USD price.
