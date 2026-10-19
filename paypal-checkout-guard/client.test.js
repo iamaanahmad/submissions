@@ -119,3 +119,47 @@ test('editing while PayPal buttons render removes the stale checkout', async () 
   assert.deepEqual(element('#paypal-button-container').children, []);
   assert.equal(element('#review-result').hidden, true);
 });
+
+test('buyer can check the same order after a lost capture reply', async () => {
+  const handlers = new Map();
+  const elements = new Map();
+  const element = selector => {
+    if (!elements.has(selector)) elements.set(selector, {
+      hidden: true, disabled: false, textContent: '', innerHTML: '',
+      replaceChildren() {}, addEventListener(name, handler) { handlers.set(name, handler); }
+    });
+    return elements.get(selector);
+  };
+  let buttonOptions;
+  let captureCalls = 0;
+  const document = {
+    querySelector: element,
+    createElement: tag => tag === 'li' ? { textContent: '' } : { onload: null },
+    head: { append(script) { queueMicrotask(() => script.onload()); } }
+  };
+  const fetcher = async path => {
+    if (path === '/api/config') return { ok: true, json: async () => ({ paypalReady: true, aiReady: true, clientId: 'test' }) };
+    if (path === '/api/review') return { ok: true, json: async () => ({ reviewId: 'review-1', review: { summary: 'Check terms.', questions: ['When?'], risk: 'review' } }) };
+    if (path === '/api/capture') {
+      captureCalls++;
+      if (captureCalls === 1) throw new Error('Network reply lost');
+      return { ok: true, json: async () => ({ orderId: 'ORDER123', captureId: 'CAPTURE123', amount: '25.00' }) };
+    }
+    throw new Error(`Unexpected request: ${path}`);
+  };
+  class FakeFormData { *[Symbol.iterator]() { yield ['item', 'Logo']; yield ['amount', '25.00']; yield ['description', 'A logo draft arrives tomorrow.']; } }
+  const source = await readFile(new URL('./client.js', import.meta.url), 'utf8');
+  const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+  await new AsyncFunction('document', 'fetch', 'FormData', 'window', source)(document, fetcher, FakeFormData, {
+    paypal: { Buttons(options) { buttonOptions = options; return { async render() {} }; } }
+  });
+  await handlers.get('submit')({ preventDefault() {} });
+  await buttonOptions.onApprove({ orderID: 'ORDER123' });
+  assert.equal(element('#retry-capture').hidden, false);
+  assert.equal(element('#success').hidden, true);
+  await handlers.get('click')();
+  assert.equal(element('#retry-capture').hidden, true);
+  assert.equal(element('#success').hidden, false);
+  assert.match(element('#receipt').textContent, /CAPTURE123/);
+  assert.equal(captureCalls, 2);
+});

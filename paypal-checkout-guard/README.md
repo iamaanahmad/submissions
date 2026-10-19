@@ -42,6 +42,8 @@ A receipt appears only when PayPal reports one completed USD capture with an ID 
 
 If PayPal completes a capture but its first reply is lost, retrying reads PayPal's order. A matching completed capture restores the receipt without another capture request. A missing or changed capture still cannot appear as paid.
 
+If the browser loses the first capture reply, **Check payment status** retries that same reviewed order. The button appears only after PayPal buyer approval and a capture response error. It cannot start a different purchase. The server checks PayPal before it displays any receipt.
+
 ## Video plan (record only after real provider checks)
 
 Keep the public YouTube video below three minutes. Show the actual browser and sandbox buyer account. Do not replace provider actions with local test responses.

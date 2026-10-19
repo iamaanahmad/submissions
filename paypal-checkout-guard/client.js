@@ -6,6 +6,8 @@ let config;
 let reviewId;
 let revision = 0;
 let paypalScript;
+let pendingCapture;
+const retryCapture = document.querySelector('#retry-capture');
 
 async function request(path, data) {
   const response = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
@@ -17,10 +19,33 @@ function notice(text) { message.textContent = text; }
 function clearReview() {
   revision++;
   reviewId = undefined;
+  pendingCapture = undefined;
+  retryCapture.hidden = true;
   document.querySelector('#review-result').hidden = true;
   document.querySelector('#paypal-button-container').replaceChildren();
   document.querySelector('#empty-review').hidden = false;
   document.querySelector('#success').hidden = true;
+}
+async function settleCapture(attempt) {
+  retryCapture.disabled = true;
+  try {
+    const capture = await request('/api/capture', { reviewId: attempt.reviewId, orderId: attempt.orderId });
+    pendingCapture = undefined;
+    retryCapture.hidden = true;
+    if (revision !== attempt.revision) {
+      notice(`Sandbox payment completed. Order ${capture.orderId} · Capture ${capture.captureId}. Review the new purchase separately.`);
+      return;
+    }
+    document.querySelector('#review-result').hidden = true;
+    document.querySelector('#success').hidden = false;
+    document.querySelector('#receipt').textContent = `Order ${capture.orderId} · Capture ${capture.captureId} · USD ${capture.amount}`;
+    notice('');
+  } catch (error) {
+    if (revision === attempt.revision) {
+      notice(`${error.message} Check the same sandbox order before starting another payment.`);
+      retryCapture.hidden = false;
+    }
+  } finally { retryCapture.disabled = false; }
 }
 function showReview(review) {
   document.querySelector('#empty-review').hidden = true;
@@ -54,18 +79,9 @@ async function renderPayPal(currentRevision, currentReviewId) {
       return (await request('/api/order', { reviewId: currentReviewId })).orderId;
     },
     onApprove: async ({ orderID }) => {
-      try {
-        if (revision !== currentRevision) throw new Error('Purchase changed. Review it again.');
-        const capture = await request('/api/capture', { reviewId: currentReviewId, orderId: orderID });
-        if (revision !== currentRevision) {
-          notice(`Sandbox payment completed. Order ${capture.orderId} · Capture ${capture.captureId}. Review the new purchase separately.`);
-          return;
-        }
-        document.querySelector('#review-result').hidden = true;
-        document.querySelector('#success').hidden = false;
-        document.querySelector('#receipt').textContent = `Order ${capture.orderId} · Capture ${capture.captureId} · USD ${capture.amount}`;
-        notice('');
-      } catch (error) { notice(error.message); }
+      if (revision !== currentRevision) return notice('Purchase changed. Review it again.');
+      pendingCapture = { reviewId: currentReviewId, orderId: orderID, revision: currentRevision };
+      await settleCapture(pendingCapture);
     },
     onCancel: () => notice('Payment was cancelled. No capture was requested.'),
     onError: () => notice('PayPal could not complete the sandbox checkout. No capture was confirmed.')
@@ -96,3 +112,6 @@ form.addEventListener('submit', async event => {
   finally { reviewButton.disabled = false; reviewButton.innerHTML = 'Review purchase <span aria-hidden="true">↗</span>'; }
 });
 form.addEventListener('input', clearReview);
+retryCapture.addEventListener('click', async () => {
+  if (pendingCapture && !retryCapture.disabled) await settleCapture(pendingCapture);
+});
