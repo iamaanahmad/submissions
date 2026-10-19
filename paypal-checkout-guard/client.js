@@ -8,6 +8,27 @@ let revision = 0;
 let paypalScript;
 let pendingCapture;
 const retryCapture = document.querySelector('#retry-capture');
+const pendingKey = 'checkout-guard-pending-capture';
+try {
+  const saved = JSON.parse(window.sessionStorage?.getItem(pendingKey) ?? 'null');
+  if (saved && typeof saved.reviewId === 'string' && typeof saved.orderId === 'string' &&
+    Number.isFinite(saved.savedAt) && Date.now() - saved.savedAt < 30 * 60_000) {
+    pendingCapture = { reviewId: saved.reviewId, orderId: saved.orderId, revision };
+    retryCapture.hidden = false;
+    notice('Check the prior sandbox order before starting another payment.');
+  } else {
+    window.sessionStorage?.removeItem(pendingKey);
+  }
+} catch { /* Private browsing may block session storage. The current page still works. */ }
+
+function rememberCapture(attempt) {
+  try { window.sessionStorage?.setItem(pendingKey, JSON.stringify({
+    reviewId: attempt.reviewId, orderId: attempt.orderId, savedAt: Date.now()
+  })); } catch { /* The current page can still check the order. */ }
+}
+function forgetCapture() {
+  try { window.sessionStorage?.removeItem(pendingKey); } catch { /* No stored copy exists. */ }
+}
 
 async function request(path, data) {
   const response = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
@@ -31,6 +52,7 @@ async function settleCapture(attempt) {
   try {
     const capture = await request('/api/capture', { reviewId: attempt.reviewId, orderId: attempt.orderId });
     pendingCapture = undefined;
+    forgetCapture();
     retryCapture.hidden = true;
     if (revision !== attempt.revision) {
       notice(`Sandbox payment completed. Order ${capture.orderId} · Capture ${capture.captureId}. Review the new purchase separately.`);
@@ -82,6 +104,7 @@ async function renderPayPal(currentRevision, currentReviewId) {
       if (revision !== currentRevision) return notice('Purchase changed. Review it again.');
       if (pendingCapture) return notice('Check the prior sandbox order before starting another payment.');
       pendingCapture = { reviewId: currentReviewId, orderId: orderID, revision: currentRevision };
+      rememberCapture(pendingCapture);
       await settleCapture(pendingCapture);
     },
     onCancel: () => notice('Payment was cancelled. No capture was requested.'),

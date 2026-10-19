@@ -167,3 +167,61 @@ test('buyer can check the same order after a lost capture reply', async () => {
   assert.match(element('#message').textContent, /Sandbox payment completed.*CAPTURE123.*new purchase separately/);
   assert.equal(captureCalls, 2);
 });
+
+test('buyer can recover an approved sandbox order after a page reload', async () => {
+  const stored = new Map();
+  const sessionStorage = {
+    getItem: key => stored.get(key) ?? null,
+    setItem: (key, value) => stored.set(key, value),
+    removeItem: key => stored.delete(key)
+  };
+  const source = await readFile(new URL('./client.js', import.meta.url), 'utf8');
+  const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+  let captureCalls = 0;
+  const loadPage = async () => {
+    const handlers = new Map();
+    const elements = new Map();
+    const element = selector => {
+      if (!elements.has(selector)) elements.set(selector, {
+        hidden: true, disabled: false, textContent: '', innerHTML: '',
+        replaceChildren() {}, addEventListener(name, handler) { handlers.set(name, handler); }
+      });
+      return elements.get(selector);
+    };
+    let buttons;
+    const document = {
+      querySelector: element,
+      createElement: tag => tag === 'li' ? { textContent: '' } : { onload: null },
+      head: { append(script) { queueMicrotask(() => script.onload()); } }
+    };
+    const fetcher = async path => {
+      if (path === '/api/config') return { ok: true, json: async () => ({ paypalReady: true, aiReady: true, clientId: 'test' }) };
+      if (path === '/api/review') return { ok: true, json: async () => ({ reviewId: 'review-1', review: { summary: 'Check terms.', questions: ['When?'], risk: 'review' } }) };
+      if (path === '/api/capture') {
+        captureCalls++;
+        if (captureCalls === 1) throw new Error('Network reply lost');
+        return { ok: true, json: async () => ({ orderId: 'ORDER123', captureId: 'CAPTURE123', amount: '25.00' }) };
+      }
+      throw new Error(`Unexpected request: ${path}`);
+    };
+    class FakeFormData { *[Symbol.iterator]() { yield ['item', 'Logo']; yield ['amount', '25.00']; yield ['description', 'A logo draft arrives tomorrow.']; } }
+    await new AsyncFunction('document', 'fetch', 'FormData', 'window', source)(document, fetcher, FakeFormData, {
+      sessionStorage, paypal: { Buttons(options) { buttons = options; return { async render() {} }; } }
+    });
+    return { handlers, element, get buttons() { return buttons; } };
+  };
+  const first = await loadPage();
+  await first.handlers.get('submit')({ preventDefault() {} });
+  await first.buttons.onApprove({ orderID: 'ORDER123' });
+  assert.equal(first.element('#retry-capture').hidden, false);
+  assert.equal(stored.size, 1);
+
+  const reloaded = await loadPage();
+  assert.equal(reloaded.element('#retry-capture').hidden, false);
+  await reloaded.handlers.get('submit')({ preventDefault() {} });
+  await assert.rejects(reloaded.buttons.createOrder(), /Check the prior sandbox order/);
+  await reloaded.handlers.get('click')();
+  assert.match(reloaded.element('#message').textContent, /Sandbox payment completed.*CAPTURE123.*new purchase separately/);
+  assert.equal(stored.size, 0);
+  assert.equal(captureCalls, 2);
+});
