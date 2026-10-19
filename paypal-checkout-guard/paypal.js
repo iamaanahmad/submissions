@@ -1,5 +1,22 @@
 const SANDBOX = 'https://api-m.sandbox.paypal.com';
 
+function completedCapture(data, orderId, reference, expectedAmount) {
+  const units = data.purchase_units;
+  const unit = units?.[0];
+  const captures = unit?.payments?.captures;
+  const capture = captures?.[0];
+  if (data.id !== orderId || data.status !== 'COMPLETED' ||
+    units?.length !== 1 || unit.reference_id !== reference ||
+    unit.amount?.value !== expectedAmount || unit.amount?.currency_code !== 'USD' ||
+    captures?.length !== 1 || typeof capture?.id !== 'string' || !capture.id ||
+    capture.status !== 'COMPLETED' || capture.amount?.value !== expectedAmount ||
+    capture.amount?.currency_code !== 'USD') {
+    throw new Error('Sandbox capture not completed');
+  }
+  return { orderId: data.id, captureId: capture.id, status: capture.status,
+    amount: capture.amount.value, currency: capture.amount.currency_code };
+}
+
 export class PayPalSandbox {
   constructor({ clientId, clientSecret, fetcher = fetch }) {
     if (!clientId || !clientSecret) throw new Error('Sandbox client ID and secret are required');
@@ -58,11 +75,14 @@ export class PayPalSandbox {
     });
     const order = await details.json();
     const unit = order.purchase_units?.[0];
-    if (!details.ok || order.id !== orderId || order.status !== 'APPROVED' ||
+    if (!details.ok || order.id !== orderId || !['APPROVED', 'COMPLETED'].includes(order.status) ||
       order.purchase_units?.length !== 1 || unit.reference_id !== reference ||
       unit.amount?.value !== expectedAmount || unit.amount?.currency_code !== 'USD') {
       throw new Error('Sandbox order is not approved for this reviewed purchase');
     }
+    // A capture may have succeeded even when its first response was lost.
+    // Recover its PayPal proof without sending a second capture request.
+    if (order.status === 'COMPLETED') return completedCapture(order, orderId, reference, expectedAmount);
     const response = await this.fetcher(`${SANDBOX}/v2/checkout/orders/${orderId}/capture`, {
       method: 'POST',
       headers: {
@@ -74,18 +94,6 @@ export class PayPalSandbox {
     });
     const data = await response.json();
     if (!response.ok) throw new Error('Sandbox capture failed');
-    const units = data.purchase_units;
-    const captures = units?.[0]?.payments?.captures;
-    const capture = captures?.[0];
-    if (data.id !== orderId || data.status !== 'COMPLETED' ||
-      units?.length !== 1 || captures?.length !== 1 ||
-      typeof capture?.id !== 'string' || !capture.id ||
-      capture.status !== 'COMPLETED' ||
-      !/^(0|[1-9]\d*)\.\d{2}$/.test(capture.amount?.value ?? '') ||
-      capture.amount?.currency_code !== 'USD') {
-      throw new Error('Sandbox capture not completed');
-    }
-    return { orderId: data.id, captureId: capture.id, status: capture.status,
-      amount: capture.amount?.value, currency: capture.amount?.currency_code };
+    return completedCapture(data, orderId, reference, expectedAmount);
   }
 }
