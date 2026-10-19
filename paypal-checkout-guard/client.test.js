@@ -157,9 +157,13 @@ test('buyer can check the same order after a lost capture reply', async () => {
   await buttonOptions.onApprove({ orderID: 'ORDER123' });
   assert.equal(element('#retry-capture').hidden, false);
   assert.equal(element('#success').hidden, true);
+  handlers.get('input')();
+  assert.equal(element('#retry-capture').hidden, false);
+  await handlers.get('submit')({ preventDefault() {} });
+  await assert.rejects(buttonOptions.createOrder(), /Check the prior sandbox order/);
   await handlers.get('click')();
   assert.equal(element('#retry-capture').hidden, true);
-  assert.equal(element('#success').hidden, false);
-  assert.match(element('#receipt').textContent, /CAPTURE123/);
+  assert.equal(element('#success').hidden, true);
+  assert.match(element('#message').textContent, /Sandbox payment completed.*CAPTURE123.*new purchase separately/);
   assert.equal(captureCalls, 2);
 });

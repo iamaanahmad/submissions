@@ -19,8 +19,8 @@ function notice(text) { message.textContent = text; }
 function clearReview() {
   revision++;
   reviewId = undefined;
-  pendingCapture = undefined;
-  retryCapture.hidden = true;
+  // Keep the status check for an approved order until its result is known.
+  if (!pendingCapture) retryCapture.hidden = true;
   document.querySelector('#review-result').hidden = true;
   document.querySelector('#paypal-button-container').replaceChildren();
   document.querySelector('#empty-review').hidden = false;
@@ -41,10 +41,9 @@ async function settleCapture(attempt) {
     document.querySelector('#receipt').textContent = `Order ${capture.orderId} · Capture ${capture.captureId} · USD ${capture.amount}`;
     notice('');
   } catch (error) {
-    if (revision === attempt.revision) {
-      notice(`${error.message} Check the same sandbox order before starting another payment.`);
-      retryCapture.hidden = false;
-    }
+    const prior = revision !== attempt.revision;
+    notice(`${error.message} Check ${prior ? 'the prior' : 'the same'} sandbox order before starting another payment.`);
+    retryCapture.hidden = false;
   } finally { retryCapture.disabled = false; }
 }
 function showReview(review) {
@@ -76,10 +75,12 @@ async function renderPayPal(currentRevision, currentReviewId) {
     style: { layout: 'vertical', shape: 'rect', label: 'pay' },
     createOrder: async () => {
       if (revision !== currentRevision) throw new Error('Purchase changed. Review it again.');
+      if (pendingCapture) throw new Error('Check the prior sandbox order before starting another payment.');
       return (await request('/api/order', { reviewId: currentReviewId })).orderId;
     },
     onApprove: async ({ orderID }) => {
       if (revision !== currentRevision) return notice('Purchase changed. Review it again.');
+      if (pendingCapture) return notice('Check the prior sandbox order before starting another payment.');
       pendingCapture = { reviewId: currentReviewId, orderId: orderID, revision: currentRevision };
       await settleCapture(pendingCapture);
     },
