@@ -48,7 +48,9 @@ If PayPal creates an order but its reply is lost, retrying uses the original req
 
 If the browser loses the first capture reply, **Check payment status** retries that same reviewed order. The button also appears after a reload or PayPal error before its approval callback. In that case, the server checks the saved order at PayPal and requests capture only when its status is `APPROVED` or `COMPLETED`. It stays available if the buyer edits the form or starts another review. A new payment cannot start until the buyer checks the prior order. The server checks PayPal before it displays any receipt. The order link survives a server restart while the local state file remains available. Review expiry or loss of that file still prevents recovery.
 
-The status check also survives a page reload in the same browser tab. The tab stores only the review ID, order ID, stage, and time for up to 30 minutes. It clears the record after a confirmed result or an unapproved order. A new payment remains blocked until the earlier order is checked. Closing the tab, clearing browser storage, or review expiry can still prevent this recovery.
+If PayPal still shows the order as awaiting approval, the status check keeps the order linked and blocks another payment. The buyer can check again after approval. A voided order clears the link.
+
+The status check also survives a page reload in the same browser tab. The tab stores only the review ID, order ID, stage, and time for up to 30 minutes. It clears the record after a confirmed result or a voided order. A new payment remains blocked while the earlier order awaits approval. Closing the tab, clearing browser storage, or review expiry can still prevent this recovery.
 
 ## Video plan (record only after real provider checks)
 

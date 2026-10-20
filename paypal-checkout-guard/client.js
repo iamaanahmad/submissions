@@ -53,11 +53,15 @@ async function settleCapture(attempt) {
   try {
     if (attempt.stage === 'created') {
       const { status } = await request('/api/status', { reviewId: attempt.reviewId, orderId: attempt.orderId });
-      if (status !== 'APPROVED' && status !== 'COMPLETED') {
+      if (status === 'VOIDED') {
         pendingCapture = undefined;
         forgetCapture();
         retryCapture.hidden = true;
-        notice('No sandbox payment was captured. Review the purchase again to continue.');
+        notice('This sandbox order was voided. Review the purchase again to continue.');
+        return;
+      }
+      if (status !== 'APPROVED' && status !== 'COMPLETED') {
+        notice('This sandbox order still awaits buyer approval. Check it again before starting another payment.');
         return;
       }
       attempt.stage = 'approved';

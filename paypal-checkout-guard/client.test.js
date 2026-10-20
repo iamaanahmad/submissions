@@ -278,16 +278,14 @@ test('reload before the approval callback checks PayPal before any capture', asy
   assert.equal(reloaded.element('#retry-capture').hidden, false);
   await reloaded.handlers.get('click')();
   assert.equal(captures, 0);
-  assert.equal(stored.size, 0);
-  assert.match(reloaded.element('#message').textContent, /No sandbox payment was captured/);
+  assert.equal(stored.size, 1);
+  assert.match(reloaded.element('#message').textContent, /still awaits buyer approval/);
 
   await reloaded.handlers.get('submit')({ preventDefault() {} });
-  await reloaded.buttons.createOrder();
+  await assert.rejects(reloaded.buttons.createOrder(), /Check the prior sandbox order/);
   status = 'APPROVED';
-  const approved = await loadPage();
-  await approved.handlers.get('click')();
+  await reloaded.handlers.get('click')();
   assert.equal(captures, 1);
   assert.equal(stored.size, 0);
-  assert.equal(approved.element('#success').hidden, false);
-  assert.match(approved.element('#receipt').textContent, /CAPTURE123/);
+  assert.match(reloaded.element('#message').textContent, /Sandbox payment completed.*CAPTURE123.*new purchase separately/);
 });
