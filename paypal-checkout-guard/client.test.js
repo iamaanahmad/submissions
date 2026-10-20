@@ -35,7 +35,7 @@ test('editing during an AI response does not restore stale PayPal approval', asy
   assert.equal(scripts, 0);
 });
 
-test('buyer approval is required before capture and a changed purchase blocks it', async () => {
+test('buyer approval is required and a later form edit keeps that order separate', async () => {
   const handlers = new Map();
   const elements = new Map();
   const element = selector => {
@@ -47,6 +47,7 @@ test('buyer approval is required before capture and a changed purchase blocks it
   };
   let buttonOptions;
   let captures = 0;
+  let orders = 0;
   const document = {
     querySelector: element,
     createElement: tag => tag === 'li' ? { textContent: '' } : { onload: null },
@@ -55,8 +56,8 @@ test('buyer approval is required before capture and a changed purchase blocks it
   const fetcher = async path => {
     if (path === '/api/config') return { ok: true, json: async () => ({ paypalReady: true, aiReady: true, clientId: 'test' }) };
     if (path === '/api/review') return { ok: true, json: async () => ({ reviewId: 'review-1', review: { summary: 'Check delivery.', questions: ['When?'], risk: 'caution' } }) };
-    if (path === '/api/order') return { ok: true, json: async () => ({ orderId: 'ORDER123' }) };
-    if (path === '/api/capture') { captures++; return { ok: true, json: async () => ({ orderId: 'ORDER123', captureId: 'CAPTURE123', amount: '25.00' }) }; }
+    if (path === '/api/order') { orders++; return { ok: true, json: async () => ({ orderId: `ORDER${orders}` }) }; }
+    if (path === '/api/capture') { captures++; return { ok: true, json: async () => ({ orderId: `ORDER${captures}`, captureId: `CAPTURE${captures}`, amount: '25.00' }) }; }
     throw new Error(`Unexpected request: ${path}`);
   };
   class FakeFormData { *[Symbol.iterator]() { yield ['item', 'Logo']; yield ['amount', '25.00']; yield ['description', 'A logo draft arrives tomorrow.']; } }
@@ -68,19 +69,21 @@ test('buyer approval is required before capture and a changed purchase blocks it
   await handlers.get('submit')({ preventDefault() {} });
   assert.equal(element('#review-risk').textContent, 'AI review · use caution');
   assert.equal(captures, 0);
-  assert.equal(await buttonOptions.createOrder(), 'ORDER123');
+  assert.equal(await buttonOptions.createOrder(), 'ORDER1');
   assert.equal(captures, 0);
   buttonOptions.onCancel();
   assert.equal(captures, 0);
-  await buttonOptions.onApprove({ orderID: 'ORDER123' });
+  await buttonOptions.onApprove({ orderID: 'ORDER1' });
   assert.equal(captures, 1);
   assert.equal(element('#success').hidden, false);
 
   await handlers.get('submit')({ preventDefault() {} });
+  assert.equal(await buttonOptions.createOrder(), 'ORDER2');
   handlers.get('input')();
-  await buttonOptions.onApprove({ orderID: 'ORDER123' });
-  assert.equal(captures, 1);
-  assert.match(element('#message').textContent, /Purchase changed/);
+  await buttonOptions.onApprove({ orderID: 'ORDER2' });
+  assert.equal(captures, 2);
+  assert.equal(element('#success').hidden, true);
+  assert.match(element('#message').textContent, /Sandbox payment completed.*ORDER2.*new purchase separately/);
 });
 
 test('editing while PayPal buttons render removes the stale checkout', async () => {

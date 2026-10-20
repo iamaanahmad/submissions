@@ -101,8 +101,10 @@ async function renderPayPal(currentRevision, currentReviewId) {
       return (await request('/api/order', { reviewId: currentReviewId })).orderId;
     },
     onApprove: async ({ orderID }) => {
-      if (revision !== currentRevision) return notice('Purchase changed. Review it again.');
       if (pendingCapture) return notice('Check the prior sandbox order before starting another payment.');
+      // PayPal approved the order created for this review, even if the form changed
+      // while its approval window was open. Resolve that order under its original
+      // review, then show its receipt separately from any newer purchase.
       pendingCapture = { reviewId: currentReviewId, orderId: orderID, revision: currentRevision };
       rememberCapture(pendingCapture);
       await settleCapture(pendingCapture);
