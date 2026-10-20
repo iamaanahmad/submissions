@@ -67,6 +67,22 @@ export class PayPalSandbox {
     };
   }
 
+  async orderStatus(orderId, reference, expectedAmount) {
+    if (!/^[A-Z0-9]{8,32}$/.test(orderId)) throw new Error('Invalid order ID');
+    const token = await this.token();
+    const response = await this.fetcher(`${SANDBOX}/v2/checkout/orders/${orderId}`, {
+      method: 'GET', headers: { Authorization: `Bearer ${token}` }
+    });
+    const order = await response.json();
+    const unit = order.purchase_units?.[0];
+    if (!response.ok || order.id !== orderId || order.purchase_units?.length !== 1 ||
+      unit.reference_id !== reference || unit.amount?.value !== expectedAmount ||
+      unit.amount?.currency_code !== 'USD') {
+      throw new Error('Sandbox order does not match this reviewed purchase');
+    }
+    return order.status;
+  }
+
   async captureOrder(orderId, reference, expectedAmount) {
     if (!/^[A-Z0-9]{8,32}$/.test(orderId)) throw new Error('Invalid order ID');
     if (!/^[a-zA-Z0-9_-]{8,127}$/.test(reference)) throw new Error('Invalid reference');

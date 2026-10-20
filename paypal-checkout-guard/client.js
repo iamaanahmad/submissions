@@ -13,7 +13,8 @@ try {
   const saved = JSON.parse(window.sessionStorage?.getItem(pendingKey) ?? 'null');
   if (saved && typeof saved.reviewId === 'string' && typeof saved.orderId === 'string' &&
     Number.isFinite(saved.savedAt) && Date.now() - saved.savedAt < 30 * 60_000) {
-    pendingCapture = { reviewId: saved.reviewId, orderId: saved.orderId, revision };
+    pendingCapture = { reviewId: saved.reviewId, orderId: saved.orderId, revision,
+      stage: saved.stage === 'approved' ? 'approved' : 'created' };
     retryCapture.hidden = false;
     notice('Check the prior sandbox order before starting another payment.');
   } else {
@@ -23,7 +24,7 @@ try {
 
 function rememberCapture(attempt) {
   try { window.sessionStorage?.setItem(pendingKey, JSON.stringify({
-    reviewId: attempt.reviewId, orderId: attempt.orderId, savedAt: Date.now()
+    reviewId: attempt.reviewId, orderId: attempt.orderId, stage: attempt.stage, savedAt: Date.now()
   })); } catch { /* The current page can still check the order. */ }
 }
 function forgetCapture() {
@@ -50,6 +51,18 @@ function clearReview() {
 async function settleCapture(attempt) {
   retryCapture.disabled = true;
   try {
+    if (attempt.stage === 'created') {
+      const { status } = await request('/api/status', { reviewId: attempt.reviewId, orderId: attempt.orderId });
+      if (status !== 'APPROVED' && status !== 'COMPLETED') {
+        pendingCapture = undefined;
+        forgetCapture();
+        retryCapture.hidden = true;
+        notice('No sandbox payment was captured. Review the purchase again to continue.');
+        return;
+      }
+      attempt.stage = 'approved';
+      rememberCapture(attempt);
+    }
     const capture = await request('/api/capture', { reviewId: attempt.reviewId, orderId: attempt.orderId });
     pendingCapture = undefined;
     forgetCapture();
@@ -98,19 +111,35 @@ async function renderPayPal(currentRevision, currentReviewId) {
     createOrder: async () => {
       if (revision !== currentRevision) throw new Error('Purchase changed. Review it again.');
       if (pendingCapture) throw new Error('Check the prior sandbox order before starting another payment.');
-      return (await request('/api/order', { reviewId: currentReviewId })).orderId;
+      const orderId = (await request('/api/order', { reviewId: currentReviewId })).orderId;
+      pendingCapture = { reviewId: currentReviewId, orderId, revision: currentRevision, stage: 'created' };
+      rememberCapture(pendingCapture);
+      return orderId;
     },
     onApprove: async ({ orderID }) => {
-      if (pendingCapture) return notice('Check the prior sandbox order before starting another payment.');
+      if (pendingCapture && (pendingCapture.reviewId !== currentReviewId || pendingCapture.orderId !== orderID)) {
+        return notice('Check the prior sandbox order before starting another payment.');
+      }
       // PayPal approved the order created for this review, even if the form changed
       // while its approval window was open. Resolve that order under its original
       // review, then show its receipt separately from any newer purchase.
-      pendingCapture = { reviewId: currentReviewId, orderId: orderID, revision: currentRevision };
+      pendingCapture = { reviewId: currentReviewId, orderId: orderID, revision: currentRevision, stage: 'approved' };
       rememberCapture(pendingCapture);
       await settleCapture(pendingCapture);
     },
-    onCancel: () => notice('Payment was cancelled. No capture was requested.'),
-    onError: () => notice('PayPal could not complete the sandbox checkout. No capture was confirmed.')
+    onCancel: () => {
+      if (pendingCapture?.reviewId === currentReviewId && pendingCapture.stage === 'created') {
+        pendingCapture = undefined;
+        forgetCapture();
+      }
+      notice('Payment was cancelled. No capture was requested.');
+    },
+    onError: () => {
+      if (pendingCapture?.reviewId === currentReviewId && pendingCapture.stage === 'created') {
+        retryCapture.hidden = false;
+      }
+      notice('PayPal could not complete the sandbox checkout. Check this order before starting another payment.');
+    }
   }).render('#paypal-button-container');
   if (revision !== currentRevision) document.querySelector('#paypal-button-container').replaceChildren();
 }

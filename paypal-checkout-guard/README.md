@@ -2,7 +2,7 @@
 
 Checkout Guard is a sandbox purchase review for the [PayPal AI Hackathon](https://paypalaihackathon.devpost.com/rules). A buyer describes a purchase, reads an AI summary and questions, then approves a PayPal sandbox payment. The app captures only the order created for that review and checks the captured amount. It never calls PayPal's live API.
 
-**Status:** The local buyer flow and provider adapters are implemented. Twenty-two local tests pass with fake provider responses. A real PayPal sandbox approval and capture, and a real AI response, have **not** been verified. This is not a contest submission or a claim of a working live integration.
+**Status:** The local buyer flow and provider adapters are implemented. Twenty-five local tests pass with fake provider responses. A real PayPal sandbox approval and capture, and a real AI response, have **not** been verified. This is not a contest submission or a claim of a working live integration.
 
 ## Run locally
 
@@ -46,9 +46,9 @@ If PayPal completes a capture but its first reply is lost, retrying reads PayPal
 
 If PayPal creates an order but its reply is lost, retrying uses the original request ID. PayPal can return the same order instead of creating a second one. The capture request uses a separate, stable ID within PayPal's documented length limit.
 
-If the browser loses the first capture reply, **Check payment status** retries that same reviewed order. The button appears only after PayPal buyer approval and a capture response error. It stays available if the buyer edits the form or starts another review. A new payment cannot start until the buyer checks the prior order. The server checks PayPal before it displays any receipt. The order link survives a server restart while the local state file remains available. Review expiry or loss of that file still prevents recovery.
+If the browser loses the first capture reply, **Check payment status** retries that same reviewed order. The button also appears after a reload or PayPal error before its approval callback. In that case, the server checks the saved order at PayPal and requests capture only when its status is `APPROVED` or `COMPLETED`. It stays available if the buyer edits the form or starts another review. A new payment cannot start until the buyer checks the prior order. The server checks PayPal before it displays any receipt. The order link survives a server restart while the local state file remains available. Review expiry or loss of that file still prevents recovery.
 
-The status check also survives a page reload in the same browser tab. The tab stores only the review ID, order ID, and time for up to 30 minutes. It clears the record after a confirmed result. A new payment remains blocked until the earlier order is checked. Closing the tab, clearing browser storage, or review expiry can still prevent this recovery.
+The status check also survives a page reload in the same browser tab. The tab stores only the review ID, order ID, stage, and time for up to 30 minutes. It clears the record after a confirmed result or an unapproved order. A new payment remains blocked until the earlier order is checked. Closing the tab, clearing browser storage, or review expiry can still prevent this recovery.
 
 ## Video plan (record only after real provider checks)
 

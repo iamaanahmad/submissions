@@ -228,3 +228,66 @@ test('buyer can recover an approved sandbox order after a page reload', async ()
   assert.equal(stored.size, 0);
   assert.equal(captureCalls, 2);
 });
+
+test('reload before the approval callback checks PayPal before any capture', async () => {
+  const stored = new Map();
+  const sessionStorage = {
+    getItem: key => stored.get(key) ?? null,
+    setItem: (key, value) => stored.set(key, value),
+    removeItem: key => stored.delete(key)
+  };
+  const source = await readFile(new URL('./client.js', import.meta.url), 'utf8');
+  const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+  let status = 'CREATED';
+  let captures = 0;
+  const loadPage = async () => {
+    const handlers = new Map();
+    const elements = new Map();
+    const element = selector => {
+      if (!elements.has(selector)) elements.set(selector, {
+        hidden: true, disabled: false, textContent: '', innerHTML: '',
+        replaceChildren() {}, addEventListener(name, handler) { handlers.set(name, handler); }
+      });
+      return elements.get(selector);
+    };
+    let buttons;
+    const document = {
+      querySelector: element,
+      createElement: tag => tag === 'li' ? { textContent: '' } : { onload: null },
+      head: { append(script) { queueMicrotask(() => script.onload()); } }
+    };
+    const fetcher = async path => {
+      if (path === '/api/config') return { ok: true, json: async () => ({ paypalReady: true, aiReady: true, clientId: 'test' }) };
+      if (path === '/api/review') return { ok: true, json: async () => ({ reviewId: 'review-1', review: { summary: 'Check terms.', questions: ['When?'], risk: 'review' } }) };
+      if (path === '/api/order') return { ok: true, json: async () => ({ orderId: 'ORDER123' }) };
+      if (path === '/api/status') return { ok: true, json: async () => ({ status }) };
+      if (path === '/api/capture') { captures++; return { ok: true, json: async () => ({ orderId: 'ORDER123', captureId: 'CAPTURE123', amount: '25.00' }) }; }
+      throw new Error(`Unexpected request: ${path}`);
+    };
+    class FakeFormData { *[Symbol.iterator]() { yield ['item', 'Logo']; yield ['amount', '25.00']; yield ['description', 'A logo draft arrives tomorrow.']; } }
+    await new AsyncFunction('document', 'fetch', 'FormData', 'window', source)(document, fetcher, FakeFormData, {
+      sessionStorage, paypal: { Buttons(options) { buttons = options; return { async render() {} }; } }
+    });
+    return { handlers, element, get buttons() { return buttons; } };
+  };
+  const first = await loadPage();
+  await first.handlers.get('submit')({ preventDefault() {} });
+  assert.equal(await first.buttons.createOrder(), 'ORDER123');
+  assert.equal(stored.size, 1);
+  const reloaded = await loadPage();
+  assert.equal(reloaded.element('#retry-capture').hidden, false);
+  await reloaded.handlers.get('click')();
+  assert.equal(captures, 0);
+  assert.equal(stored.size, 0);
+  assert.match(reloaded.element('#message').textContent, /No sandbox payment was captured/);
+
+  await reloaded.handlers.get('submit')({ preventDefault() {} });
+  await reloaded.buttons.createOrder();
+  status = 'APPROVED';
+  const approved = await loadPage();
+  await approved.handlers.get('click')();
+  assert.equal(captures, 1);
+  assert.equal(stored.size, 0);
+  assert.equal(approved.element('#success').hidden, false);
+  assert.match(approved.element('#receipt').textContent, /CAPTURE123/);
+});

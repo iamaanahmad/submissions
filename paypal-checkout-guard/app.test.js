@@ -12,6 +12,31 @@ async function withServer(app, run) {
 }
 const post = (base, path, input) => fetch(`${base}${path}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(input) });
 
+test('status reads the saved order without requesting capture', async () => {
+  let captureCalls = 0;
+  const paypal = {
+    createOrder: async () => ({ id: 'ORDER123' }),
+    orderStatus: async (orderId, reference, amount) => {
+      assert.equal(orderId, 'ORDER123');
+      assert.match(reference, /^guard_/);
+      assert.equal(amount, '25.00');
+      return 'CREATED';
+    },
+    captureOrder: async () => { captureCalls++; throw new Error('Must not capture'); }
+  };
+  const ai = { review: async () => ({ summary: 'Check terms.', questions: ['When?'], risk: 'review' }) };
+  await withServer(createApp({ paypal, ai }), async base => {
+    const review = await (await post(base, '/api/review', {
+      item: 'Logo milestone', amount: '25.00', description: 'A logo draft is due tomorrow.'
+    })).json();
+    const order = await (await post(base, '/api/order', { reviewId: review.reviewId })).json();
+    const status = await (await post(base, '/api/status', { reviewId: review.reviewId, orderId: order.orderId })).json();
+    assert.equal(status.status, 'CREATED');
+    assert.equal(captureCalls, 0);
+    assert.equal((await post(base, '/api/status', { reviewId: review.reviewId, orderId: 'OTHER123' })).status, 400);
+  });
+});
+
 test('review binds an idempotent order and capture to the same amount', async () => {
   let createCalls = 0;
   let captureCalls = 0;

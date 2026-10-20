@@ -95,3 +95,19 @@ test('lost capture reply recovers completed PayPal proof without a second captur
   assert.equal((await client.captureOrder('ORDER123', 'test-order-001', '12.00')).captureId, 'CAPTURE123');
   assert.equal(urls.length, 2);
 });
+
+test('status checks match the reviewed order and never capture', async () => {
+  const urls = [];
+  let reference = 'test-order-001';
+  const client = new PayPalSandbox({ clientId: 'test-id', clientSecret: 'test-secret', fetcher: async url => {
+    urls.push(url);
+    if (url.endsWith('/token')) return { ok: true, json: async () => ({ access_token: 'test-token' }) };
+    return { ok: true, json: async () => ({ id: 'ORDER123', status: 'APPROVED', purchase_units: [{
+      reference_id: reference, amount: { value: '12.00', currency_code: 'USD' }
+    }] }) };
+  } });
+  assert.equal(await client.orderStatus('ORDER123', 'test-order-001', '12.00'), 'APPROVED');
+  reference = 'other-order';
+  await assert.rejects(client.orderStatus('ORDER123', 'test-order-001', '12.00'), /does not match/);
+  assert.equal(urls.some(url => url.endsWith('/capture')), false);
+});

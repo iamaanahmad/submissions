@@ -59,7 +59,7 @@ export function createApp({ paypal, ai, clientId = '', fileReader = readFile, st
         return res.end(await fileReader(new URL(file, import.meta.url)));
       }
       if (req.method !== 'POST') return json(res, 404, { error: 'Not found' });
-      if (!['/api/review', '/api/order', '/api/capture'].includes(path)) return json(res, 404, { error: 'Not found' });
+      if (!['/api/review', '/api/order', '/api/status', '/api/capture'].includes(path)) return json(res, 404, { error: 'Not found' });
       if (req.headers['content-type']?.split(';')[0] !== 'application/json') return json(res, 415, { error: 'Use JSON' });
       const origin = req.headers.origin;
       const host = req.headers.host;
@@ -98,6 +98,11 @@ export function createApp({ paypal, ai, clientId = '', fileReader = readFile, st
       if (!record || record.reviewId !== input.reviewId) return json(res, 400, { error: 'Order does not match this review' });
       const session = sessions.get(input.reviewId);
       if (!session || Date.now() - session.created > REVIEW_TTL) return json(res, 400, { error: 'Review expired. Start again.' });
+      if (path === '/api/status') {
+        if (record.capture) return json(res, 200, { status: 'COMPLETED' });
+        const status = await paypal.orderStatus(input.orderId, record.reference, record.amount);
+        return json(res, 200, { status });
+      }
       if (record.capture) return json(res, 200, record.capture);
       if (record.capturePending) return json(res, 200, await record.capturePending);
       record.capturePending = (async () => {
