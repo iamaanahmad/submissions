@@ -9,10 +9,11 @@ let paypalScript;
 let pendingCapture;
 const retryCapture = document.querySelector('#retry-capture');
 const pendingKey = 'checkout-guard-pending-capture';
+const orderRecoveryMs = 24 * 60 * 60_000;
 try {
   const saved = JSON.parse(window.sessionStorage?.getItem(pendingKey) ?? 'null');
   if (saved && typeof saved.reviewId === 'string' && typeof saved.orderId === 'string' &&
-    Number.isFinite(saved.savedAt) && Date.now() - saved.savedAt < 30 * 60_000) {
+    Number.isFinite(saved.savedAt) && Date.now() - saved.savedAt < orderRecoveryMs) {
     pendingCapture = { reviewId: saved.reviewId, orderId: saved.orderId, revision,
       stage: saved.stage === 'approved' ? 'approved' : 'created' };
     retryCapture.hidden = false;
@@ -80,6 +81,13 @@ async function settleCapture(attempt) {
     document.querySelector('#receipt').textContent = `Order ${capture.orderId} · Capture ${capture.captureId} · USD ${capture.amount}`;
     notice('');
   } catch (error) {
+    if (error.message === 'Order recovery expired. Start again.') {
+      pendingCapture = undefined;
+      forgetCapture();
+      retryCapture.hidden = true;
+      notice('Order recovery expired. Review the purchase again to continue.');
+      return;
+    }
     const prior = revision !== attempt.revision;
     notice(`${error.message} Check ${prior ? 'the prior' : 'the same'} sandbox order before starting another payment.`);
     retryCapture.hidden = false;

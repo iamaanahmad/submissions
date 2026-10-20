@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { createApp } from './app.js';
-import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -153,6 +153,36 @@ test('restart keeps the order link and recovers a lost capture reply', async () 
       assert.equal(receipt.captureId, 'CAPTURE123');
     });
     assert.equal(captureCalls, 1);
+  } finally { rmSync(directory, { recursive: true, force: true }); }
+});
+
+test('an approved order can recover after the review window closes', async () => {
+  const directory = mkdtempSync(join(tmpdir(), 'checkout-guard-'));
+  const stateFile = join(directory, 'state.json');
+  const reviewId = 'slow-review';
+  const reference = 'guard_slow_order';
+  writeFileSync(stateFile, JSON.stringify({ version: 1,
+    sessions: [[reviewId, { amount: '25.00', created: Date.now() - 45 * 60_000,
+      reference, order: { id: 'ORDER123' } }]],
+    pages: [['ORDER123', { reviewId, reference, amount: '25.00' }]]
+  }));
+  let captures = 0;
+  const paypal = {
+    orderStatus: async () => 'APPROVED',
+    captureOrder: async () => {
+      captures++;
+      return { orderId: 'ORDER123', captureId: 'CAPTURE123', status: 'COMPLETED', amount: '25.00', currency: 'USD' };
+    }
+  };
+  try {
+    await withServer(createApp({ paypal, ai: null, stateFile }), async base => {
+      assert.equal((await post(base, '/api/order', { reviewId })).status, 400);
+      const status = await (await post(base, '/api/status', { reviewId, orderId: 'ORDER123' })).json();
+      assert.equal(status.status, 'APPROVED');
+      const receipt = await (await post(base, '/api/capture', { reviewId, orderId: 'ORDER123' })).json();
+      assert.equal(receipt.captureId, 'CAPTURE123');
+      assert.equal(captures, 1);
+    });
   } finally { rmSync(directory, { recursive: true, force: true }); }
 });
 

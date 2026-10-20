@@ -8,6 +8,7 @@ import { AIReview } from './ai.js';
 
 const MAX_BODY = 5000;
 const REVIEW_TTL = 30 * 60_000;
+const ORDER_RECOVERY_TTL = 24 * 60 * 60_000;
 const json = (res, status, data) => { res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' }); res.end(JSON.stringify(data)); };
 
 async function body(req) {
@@ -28,7 +29,8 @@ export function createApp({ paypal, ai, clientId = '', fileReader = readFile, st
     }
   }
   const sessions = new Map(saved.sessions.filter(([, session]) =>
-    session && Number.isFinite(session.created) && Date.now() - session.created <= REVIEW_TTL));
+    session && Number.isFinite(session.created) &&
+    Date.now() - session.created <= (session.order ? ORDER_RECOVERY_TTL : REVIEW_TTL)));
   const pages = new Map(saved.pages.filter(([, page]) => sessions.has(page?.reviewId)));
   function save() {
     if (!stateFile) return;
@@ -97,7 +99,7 @@ export function createApp({ paypal, ai, clientId = '', fileReader = readFile, st
       const record = pages.get(input.orderId);
       if (!record || record.reviewId !== input.reviewId) return json(res, 400, { error: 'Order does not match this review' });
       const session = sessions.get(input.reviewId);
-      if (!session || Date.now() - session.created > REVIEW_TTL) return json(res, 400, { error: 'Review expired. Start again.' });
+      if (!session || Date.now() - session.created > ORDER_RECOVERY_TTL) return json(res, 400, { error: 'Order recovery expired. Start again.' });
       if (path === '/api/status') {
         if (record.capture) return json(res, 200, { status: 'COMPLETED' });
         const status = await paypal.orderStatus(input.orderId, record.reference, record.amount);

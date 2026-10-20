@@ -30,7 +30,7 @@ Once credentials are available, run `npm run verify:live`. It makes one real AI 
 3. Select the PayPal sandbox button and approve with a sandbox buyer account.
 4. The server captures the order once, checks its amount, and shows the sandbox order and capture IDs.
 
-Editing the purchase clears the old review and its PayPal button. The server accepts captures only for an order it created for the active review. A missing or failed provider call never becomes a success message. The server saves the order link in a local, ignored file for 30 minutes. It writes only the review ID, amount, order reference, order ID, and any verified receipt. It does not save the purchase description or AI response. Set `CHECKOUT_STATE_FILE` to a private writable path if needed.
+Editing the purchase clears the old review and its PayPal button. The server accepts captures only for an order it created for the active review. A missing or failed provider call never becomes a success message. A new order must start within 30 minutes of its review. Once created, its recovery link remains available for 24 hours. The server saves that link in a local, ignored file. It writes only the review ID, amount, order reference, order ID, and any verified receipt. It does not save the purchase description or AI response. Set `CHECKOUT_STATE_FILE` to a private writable path if needed.
 
 If a buyer edits details while the AI response or PayPal buttons load, the old review cannot reopen checkout. Concurrent requests for one review share one order and one capture. A review that expires before capture must be started again.
 
@@ -50,7 +50,7 @@ If the browser loses the first capture reply, **Check payment status** retries t
 
 If PayPal still shows the order as awaiting approval, the status check keeps the order linked and blocks another payment. The buyer can check again after approval. A voided order clears the link.
 
-The status check also survives a page reload in the same browser tab. The tab stores only the review ID, order ID, stage, and time for up to 30 minutes. It clears the record after a confirmed result or a voided order. A new payment remains blocked while the earlier order awaits approval. Closing the tab, clearing browser storage, or review expiry can still prevent this recovery.
+The status check also survives a page reload in the same browser tab. The tab stores only the review ID, order ID, stage, and time for up to 24 hours. It clears the record after a confirmed result or a voided order. A new payment remains blocked while the earlier order awaits approval. Closing the tab, clearing browser storage, or order recovery expiry can still prevent this recovery.
 
 ## Video plan (record only after real provider checks)
 
