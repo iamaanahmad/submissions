@@ -7,7 +7,9 @@ let reviewId;
 let revision = 0;
 let paypalScript;
 let pendingCapture;
+let recoveryRender;
 const retryCapture = document.querySelector('#retry-capture');
+const approvalRecovery = document.querySelector('#approval-recovery');
 const pendingKey = 'checkout-guard-pending-capture';
 const orderRecoveryMs = 24 * 60 * 60_000;
 try {
@@ -31,6 +33,43 @@ function rememberCapture(attempt) {
 function forgetCapture() {
   try { window.sessionStorage?.removeItem(pendingKey); } catch { /* No stored copy exists. */ }
 }
+function hideRecoveryApproval() {
+  recoveryRender = undefined;
+  approvalRecovery.hidden = true;
+  document.querySelector('#recovery-paypal-buttons').replaceChildren();
+  if (document.querySelector('#review-result').hidden && document.querySelector('#success').hidden) {
+    document.querySelector('#empty-review').hidden = false;
+  }
+}
+async function showRecoveryApproval() {
+  const attempt = pendingCapture;
+  if (!attempt || attempt.stage !== 'created' || recoveryRender === attempt) return;
+  recoveryRender = attempt;
+  approvalRecovery.hidden = false;
+  document.querySelector('#empty-review').hidden = true;
+  try {
+    await loadPayPal();
+    if (pendingCapture !== attempt || attempt.stage !== 'created') return;
+    await window.paypal.Buttons({
+      style: { layout: 'vertical', shape: 'rect', label: 'pay' },
+      createOrder: () => {
+        if (pendingCapture !== attempt || attempt.stage !== 'created') throw new Error('Order is no longer awaiting approval.');
+        return attempt.orderId;
+      },
+      onApprove: async ({ orderID }) => {
+        if (pendingCapture !== attempt || orderID !== attempt.orderId) return;
+        hideRecoveryApproval();
+        await settleCapture(attempt);
+      },
+      onCancel: () => notice('Approval was cancelled. Your earlier order is still available here.'),
+      onError: () => notice('PayPal could not reopen approval. Check this order before trying again.')
+    }).render('#recovery-paypal-buttons');
+    if (pendingCapture !== attempt || attempt.stage !== 'created') hideRecoveryApproval();
+  } catch {
+    recoveryRender = undefined;
+    notice('PayPal buttons could not load. Check this order before trying again.');
+  }
+}
 
 async function request(path, data) {
   const response = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(data) });
@@ -48,6 +87,7 @@ function clearReview() {
   document.querySelector('#paypal-button-container').replaceChildren();
   document.querySelector('#empty-review').hidden = false;
   document.querySelector('#success').hidden = true;
+  if (pendingCapture?.stage === 'created') void showRecoveryApproval();
 }
 async function settleCapture(attempt) {
   retryCapture.disabled = true;
@@ -57,6 +97,7 @@ async function settleCapture(attempt) {
       if (status === 'VOIDED') {
         pendingCapture = undefined;
         forgetCapture();
+        hideRecoveryApproval();
         retryCapture.hidden = true;
         notice('This sandbox order was voided. Review the purchase again to continue.');
         return;
@@ -67,10 +108,12 @@ async function settleCapture(attempt) {
       }
       attempt.stage = 'approved';
       rememberCapture(attempt);
+      hideRecoveryApproval();
     }
     const capture = await request('/api/capture', { reviewId: attempt.reviewId, orderId: attempt.orderId });
     pendingCapture = undefined;
     forgetCapture();
+    hideRecoveryApproval();
     retryCapture.hidden = true;
     if (revision !== attempt.revision) {
       notice(`Sandbox payment completed. Order ${capture.orderId} · Capture ${capture.captureId}. Review the new purchase separately.`);
@@ -84,6 +127,7 @@ async function settleCapture(attempt) {
     if (error.message === 'Order recovery expired. Start again.') {
       pendingCapture = undefined;
       forgetCapture();
+      hideRecoveryApproval();
       retryCapture.hidden = true;
       notice('Order recovery expired. Review the purchase again to continue.');
       return;
@@ -146,10 +190,9 @@ async function renderPayPal(currentRevision, currentReviewId) {
     },
     onCancel: () => {
       if (pendingCapture?.reviewId === currentReviewId && pendingCapture.stage === 'created') {
-        pendingCapture = undefined;
-        forgetCapture();
+        retryCapture.hidden = false;
       }
-      notice('Payment was cancelled. No capture was requested.');
+      notice('Approval was cancelled. Check this order or retry approval with the same PayPal button.');
     },
     onError: () => {
       if (pendingCapture?.reviewId === currentReviewId && pendingCapture.stage === 'created') {
@@ -162,6 +205,7 @@ async function renderPayPal(currentRevision, currentReviewId) {
 }
 
 config = await fetch('/api/config').then(response => response.json());
+if (pendingCapture?.stage === 'created' && config.paypalReady) void showRecoveryApproval();
 if (!config.paypalReady || !config.aiReady) {
   const missing = [!config.paypalReady && 'PayPal sandbox', !config.aiReady && 'AI provider'].filter(Boolean).join(' and ');
   setup.textContent = `${missing} access is needed for a live review and payment.`;

@@ -196,6 +196,7 @@ test('buyer can recover an approved sandbox order after a page reload', async ()
       return elements.get(selector);
     };
     let buttons;
+    const buttonInstances = [];
     const document = {
       querySelector: element,
       createElement: tag => tag === 'li' ? { textContent: '' } : { onload: null },
@@ -213,9 +214,9 @@ test('buyer can recover an approved sandbox order after a page reload', async ()
     };
     class FakeFormData { *[Symbol.iterator]() { yield ['item', 'Logo']; yield ['amount', '25.00']; yield ['description', 'A logo draft arrives tomorrow.']; } }
     await new AsyncFunction('document', 'fetch', 'FormData', 'window', source)(document, fetcher, FakeFormData, {
-      sessionStorage, paypal: { Buttons(options) { buttons = options; return { async render() {} }; } }
+      sessionStorage, paypal: { Buttons(options) { buttons = options; buttonInstances.push(options); return { async render() {} }; } }
     });
-    return { handlers, element, get buttons() { return buttons; } };
+    return { handlers, element, get buttons() { return buttons; }, buttonInstances };
   };
   const first = await loadPage();
   await first.handlers.get('submit')({ preventDefault() {} });
@@ -255,6 +256,7 @@ test('reload before the approval callback checks PayPal before any capture', asy
       return elements.get(selector);
     };
     let buttons;
+    const buttonInstances = [];
     const document = {
       querySelector: element,
       createElement: tag => tag === 'li' ? { textContent: '' } : { onload: null },
@@ -270,9 +272,9 @@ test('reload before the approval callback checks PayPal before any capture', asy
     };
     class FakeFormData { *[Symbol.iterator]() { yield ['item', 'Logo']; yield ['amount', '25.00']; yield ['description', 'A logo draft arrives tomorrow.']; } }
     await new AsyncFunction('document', 'fetch', 'FormData', 'window', source)(document, fetcher, FakeFormData, {
-      sessionStorage, paypal: { Buttons(options) { buttons = options; return { async render() {} }; } }
+      sessionStorage, paypal: { Buttons(options) { buttons = options; buttonInstances.push(options); return { async render() {} }; } }
     });
-    return { handlers, element, get buttons() { return buttons; } };
+    return { handlers, element, get buttons() { return buttons; }, buttonInstances };
   };
   const first = await loadPage();
   await first.handlers.get('submit')({ preventDefault() {} });
@@ -280,6 +282,9 @@ test('reload before the approval callback checks PayPal before any capture', asy
   assert.equal(stored.size, 1);
   const reloaded = await loadPage();
   assert.equal(reloaded.element('#retry-capture').hidden, false);
+  assert.equal(reloaded.element('#approval-recovery').hidden, false);
+  const resumeApproval = reloaded.buttonInstances[0];
+  assert.equal(await resumeApproval.createOrder(), 'ORDER123');
   await reloaded.handlers.get('click')();
   assert.equal(captures, 0);
   assert.equal(stored.size, 1);
@@ -288,8 +293,9 @@ test('reload before the approval callback checks PayPal before any capture', asy
   await reloaded.handlers.get('submit')({ preventDefault() {} });
   await assert.rejects(reloaded.buttons.createOrder(), /Check the prior sandbox order/);
   status = 'APPROVED';
-  await reloaded.handlers.get('click')();
+  await resumeApproval.onApprove({ orderID: 'ORDER123' });
   assert.equal(captures, 1);
   assert.equal(stored.size, 0);
+  assert.equal(reloaded.element('#approval-recovery').hidden, true);
   assert.match(reloaded.element('#message').textContent, /Sandbox payment completed.*CAPTURE123.*new purchase separately/);
 });

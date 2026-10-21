@@ -50,7 +50,7 @@ If the browser loses the first capture reply, **Check payment status** retries t
 
 If PayPal still shows the order as awaiting approval, the status check keeps the order linked and blocks another payment. The buyer can check again after approval. A voided order clears the link.
 
-If PayPal's approval window fails while the same review remains open, the buyer can select its PayPal button again. The button reuses the pending order ID. It does not create a second order. After a reload or purchase edit, the status check remains available, but the old button cannot reopen that review.
+If PayPal's approval window fails, the buyer can select its PayPal button again. The button reuses the pending order ID. It does not create a second order. After a reload or purchase edit, the buyer can also resume approval of the earlier sandbox order. The page keeps that order separate from any new review. A status check confirms approval before any capture request.
 
 The status check also survives a page reload in the same browser tab. The tab stores only the review ID, order ID, stage, and time for up to 24 hours. It clears the record after a confirmed result or a voided order. A new payment remains blocked while the earlier order awaits approval. Closing the tab, clearing browser storage, or order recovery expiry can still prevent this recovery.
 
