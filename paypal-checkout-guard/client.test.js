@@ -71,6 +71,10 @@ test('buyer approval is required and a later form edit keeps that order separate
   assert.equal(captures, 0);
   assert.equal(await buttonOptions.createOrder(), 'ORDER1');
   assert.equal(captures, 0);
+  buttonOptions.onError();
+  assert.equal(await buttonOptions.createOrder(), 'ORDER1');
+  assert.equal(orders, 1);
+  assert.match(element('#message').textContent, /retry approval with the same PayPal button/);
   buttonOptions.onCancel();
   assert.equal(captures, 0);
   await buttonOptions.onApprove({ orderID: 'ORDER1' });

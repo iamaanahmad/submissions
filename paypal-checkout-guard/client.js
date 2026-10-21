@@ -62,7 +62,7 @@ async function settleCapture(attempt) {
         return;
       }
       if (status !== 'APPROVED' && status !== 'COMPLETED') {
-        notice('This sandbox order still awaits buyer approval. Check it again before starting another payment.');
+        notice('This sandbox order still awaits buyer approval. If this review is open, use its PayPal button to retry the same order. Otherwise, check its status again.');
         return;
       }
       attempt.stage = 'approved';
@@ -122,7 +122,12 @@ async function renderPayPal(currentRevision, currentReviewId) {
     style: { layout: 'vertical', shape: 'rect', label: 'pay' },
     createOrder: async () => {
       if (revision !== currentRevision) throw new Error('Purchase changed. Review it again.');
-      if (pendingCapture) throw new Error('Check the prior sandbox order before starting another payment.');
+      if (pendingCapture) {
+        if (pendingCapture.reviewId === currentReviewId && pendingCapture.revision === currentRevision && pendingCapture.stage === 'created') {
+          return pendingCapture.orderId;
+        }
+        throw new Error('Check the prior sandbox order before starting another payment.');
+      }
       const orderId = (await request('/api/order', { reviewId: currentReviewId })).orderId;
       pendingCapture = { reviewId: currentReviewId, orderId, revision: currentRevision, stage: 'created' };
       rememberCapture(pendingCapture);
@@ -150,7 +155,7 @@ async function renderPayPal(currentRevision, currentReviewId) {
       if (pendingCapture?.reviewId === currentReviewId && pendingCapture.stage === 'created') {
         retryCapture.hidden = false;
       }
-      notice('PayPal could not complete the sandbox checkout. Check this order before starting another payment.');
+      notice('PayPal could not complete the sandbox checkout. Check this order, then retry approval with the same PayPal button.');
     }
   }).render('#paypal-button-container');
   if (revision !== currentRevision) document.querySelector('#paypal-button-container').replaceChildren();
