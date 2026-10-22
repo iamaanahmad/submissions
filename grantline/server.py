@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import subprocess
 from datetime import date, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -15,6 +16,16 @@ from zetaris import fetch_grants
 
 ROOT = Path(__file__).resolve().parent
 DEMO_ORGANIZATION = {"name": "Harbor Food Network", "region": "California", "focus": "food access, youth", "funding_need": 25000}
+
+
+def build_world_model(report: dict) -> dict:
+    """Run the real local Meterless reference; fail if its trace cannot be made."""
+    result = subprocess.run(
+        ["node", str(ROOT / "meterless-bridge.mjs")],
+        input=json.dumps(report), text=True, capture_output=True, timeout=15,
+        check=True, cwd=ROOT,
+    )
+    return json.loads(result.stdout)
 
 
 def demo_records() -> list[dict]:
@@ -80,9 +91,12 @@ class Handler(BaseHTTPRequestHandler):
         try:
             data = json.loads(self.rfile.read(length))
             report = analyze(data["organization"], data["grants"])
+            report["world_model"] = build_world_model(report)
             self._reply(200, json.dumps(report).encode())
         except (KeyError, ValueError, TypeError, json.JSONDecodeError) as exc:
             self._reply(400, json.dumps({"error": str(exc)}).encode())
+        except (FileNotFoundError, subprocess.CalledProcessError, subprocess.TimeoutExpired):
+            self._reply(503, b'{"error":"Meterless review is unavailable. Check the local Node runtime."}')
 
 
 if __name__ == "__main__":

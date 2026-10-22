@@ -2,12 +2,13 @@
 
 Grantline reviews a nonprofit's grant list and produces a ranked, source-linked shortlist. It checks date, region, program focus, funding amount, and duplicate IDs. It exports every decision as JSONL for audit. It never claims that a match proves eligibility.
 
-**Contest status:** original code began October 22, 2026 after the published build window opened. This is a local demo and draft source. It is **not a submitted entry**. The sample data is fictional. Live Zetaris use, Cursor use, sponsor eligibility, public demo, slides, and platform receipt remain unverified.
+**Contest status:** original code began October 22, 2026 after the published build window opened. This is a local demo and draft source. It is **not a submitted entry**. The sample data is fictional. The Meterless World Model reference runs locally for each review. Live Zetaris use, authenticated Cursor use, sponsor eligibility, public video, and platform receipt remain unverified.
 
 ## Run the demo
 
 ```sh
 cd grantline
+# Python 3.11+ and Node 20+ are required.
 python3 server.py
 # open http://127.0.0.1:4178
 python3 -m unittest -v test_agent.py test_server.py
@@ -23,7 +24,13 @@ Click **Load fictional sample** to exercise five records. The result should show
 4. Rank remaining leads by focus overlap, funding fit, and time to deadline.
 5. Emit source-linked reasons and an exportable trace.
 
-This follows the provenance, stable identity, and decision-trace pattern in [Meterless World Model](https://github.com/Meterless/Meterless/tree/main/engines/world-model). Grantline does not yet claim Meterless conformance or live runtime use.
+Each review also runs the local [Meterless World Model reference](https://github.com/Meterless/Meterless/tree/main/engines/world-model/reference). It writes a grant entity, a separate review entity, the review's status and reasons as facts, and source-linked relations. Distinct reviews remain visible when the source list repeats a grant ID. The response includes the World Model snapshot for inspection. This proves local use of the public reference, not a hosted Meterless deployment or sponsor certification.
+
+The vendored Apache 2.0 reference comes from Meterless commit `1742dec56a66e58eef9dda2d2b865823758ca8cd`. Its license is in `vendor/meterless/LICENSE`. The runnable bundle is built from the vendored TypeScript with:
+
+```sh
+esbuild vendor/meterless/src/index.ts --bundle --platform=node --format=esm --target=node20 --outfile=vendor/meterless/world-model.mjs
+```
 
 ## Zetaris path
 
@@ -31,6 +38,6 @@ This follows the provenance, stable identity, and decision-trace pattern in [Met
 
 ## Entry gate
 
-The [Open Agent Hackathon](https://hackathon.genai.works/event/open-agent-hackathon-2026) requires a working agent, actual Zetaris, Meterless, and Cursor use, public source, a demo video, a slide deck, and a submitted project. None of those third-party-use claims should be made from this local demo. A paid AWS compute cluster is not authorized for this entry.
+The [Open Agent Hackathon](https://hackathon.genai.works/event/open-agent-hackathon-2026) requires a working agent, sponsor technology use, public source, a demo video, a slide deck, and a submitted project. Meterless local reference use is verified. Zetaris and Cursor use are not. A paid AWS compute cluster is not authorized for this entry.
 
 The four-page draft deck is [slides.pdf](slides.pdf). Its last page names the checks still open. Update the deck after any verified sponsor use before submitting it.

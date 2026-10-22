@@ -9,7 +9,8 @@ import urllib.request
 from unittest.mock import patch
 from http.server import ThreadingHTTPServer
 
-from server import Handler
+from server import Handler, build_world_model, demo_records, DEMO_ORGANIZATION
+from agent import analyze
 
 
 class ZetarisImportTests(unittest.TestCase):
@@ -47,6 +48,17 @@ class ZetarisImportTests(unittest.TestCase):
         self.assertEqual(payload, {"grants": [{"id": "grant-1"}], "source": "zetaris"})
         self.assertNotIn("private-test-token", json.dumps(payload))
         fetch.assert_called_once_with("SELECT * FROM grant_view")
+
+
+class MeterlessWorldModelTests(unittest.TestCase):
+    def test_fictional_reviews_keep_each_decision_with_duplicate_source_id(self):
+        report = analyze(DEMO_ORGANIZATION, demo_records())
+        model = build_world_model(report)
+        self.assertEqual(model["engine"], "Meterless World Model reference")
+        self.assertEqual(model["entity_count"], 10)
+        self.assertEqual(model["relation_count"], 10)
+        statuses = [fact["value"] for fact in model["snapshot"]["facts"] if fact["predicate"] == "review_status"]
+        self.assertCountEqual(statuses, ["candidate", "candidate", "excluded", "excluded", "excluded"])
 
 
 if __name__ == "__main__":
