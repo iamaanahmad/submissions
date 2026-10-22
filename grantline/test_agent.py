@@ -52,8 +52,9 @@ class GrantlineTests(unittest.TestCase):
         self.assertIn("Nonprofit applicant eligibility needs source review", missing["reasons"])
         record = dict(BASE, applicant_types=["Individuals"])
         result = analyze(ORG, [record], TODAY)["results"][0]
-        self.assertEqual(result["status"], "needs_review")
-        self.assertIn("Nonprofit applicant eligibility needs source review", result["reasons"])
+        self.assertEqual(result["status"], "excluded")
+        self.assertIn("Listed applicant types exclude nonprofits", result["reasons"])
+        self.assertEqual(result["score"], 0)
         reviewed = dict(record, applicant_types="Nonprofits", source_note="Applicant eligibility section of original notice")
         self.assertEqual(analyze(ORG, [reviewed], TODAY)["results"][0]["status"], "candidate")
 

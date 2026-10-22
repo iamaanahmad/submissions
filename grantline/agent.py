@@ -93,8 +93,11 @@ def analyze(organization: dict[str, Any], rows: list[dict[str, Any]], today: dat
             reasons.append("No matching program focus")
         if amount <= 0:
             reasons.append("Funding amount is missing")
-        if not any("nonprofit" in item.lower() or "non-profit" in item.lower() for item in applicant_types):
+        nonprofit_allowed = any("nonprofit" in item.lower() or "non-profit" in item.lower() for item in applicant_types)
+        if not applicant_types:
             reasons.append("Nonprofit applicant eligibility needs source review")
+        elif not nonprofit_allowed:
+            reasons.append("Listed applicant types exclude nonprofits")
         review_reasons = {"Region eligibility needs source review", "Program focus needs source review", "Funding amount is missing", "Nonprofit applicant eligibility needs source review"}
         status = "candidate" if not reasons else ("needs_review" if set(reasons) <= review_reasons else "excluded")
         score = 0
