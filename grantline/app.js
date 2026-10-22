@@ -112,6 +112,21 @@ $('sample-button').addEventListener('click', async () => {
   } catch (error) { showError(error.message); }
 });
 
+$('zetaris-button').addEventListener('click', async () => {
+  showError('');
+  const button = $('zetaris-button'); button.disabled = true;
+  try {
+    const response = await fetch('/api/zetaris/import', { method: 'POST' });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Zetaris import failed.');
+    grants = result.grants;
+    sampleMode = false;
+    $('grant-file').value = '';
+    document.querySelector('.upload-note').textContent = `${grants.length} records loaded from Zetaris. Check original sources before applying.`;
+  } catch (error) { showError(error.message); }
+  finally { button.disabled = false; }
+});
+
 $('brief-form').addEventListener('submit', async (event) => {
   event.preventDefault(); showError('');
   if (!grants.length) { showError('Import a grant file or load the fictional sample.'); return; }

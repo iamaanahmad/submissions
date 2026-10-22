@@ -27,7 +27,7 @@ This follows the provenance, stable identity, and decision-trace pattern in [Met
 
 ## Zetaris path
 
-`zetaris.py` has a read-only adapter for a configured Zetaris OpenSqlQuery endpoint. Set `ZETARIS_OPEN_SQL_URL` and `ZETARIS_ID_TOKEN` privately, then call `fetch_grants("SELECT * FROM grant_view")` from an authorized environment. Zetaris documents the `select` and `pageLimit` request fields in its [REST API guide](https://kbase.zetaris.com/knowledge/rest-api). Response shape and live access still need verification against an actual instance. The adapter does not run in the local sample flow.
+`zetaris.py` has a read-only adapter for a configured Zetaris OpenSqlQuery endpoint. Set `ZETARIS_OPEN_SQL_URL`, `ZETARIS_ID_TOKEN`, and `ZETARIS_GRANTS_QUERY` privately. The query must be a read-only `SELECT` from an authorized grant view. Click **Load Zetaris grant view**, then run the evidence review. The server keeps the token private and returns a clear error when access is absent. Zetaris documents the `select` and `pageLimit` request fields in its [REST API guide](https://kbase.zetaris.com/knowledge/rest-api). Response shape and live access still need verification against an actual instance; no live sponsor call is claimed yet.
 
 ## Entry gate
 

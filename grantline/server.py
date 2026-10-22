@@ -7,8 +7,10 @@ from datetime import date, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import urlparse
+from urllib.error import HTTPError, URLError
 
 from agent import analyze
+from zetaris import fetch_grants
 
 
 ROOT = Path(__file__).resolve().parent
@@ -53,7 +55,22 @@ class Handler(BaseHTTPRequestHandler):
             self._reply(404, b'{"error":"Not found"}')
 
     def do_POST(self) -> None:
-        if urlparse(self.path).path != "/api/analyze":
+        path = urlparse(self.path).path
+        if path == "/api/zetaris/import":
+            import os
+            query = os.environ.get("ZETARIS_GRANTS_QUERY", "").strip()
+            if not query:
+                self._reply(503, b'{"error":"Zetaris grant view is not configured."}')
+                return
+            try:
+                rows = fetch_grants(query)
+                if not rows or len(rows) > 500:
+                    raise ValueError("Zetaris grant view must return 1 to 500 records.")
+                self._reply(200, json.dumps({"grants": rows, "source": "zetaris"}).encode())
+            except (RuntimeError, ValueError, HTTPError, URLError, TimeoutError):
+                self._reply(502, b'{"error":"Zetaris import failed. Check the private connection and grant view."}')
+            return
+        if path != "/api/analyze":
             self._reply(404, b'{"error":"Not found"}')
             return
         length = int(self.headers.get("Content-Length", "0"))
