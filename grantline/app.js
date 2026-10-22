@@ -100,15 +100,14 @@ function renderCards() {
       evidence.minLength = 12; evidence.maxLength = 300;
       evidence.value = grants[grantIndex].source_note || '';
       evidence.placeholder = 'Where the notice states these facts'; evidenceLabel.append(evidence);
-      if ('applicant_types' in grants[grantIndex]) review.append(regionLabel, focusLabel, applicantLabel, evidenceLabel);
-      else review.append(regionLabel, focusLabel, evidenceLabel);
+      review.append(regionLabel, focusLabel, applicantLabel, evidenceLabel);
       const apply = make('button', 'source-review-button', 'Apply source notes →');
       apply.type = 'submit'; review.append(apply);
       review.addEventListener('submit', async event => {
         event.preventDefault();
         if (!review.reportValidity()) return;
         grants[grantIndex] = {...grants[grantIndex], regions: regions.value.trim(), focus: focus.value.trim(),
-          ...('applicant_types' in grants[grantIndex] ? {applicant_types: applicantTypes.value.trim()} : {}), source_note: evidence.value.trim()};
+          applicant_types: applicantTypes.value.trim(), source_note: evidence.value.trim()};
         $('brief-form').requestSubmit();
       });
       auditBody.append(review);

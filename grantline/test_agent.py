@@ -6,7 +6,7 @@ from agent import analyze, to_jsonl
 
 TODAY = date(2026, 10, 22)
 ORG = {"name": "Harbor", "region": "California", "focus": "food access, youth", "funding_need": 25000}
-BASE = {"id": "a", "title": "Food access", "funder": "Test Trust", "source_url": "https://example.org/a", "deadline": "2026-11-30", "regions": "California", "focus": "food access", "amount": 30000}
+BASE = {"id": "a", "title": "Food access", "funder": "Test Trust", "source_url": "https://example.org/a", "deadline": "2026-11-30", "regions": "California", "focus": "food access", "amount": 30000, "applicant_types": "Nonprofits"}
 
 
 class GrantlineTests(unittest.TestCase):
@@ -47,6 +47,9 @@ class GrantlineTests(unittest.TestCase):
         self.assertIn("not verified eligibility", report["caution"])
 
     def test_live_grant_requires_nonprofit_applicant_evidence(self):
+        missing = analyze(ORG, [dict(BASE, applicant_types="")], TODAY)["results"][0]
+        self.assertEqual(missing["status"], "needs_review")
+        self.assertIn("Nonprofit applicant eligibility needs source review", missing["reasons"])
         record = dict(BASE, applicant_types=["Individuals"])
         result = analyze(ORG, [record], TODAY)["results"][0]
         self.assertEqual(result["status"], "needs_review")

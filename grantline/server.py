@@ -33,11 +33,11 @@ def demo_records() -> list[dict]:
     """Clearly fictional records for feature demonstration, never grant leads."""
     future = date.today()
     return [
-        {"id": "demo-101", "title": "Neighborhood food access fund", "funder": "Sample Community Trust", "source_url": "https://example.org/demo/food", "deadline": (future + timedelta(days=36)).isoformat(), "regions": "California", "focus": "food access, health", "amount": 30000},
-        {"id": "demo-102", "title": "Youth pantry innovation", "funder": "Sample Civic Fund", "source_url": "https://example.org/demo/youth", "deadline": (future + timedelta(days=18)).isoformat(), "regions": "California, Oregon", "focus": "youth, food access", "amount": 12000},
+        {"id": "demo-101", "title": "Neighborhood food access fund", "funder": "Sample Community Trust", "source_url": "https://example.org/demo/food", "deadline": (future + timedelta(days=36)).isoformat(), "regions": "California", "focus": "food access, health", "amount": 30000, "applicant_types": "Nonprofits"},
+        {"id": "demo-102", "title": "Youth pantry innovation", "funder": "Sample Civic Fund", "source_url": "https://example.org/demo/youth", "deadline": (future + timedelta(days=18)).isoformat(), "regions": "California, Oregon", "focus": "youth, food access", "amount": 12000, "applicant_types": "Nonprofits"},
         {"id": "demo-103", "title": "Regional art grant", "funder": "Sample Arts Board", "source_url": "https://example.org/demo/arts", "deadline": (future + timedelta(days=45)).isoformat(), "regions": "Oregon", "focus": "arts", "amount": 80000},
         {"id": "demo-104", "title": "Past food relief round", "funder": "Sample Community Trust", "source_url": "https://example.org/demo/past", "deadline": (future - timedelta(days=5)).isoformat(), "regions": "California", "focus": "food access", "amount": 15000},
-        {"id": "demo-101", "title": "Neighborhood food access fund", "funder": "Sample Community Trust", "source_url": "https://example.org/demo/food", "deadline": (future + timedelta(days=36)).isoformat(), "regions": "California", "focus": "food access, health", "amount": 30000},
+        {"id": "demo-101", "title": "Neighborhood food access fund", "funder": "Sample Community Trust", "source_url": "https://example.org/demo/food", "deadline": (future + timedelta(days=36)).isoformat(), "regions": "California", "focus": "food access, health", "amount": 30000, "applicant_types": "Nonprofits"},
     ]
 
 
