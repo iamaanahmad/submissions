@@ -31,6 +31,13 @@ class GrantlineTests(unittest.TestCase):
         self.assertEqual(report["candidates"], 0)
         self.assertIn("Missing title or source URL", report["results"][0]["reasons"])
 
+    def test_unknown_grant_eligibility_requires_review(self):
+        record = dict(BASE, regions="", focus="", applicant_types=["Nonprofits"], funding_categories=["Food and Nutrition"])
+        report = analyze(ORG, [record], TODAY)
+        self.assertEqual((report["candidates"], report["needs_review"], report["excluded"]), (0, 1, 0))
+        self.assertIn("Region eligibility needs source review", report["results"][0]["reasons"])
+        self.assertEqual(report["results"][0]["evidence"][-1]["value"], ["Food and Nutrition"])
+
     def test_organization_must_be_complete(self):
         with self.assertRaises(ValueError):
             analyze(dict(ORG, funding_need=0), [BASE], TODAY)

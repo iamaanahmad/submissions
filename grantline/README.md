@@ -16,11 +16,13 @@ python3 -m unittest -v test_agent.py test_server.py
 
 Click **Load fictional sample** to exercise five records. The result should show two candidates and three exclusions. Open **Inspect evidence and next step** on any result to see the fields and action behind its decision. Fictional results carry a warning and no source link. For real review, import your own CSV or JSON records. CSV headers: `id,title,funder,source_url,deadline,regions,focus,amount`. Dates use `YYYY-MM-DD`; `regions` and `focus` are comma-separated phrases. The local server does not persist uploaded data.
 
+Click **Search live grants** after entering a program focus to fetch up to six posted notices from the public [Grants.gov API](https://www.grants.gov/api/common/search2). The app also fetches each notice's details, including award ceiling, applicant types, and funding categories. It links every record to its source. The API does not confirm geographic or program fit, so imported notices stay in **Need review** until the operator checks the original notice. Funding categories are shown as evidence, not treated as a match to the organization's focus. The app displays the [required Grants.gov attribution](https://www.grants.gov/api/terms-conditions) during live search. This search is read-only and requires no account.
+
 ## Agent loop
 
 1. Ingest source records and assign stable IDs.
 2. Normalize facts and remove duplicate IDs.
-3. Check hard eligibility constraints. Missing evidence fails closed.
+3. Check hard eligibility constraints. Missing source facts require review and never count as matches.
 4. Rank remaining leads by focus overlap, funding fit, and time to deadline.
 5. Emit source-linked reasons and an exportable trace.
 

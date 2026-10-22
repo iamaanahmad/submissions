@@ -61,7 +61,8 @@ def analyze(organization: dict[str, Any], rows: list[dict[str, Any]], today: dat
         focuses = _tokens(str(row.get("focus", "")))
         evidence = [
             {"field": key, "value": row.get(key), "source_url": source}
-            for key in ("deadline", "regions", "focus", "amount")
+            for key in ("deadline", "regions", "focus", "amount", "applicant_types", "funding_categories")
+            if key in row or key in ("deadline", "regions", "focus", "amount")
         ]
         reasons: list[str] = []
         if identifier in seen:
@@ -73,14 +74,19 @@ def analyze(organization: dict[str, Any], rows: list[dict[str, Any]], today: dat
             reasons.append("Invalid or missing deadline")
         elif deadline < today:
             reasons.append("Deadline has passed")
-        if region not in regions and "any" not in regions:
+        if not regions:
+            reasons.append("Region eligibility needs source review")
+        elif region not in regions and "any" not in regions:
             reasons.append("Region is outside stated eligibility")
         overlap = sorted(focus & focuses)
-        if not overlap:
+        if not focuses:
+            reasons.append("Program focus needs source review")
+        elif not overlap:
             reasons.append("No matching program focus")
         if amount <= 0:
             reasons.append("Funding amount is missing")
-        status = "excluded" if reasons else "candidate"
+        review_reasons = {"Region eligibility needs source review", "Program focus needs source review", "Funding amount is missing"}
+        status = "candidate" if not reasons else ("needs_review" if set(reasons) <= review_reasons else "excluded")
         score = 0
         if status == "candidate":
             days = (deadline - today).days  # type: ignore[operator]
@@ -90,15 +96,17 @@ def analyze(organization: dict[str, Any], rows: list[dict[str, Any]], today: dat
             "id": identifier, "title": title or "Untitled record", "funder": str(row.get("funder", "")).strip(),
             "source_url": source, "deadline": deadline.isoformat() if deadline else None,
             "amount": amount, "status": status, "score": score, "reasons": reasons,
-            "evidence": evidence, "next_action": "Verify the source and prepare an application" if status == "candidate" else "Review source data",
+            "evidence": evidence, "next_action": "Verify the source and prepare an application" if status == "candidate" else ("Read the original notice and fill missing eligibility fields" if status == "needs_review" else "Review source data"),
         }
         results.append(result)
         trace.append({"step": index + 1, "record_id": identifier, "decision": status, "rules": reasons, "source_url": source})
-    results.sort(key=lambda item: (item["status"] != "candidate", -item["score"], item["deadline"] or "9999"))
+    order = {"candidate": 0, "needs_review": 1, "excluded": 2}
+    results.sort(key=lambda item: (order[item["status"]], -item["score"], item["deadline"] or "9999"))
     candidates = sum(item["status"] == "candidate" for item in results)
+    needs_review = sum(item["status"] == "needs_review" for item in results)
     return {
         "organization": name, "evaluated_on": today.isoformat(), "candidates": candidates,
-        "excluded": len(results) - candidates, "results": results, "trace": trace,
+        "needs_review": needs_review, "excluded": len(results) - candidates - needs_review, "results": results, "trace": trace,
         "caution": "Matches are leads, not verified eligibility. Read each original source before applying.",
     }
 

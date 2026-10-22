@@ -57,7 +57,7 @@ function renderCards() {
       source.append(link);
     } else source.append(document.createTextNode('No valid source'));
     body.append(source); top.append(body);
-    top.append(make('span', `badge ${row.status === 'excluded' ? 'excluded' : ''}`, row.status === 'candidate' ? 'CANDIDATE' : 'EXCLUDED'));
+    top.append(make('span', `badge ${row.status === 'excluded' ? 'excluded' : row.status === 'needs_review' ? 'review' : ''}`, row.status === 'candidate' ? 'CANDIDATE' : row.status === 'needs_review' ? 'CHECK SOURCE' : 'EXCLUDED'));
     card.append(top);
     const details = make('div', 'card-details');
     row.reasons.forEach(reason => details.append(make('span', 'reason', reason)));
@@ -95,6 +95,7 @@ function renderReport(report) {
   $('result-state').textContent = 'REVIEW COMPLETE';
   $('report-org').textContent = report.organization;
   $('candidate-count').textContent = report.candidates;
+  $('review-count').textContent = report.needs_review || 0;
   $('excluded-count').textContent = report.excluded;
   $('review-date').textContent = report.evaluated_on;
   $('sample-warning').hidden = !sampleMode;
@@ -112,8 +113,29 @@ $('grant-file').addEventListener('change', async (event) => {
     if (!Array.isArray(parsed) || !parsed.length || parsed.length > 500) throw new Error('File needs 1 to 500 grant records.');
     grants = parsed;
     sampleMode = false;
+    $('grants-gov-notice').hidden = true;
     document.querySelector('.upload-note').textContent = `${grants.length} records loaded from ${file.name}.`;
   } catch (error) { grants = []; showError(error.message); }
+});
+
+$('grants-gov-button').addEventListener('click', async () => {
+  showError('');
+  const keyword = $('org-focus').value.split(',')[0].trim();
+  if (!keyword) { showError('Enter a program focus to search live grants.'); return; }
+  const button = $('grants-gov-button'); button.disabled = true;
+  try {
+    const response = await fetch(`/api/grants-gov/search?keyword=${encodeURIComponent(keyword)}`);
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || 'Live grant search failed.');
+    if (!result.grants.length) throw new Error('No posted grants matched this search.');
+    grants = result.grants;
+    sampleMode = false;
+    $('grant-file').value = '';
+    $('grants-gov-notice').hidden = false;
+    document.querySelector('.upload-note').textContent = `${grants.length} live Grants.gov records loaded. Region eligibility needs source review.`;
+    $('brief-form').requestSubmit();
+  } catch (error) { showError(error.message); }
+  finally { button.disabled = false; }
 });
 
 $('sample-button').addEventListener('click', async () => {
@@ -129,6 +151,7 @@ $('sample-button').addEventListener('click', async () => {
     $('grant-file').value = '';
     grants = demo.grants;
     sampleMode = true;
+    $('grants-gov-notice').hidden = true;
     document.querySelector('.upload-note').textContent = `${grants.length} fictional records loaded for testing.`;
     $('brief-form').requestSubmit();
   } catch (error) { showError(error.message); }
@@ -143,6 +166,7 @@ $('zetaris-button').addEventListener('click', async () => {
     if (!response.ok) throw new Error(result.error || 'Zetaris import failed.');
     grants = result.grants;
     sampleMode = false;
+    $('grants-gov-notice').hidden = true;
     $('grant-file').value = '';
     document.querySelector('.upload-note').textContent = `${grants.length} records loaded from Zetaris. Check original sources before applying.`;
   } catch (error) { showError(error.message); }

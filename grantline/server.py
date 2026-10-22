@@ -7,10 +7,11 @@ import subprocess
 from datetime import date, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
-from urllib.parse import urlparse
+from urllib.parse import urlparse, parse_qs
 from urllib.error import HTTPError, URLError
 
 from agent import analyze
+from grants_gov import search as search_grants_gov
 from zetaris import fetch_grants
 
 
@@ -60,6 +61,15 @@ class Handler(BaseHTTPRequestHandler):
         elif path == "/api/demo":
             body = {"organization": DEMO_ORGANIZATION, "grants": demo_records(), "sample": True}
             self._reply(200, json.dumps(body).encode())
+        elif path == "/api/grants-gov/search":
+            keyword = parse_qs(urlparse(self.path).query).get("keyword", [""])[0]
+            try:
+                rows = search_grants_gov(keyword)
+                self._reply(200, json.dumps({"grants": rows, "source": "Grants.gov", "eligibility_verified": False}).encode())
+            except ValueError as exc:
+                self._reply(400, json.dumps({"error": str(exc)}).encode())
+            except (HTTPError, URLError, TimeoutError):
+                self._reply(502, b'{"error":"Grants.gov is unavailable. Try again later."}')
         elif path == "/health":
             self._reply(200, b'{"ok":true}')
         else:
