@@ -60,7 +60,8 @@ def analyze(organization: dict[str, Any], rows: list[dict[str, Any]], today: dat
         regions = _tokens(str(row.get("regions", "")))
         focuses = _tokens(str(row.get("focus", "")))
         evidence = [
-            {"field": key, "value": row.get(key), "source_url": source}
+            {"field": key, "value": row.get(key), "source_url": source,
+             "provenance": "operator source note" if key in ("regions", "focus") and row.get("source_note") else "imported record"}
             for key in ("deadline", "regions", "focus", "amount", "applicant_types", "funding_categories")
             if key in row or key in ("deadline", "regions", "focus", "amount")
         ]
@@ -99,7 +100,8 @@ def analyze(organization: dict[str, Any], rows: list[dict[str, Any]], today: dat
             "evidence": evidence, "next_action": "Verify the source and prepare an application" if status == "candidate" else ("Read the original notice and fill missing eligibility fields" if status == "needs_review" else "Review source data"),
         }
         results.append(result)
-        trace.append({"step": index + 1, "record_id": identifier, "decision": status, "rules": reasons, "source_url": source})
+        trace.append({"step": index + 1, "record_id": identifier, "decision": status, "rules": reasons,
+                      "source_url": source, "source_note": str(row.get("source_note", "")).strip()})
     order = {"candidate": 0, "needs_review": 1, "excluded": 2}
     results.sort(key=lambda item: (order[item["status"]], -item["score"], item["deadline"] or "9999"))
     candidates = sum(item["status"] == "candidate" for item in results)

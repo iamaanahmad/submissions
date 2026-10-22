@@ -69,13 +69,44 @@ function renderCards() {
     const fields = make('dl', 'audit-fields');
     row.evidence.forEach(item => {
       fields.append(make('dt', '', item.field.replace('_', ' ')));
-      fields.append(make('dd', '', item.value === null || item.value === undefined || item.value === '' ? 'Missing' : item.value));
+      const value = item.value === null || item.value === undefined || item.value === '' ? 'Missing' : item.value;
+      fields.append(make('dd', '', `${value}${item.provenance === 'operator source note' ? ' · entered from source' : ''}`));
     });
     auditBody.append(fields);
     const next = make('p', 'audit-next');
     next.append(make('strong', '', 'Next step: '));
     next.append(document.createTextNode(row.next_action));
     auditBody.append(next);
+    const grantIndex = grants.findIndex(item => String(item.id || '') === row.id && item.source_url === row.source_url);
+    if (!sampleMode && row.status === 'needs_review' && grantIndex >= 0 && /^https?:\/\//i.test(row.source_url)) {
+      const review = make('form', 'source-review');
+      review.append(make('p', 'source-review-title', 'Add facts from the original notice'));
+      const note = make('p', 'source-review-note', 'Open the source first. Enter only facts it states. This does not prove eligibility.');
+      review.append(note);
+      const regionLabel = make('label', '', 'Eligible regions');
+      const regions = make('input'); regions.name = 'regions'; regions.required = true;
+      regions.value = grants[grantIndex].regions || '';
+      regions.placeholder = 'e.g. California, Oregon'; regionLabel.append(regions);
+      const focusLabel = make('label', '', 'Program focus');
+      const focus = make('input'); focus.name = 'focus'; focus.required = true;
+      focus.value = grants[grantIndex].focus || '';
+      focus.placeholder = 'e.g. food access'; focusLabel.append(focus);
+      const evidenceLabel = make('label', '', 'Source note');
+      const evidence = make('input'); evidence.name = 'source_note'; evidence.required = true;
+      evidence.minLength = 12; evidence.maxLength = 300;
+      evidence.value = grants[grantIndex].source_note || '';
+      evidence.placeholder = 'Where the notice states these facts'; evidenceLabel.append(evidence);
+      review.append(regionLabel, focusLabel, evidenceLabel);
+      const apply = make('button', 'source-review-button', 'Apply source notes →');
+      apply.type = 'submit'; review.append(apply);
+      review.addEventListener('submit', async event => {
+        event.preventDefault();
+        if (!review.reportValidity()) return;
+        grants[grantIndex] = {...grants[grantIndex], regions: regions.value.trim(), focus: focus.value.trim(), source_note: evidence.value.trim()};
+        $('brief-form').requestSubmit();
+      });
+      auditBody.append(review);
+    }
     if (sampleMode) auditBody.append(make('p', 'audit-note', 'Fictional data. Do not apply from this sample.'));
     else if (row.source_url && /^https?:\/\//i.test(row.source_url)) {
       const sourceLink = make('a', 'audit-link', 'Read original source ↗');
