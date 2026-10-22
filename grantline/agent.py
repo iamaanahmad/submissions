@@ -12,6 +12,12 @@ def _tokens(value: str) -> set[str]:
     return {part.strip().lower() for part in value.replace(";", ",").split(",") if part.strip()}
 
 
+def _applicant_types(value: Any) -> list[str]:
+    if isinstance(value, list):
+        return [str(item).strip() for item in value if str(item).strip()]
+    return [part.strip() for part in str(value or "").replace(";", ",").split(",") if part.strip()]
+
+
 def _number(value: Any) -> int:
     try:
         return max(0, int(value))
@@ -59,9 +65,10 @@ def analyze(organization: dict[str, Any], rows: list[dict[str, Any]], today: dat
         amount = _number(row.get("amount"))
         regions = _tokens(str(row.get("regions", "")))
         focuses = _tokens(str(row.get("focus", "")))
+        applicant_types = _applicant_types(row.get("applicant_types"))
         evidence = [
             {"field": key, "value": row.get(key), "source_url": source,
-             "provenance": "operator source note" if key in ("regions", "focus") and row.get("source_note") else "imported record"}
+             "provenance": "operator source note" if key in ("regions", "focus", "applicant_types") and row.get("source_note") else "imported record"}
             for key in ("deadline", "regions", "focus", "amount", "applicant_types", "funding_categories")
             if key in row or key in ("deadline", "regions", "focus", "amount")
         ]
@@ -86,7 +93,9 @@ def analyze(organization: dict[str, Any], rows: list[dict[str, Any]], today: dat
             reasons.append("No matching program focus")
         if amount <= 0:
             reasons.append("Funding amount is missing")
-        review_reasons = {"Region eligibility needs source review", "Program focus needs source review", "Funding amount is missing"}
+        if "applicant_types" in row and not any("nonprofit" in item.lower() or "non-profit" in item.lower() for item in applicant_types):
+            reasons.append("Nonprofit applicant eligibility needs source review")
+        review_reasons = {"Region eligibility needs source review", "Program focus needs source review", "Funding amount is missing", "Nonprofit applicant eligibility needs source review"}
         status = "candidate" if not reasons else ("needs_review" if set(reasons) <= review_reasons else "excluded")
         score = 0
         if status == "candidate":

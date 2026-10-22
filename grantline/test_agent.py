@@ -46,6 +46,14 @@ class GrantlineTests(unittest.TestCase):
         self.assertEqual(report["results"][0]["evidence"][1]["provenance"], "operator source note")
         self.assertIn("not verified eligibility", report["caution"])
 
+    def test_live_grant_requires_nonprofit_applicant_evidence(self):
+        record = dict(BASE, applicant_types=["Individuals"])
+        result = analyze(ORG, [record], TODAY)["results"][0]
+        self.assertEqual(result["status"], "needs_review")
+        self.assertIn("Nonprofit applicant eligibility needs source review", result["reasons"])
+        reviewed = dict(record, applicant_types="Nonprofits", source_note="Applicant eligibility section of original notice")
+        self.assertEqual(analyze(ORG, [reviewed], TODAY)["results"][0]["status"], "candidate")
+
     def test_organization_must_be_complete(self):
         with self.assertRaises(ValueError):
             analyze(dict(ORG, funding_need=0), [BASE], TODAY)

@@ -91,18 +91,24 @@ function renderCards() {
       const focus = make('input'); focus.name = 'focus'; focus.required = true;
       focus.value = grants[grantIndex].focus || '';
       focus.placeholder = 'e.g. food access'; focusLabel.append(focus);
+      const applicantLabel = make('label', '', 'Eligible applicant types');
+      const applicantTypes = make('input'); applicantTypes.name = 'applicant_types'; applicantTypes.required = true;
+      applicantTypes.value = Array.isArray(grants[grantIndex].applicant_types) ? grants[grantIndex].applicant_types.join(', ') : (grants[grantIndex].applicant_types || '');
+      applicantTypes.placeholder = 'e.g. Nonprofits'; applicantLabel.append(applicantTypes);
       const evidenceLabel = make('label', '', 'Source note');
       const evidence = make('input'); evidence.name = 'source_note'; evidence.required = true;
       evidence.minLength = 12; evidence.maxLength = 300;
       evidence.value = grants[grantIndex].source_note || '';
       evidence.placeholder = 'Where the notice states these facts'; evidenceLabel.append(evidence);
-      review.append(regionLabel, focusLabel, evidenceLabel);
+      if ('applicant_types' in grants[grantIndex]) review.append(regionLabel, focusLabel, applicantLabel, evidenceLabel);
+      else review.append(regionLabel, focusLabel, evidenceLabel);
       const apply = make('button', 'source-review-button', 'Apply source notes →');
       apply.type = 'submit'; review.append(apply);
       review.addEventListener('submit', async event => {
         event.preventDefault();
         if (!review.reportValidity()) return;
-        grants[grantIndex] = {...grants[grantIndex], regions: regions.value.trim(), focus: focus.value.trim(), source_note: evidence.value.trim()};
+        grants[grantIndex] = {...grants[grantIndex], regions: regions.value.trim(), focus: focus.value.trim(),
+          ...('applicant_types' in grants[grantIndex] ? {applicant_types: applicantTypes.value.trim()} : {}), source_note: evidence.value.trim()};
         $('brief-form').requestSubmit();
       });
       auditBody.append(review);
