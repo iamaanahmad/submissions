@@ -8,6 +8,26 @@ from datetime import date, datetime, timezone
 from typing import Any
 
 
+US_STATES = {
+    "alabama", "alaska", "arizona", "arkansas", "california", "colorado",
+    "connecticut", "delaware", "florida", "georgia", "hawaii", "idaho",
+    "illinois", "indiana", "iowa", "kansas", "kentucky", "louisiana",
+    "maine", "maryland", "massachusetts", "michigan", "minnesota",
+    "mississippi", "missouri", "montana", "nebraska", "nevada",
+    "new hampshire", "new jersey", "new mexico", "new york",
+    "north carolina", "north dakota", "ohio", "oklahoma", "oregon",
+    "pennsylvania", "rhode island", "south carolina", "south dakota",
+    "tennessee", "texas", "utah", "vermont", "virginia", "washington",
+    "west virginia", "wisconsin", "wyoming", "district of columbia",
+}
+
+
+def _region_matches(region: str, eligible: set[str]) -> bool:
+    return region in eligible or "any" in eligible or (
+        region in US_STATES and bool(eligible & {"united states", "usa", "u.s."})
+    )
+
+
 def _tokens(value: str) -> set[str]:
     return {part.strip().lower() for part in value.replace(";", ",").split(",") if part.strip()}
 
@@ -85,7 +105,7 @@ def analyze(organization: dict[str, Any], rows: list[dict[str, Any]], today: dat
             reasons.append("Deadline has passed")
         if not regions:
             reasons.append("Region eligibility needs source review")
-        elif region not in regions and "any" not in regions:
+        elif not _region_matches(region, regions):
             reasons.append("Region is outside stated eligibility")
         overlap = sorted(focus & focuses)
         if not focuses:

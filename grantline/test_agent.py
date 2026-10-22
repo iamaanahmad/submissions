@@ -38,6 +38,13 @@ class GrantlineTests(unittest.TestCase):
         self.assertIn("Region eligibility needs source review", report["results"][0]["reasons"])
         self.assertEqual(report["results"][0]["evidence"][-1]["value"], ["Food and Nutrition"])
 
+    def test_nationwide_us_notice_includes_a_us_state(self):
+        record = dict(BASE, regions="United States")
+        self.assertEqual(analyze(ORG, [record], TODAY)["results"][0]["status"], "candidate")
+        india = dict(ORG, region="India")
+        result = analyze(india, [record], TODAY)["results"][0]
+        self.assertEqual(result["status"], "excluded")
+
     def test_source_notes_can_advance_a_lead_without_claiming_eligibility(self):
         record = dict(BASE, regions="California", focus="food access", source_note="Eligibility and program summary on source page", reviewed_fields=["regions"])
         report = analyze(ORG, [record], TODAY)
