@@ -95,7 +95,13 @@ def analyze(organization: dict[str, Any], rows: list[dict[str, Any]], today: dat
         if amount <= 0:
             reasons.append("Funding amount is missing")
         nonprofit_allowed = any("nonprofit" in item.lower() or "non-profit" in item.lower() for item in applicant_types)
+        applicant_types_ambiguous = any(
+            item.lower().startswith("others") or "see text field" in item.lower()
+            for item in applicant_types
+        )
         if not applicant_types:
+            reasons.append("Nonprofit applicant eligibility needs source review")
+        elif not nonprofit_allowed and applicant_types_ambiguous:
             reasons.append("Nonprofit applicant eligibility needs source review")
         elif not nonprofit_allowed:
             reasons.append("Listed applicant types exclude nonprofits")

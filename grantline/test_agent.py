@@ -64,6 +64,13 @@ class GrantlineTests(unittest.TestCase):
         with self.assertRaises(ValueError):
             analyze(dict(ORG, funding_need=0), [BASE], TODAY)
 
+    def test_other_applicants_need_source_review(self):
+        record = dict(BASE, applicant_types=['Others (see text field entitled "Additional Information on Eligibility" for clarification)'])
+        result = analyze(ORG, [record], TODAY)["results"][0]
+        self.assertEqual(result["status"], "needs_review")
+        self.assertIn("Nonprofit applicant eligibility needs source review", result["reasons"])
+        self.assertNotIn("Listed applicant types exclude nonprofits", result["reasons"])
+
 
 if __name__ == "__main__":
     unittest.main()
