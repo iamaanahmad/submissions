@@ -62,7 +62,29 @@ function renderCards() {
     const details = make('div', 'card-details');
     row.reasons.forEach(reason => details.append(make('span', 'reason', reason)));
     if (row.status === 'candidate') details.append(make('span', 'score', `${row.score}/100`));
-    card.append(details); target.append(card);
+    card.append(details);
+    const audit = make('details', 'card-audit');
+    audit.append(make('summary', '', 'Inspect evidence and next step'));
+    const auditBody = make('div', 'audit-body');
+    const fields = make('dl', 'audit-fields');
+    row.evidence.forEach(item => {
+      fields.append(make('dt', '', item.field.replace('_', ' ')));
+      fields.append(make('dd', '', item.value === null || item.value === undefined || item.value === '' ? 'Missing' : item.value));
+    });
+    auditBody.append(fields);
+    const next = make('p', 'audit-next');
+    next.append(make('strong', '', 'Next step: '));
+    next.append(document.createTextNode(row.next_action));
+    auditBody.append(next);
+    if (sampleMode) auditBody.append(make('p', 'audit-note', 'Fictional data. Do not apply from this sample.'));
+    else if (row.source_url && /^https?:\/\//i.test(row.source_url)) {
+      const sourceLink = make('a', 'audit-link', 'Read original source ↗');
+      sourceLink.href = row.source_url;
+      sourceLink.target = '_blank'; sourceLink.rel = 'noopener noreferrer';
+      auditBody.append(sourceLink);
+    }
+    audit.append(auditBody);
+    card.append(audit); target.append(card);
   });
 }
 

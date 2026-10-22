@@ -14,7 +14,7 @@ python3 server.py
 python3 -m unittest -v test_agent.py test_server.py
 ```
 
-Click **Load fictional sample** to exercise five records. The result should show two candidates and three exclusions. For real review, import your own CSV or JSON records. CSV headers: `id,title,funder,source_url,deadline,regions,focus,amount`. Dates use `YYYY-MM-DD`; `regions` and `focus` are comma-separated phrases. The local server does not persist uploaded data.
+Click **Load fictional sample** to exercise five records. The result should show two candidates and three exclusions. Open **Inspect evidence and next step** on any result to see the fields and action behind its decision. Fictional results carry a warning and no source link. For real review, import your own CSV or JSON records. CSV headers: `id,title,funder,source_url,deadline,regions,focus,amount`. Dates use `YYYY-MM-DD`; `regions` and `focus` are comma-separated phrases. The local server does not persist uploaded data.
 
 ## Agent loop
 
