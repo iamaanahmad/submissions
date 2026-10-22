@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Grantline | Open Agent Hackathon draft</title>
+<style>
+  @page { size: 16in 9in; margin: 0; }
+  * { box-sizing: border-box; }
+  body { margin: 0; color: #183c36; background: #f7f7f1; font: 28px Arial, sans-serif; }
+  section { width: 16in; height: 9in; padding: .9in 1.15in; page-break-after: always; position: relative; }
+  section:nth-child(even) { background: #eaf0e8; }
+  small { display: block; color: #368069; font-size: 16px; font-weight: bold; letter-spacing: .18em; text-transform: uppercase; }
+  h1 { font: 82px/1.02 Georgia, serif; margin: .55in 0 .3in; max-width: 12in; letter-spacing: -.05em; }
+  h2 { font: 63px/1.08 Georgia, serif; margin: .45in 0 .35in; max-width: 13in; letter-spacing: -.04em; }
+  p { max-width: 12in; line-height: 1.4; }
+  strong { color: #176750; }
+  .line { width: 1.4in; height: 9px; background: #43a782; margin: .5in 0; }
+  .columns { display: grid; grid-template-columns: 1fr 1fr; gap: .7in; margin-top: .45in; }
+  .card { border-top: 3px solid #43a782; padding-top: .22in; font-size: 25px; line-height: 1.35; }
+  .card b { display: block; font: 40px Georgia, serif; margin-bottom: .14in; }
+  .footer { position: absolute; bottom: .55in; left: 1.15in; font-size: 15px; color: #6f847a; }
+  .num { position: absolute; bottom: .55in; right: 1.15in; font-size: 15px; color: #6f847a; }
+</style>
+<section>
+  <small>Open Agent Hackathon 2026 · draft proof</small>
+  <h1>Find funding<br>you can defend.</h1>
+  <div class="line"></div>
+  <p>Grantline turns a nonprofit's grant list into a <strong>source-linked shortlist</strong> and an exportable decision trace.</p>
+  <div class="footer">Built by one-member Tech4Good team · October 22, 2026</div><div class="num">01 / 04</div>
+</section>
+<section>
+  <small>The problem and the agent</small>
+  <h2>A grant match needs reasons.</h2>
+  <div class="columns">
+    <div class="card"><b>Input</b>Organization region, focus, funding need, and grant records with source links.</div>
+    <div class="card"><b>Decision</b>Check date, region, focus, amount, source, and duplicate identity. Rank the survivors.</div>
+    <div class="card"><b>Output</b>Candidate and exclusion cards show each rule and the linked source.</div>
+    <div class="card"><b>Trace</b>Export every decision as JSONL for review and correction.</div>
+  </div>
+  <div class="footer">Missing evidence fails closed. A match is a lead, not proof of eligibility.</div><div class="num">02 / 04</div>
+</section>
+<section>
+  <small>Working local demonstration</small>
+  <h2>Two leads. Three exclusions.</h2>
+  <p>Five <strong>fictional</strong> grant records exercise the review. The agent returns two candidates and three exclusions with five trace records.</p>
+  <p>Six local tests pass. The browser flow and source-linked output work. Users can also import their own CSV or JSON list.</p>
+  <div class="footer">The fictional sample is product proof, not live grant data.</div><div class="num">03 / 04</div>
+</section>
+<section>
+  <small>Submission status · October 22, 2026</small>
+  <h2>Open sponsor checks remain.</h2>
+  <div class="columns">
+    <div class="card"><b>Zetaris</b>A private read-only grant-view import is wired. No live instance call is verified.</div>
+    <div class="card"><b>Meterless</b>The decision-trace design follows its public reference. Runtime use is not verified.</div>
+    <div class="card"><b>Cursor</b>Local sign-in stops at a human check. Authenticated use is not verified.</div>
+    <div class="card"><b>Entry</b>Entrant ties, public video, and platform receipt remain unverified.</div>
+  </div>
+  <div class="footer">Draft deck. Update only after real sponsor use and eligibility checks pass.</div><div class="num">04 / 04</div>
+</section>
+</html>

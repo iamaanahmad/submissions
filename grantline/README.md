@@ -10,7 +10,7 @@ Grantline reviews a nonprofit's grant list and produces a ranked, source-linked 
 cd grantline
 python3 server.py
 # open http://127.0.0.1:4178
-python3 -m unittest -v test_agent.py
+python3 -m unittest -v test_agent.py test_server.py
 ```
 
 Click **Load fictional sample** to exercise five records. The result should show two candidates and three exclusions. For real review, import your own CSV or JSON records. CSV headers: `id,title,funder,source_url,deadline,regions,focus,amount`. Dates use `YYYY-MM-DD`; `regions` and `focus` are comma-separated phrases. The local server does not persist uploaded data.
@@ -32,3 +32,5 @@ This follows the provenance, stable identity, and decision-trace pattern in [Met
 ## Entry gate
 
 The [Open Agent Hackathon](https://hackathon.genai.works/event/open-agent-hackathon-2026) requires a working agent, actual Zetaris, Meterless, and Cursor use, public source, a demo video, a slide deck, and a submitted project. None of those third-party-use claims should be made from this local demo. A paid AWS compute cluster is not authorized for this entry.
+
+The four-page draft deck is [slides.pdf](slides.pdf). Its last page names the checks still open. Update the deck after any verified sponsor use before submitting it.
