@@ -106,8 +106,14 @@ function renderCards() {
       review.addEventListener('submit', async event => {
         event.preventDefault();
         if (!review.reportValidity()) return;
-        grants[grantIndex] = {...grants[grantIndex], regions: regions.value.trim(), focus: focus.value.trim(),
-          applicant_types: applicantTypes.value.trim(), source_note: evidence.value.trim()};
+        const previous = grants[grantIndex];
+        const values = {regions: regions.value.trim(), focus: focus.value.trim(), applicant_types: applicantTypes.value.trim()};
+        const reviewedFields = new Set(previous.reviewed_fields || []);
+        for (const [field, value] of Object.entries(values)) {
+          const original = Array.isArray(previous[field]) ? previous[field].join(', ') : (previous[field] || '');
+          if (value !== String(original).trim()) reviewedFields.add(field);
+        }
+        grants[grantIndex] = {...previous, ...values, source_note: evidence.value.trim(), reviewed_fields: [...reviewedFields]};
         $('brief-form').requestSubmit();
       });
       auditBody.append(review);

@@ -39,11 +39,12 @@ class GrantlineTests(unittest.TestCase):
         self.assertEqual(report["results"][0]["evidence"][-1]["value"], ["Food and Nutrition"])
 
     def test_source_notes_can_advance_a_lead_without_claiming_eligibility(self):
-        record = dict(BASE, regions="California", focus="food access", source_note="Eligibility and program summary on source page")
+        record = dict(BASE, regions="California", focus="food access", source_note="Eligibility and program summary on source page", reviewed_fields=["regions"])
         report = analyze(ORG, [record], TODAY)
         self.assertEqual(report["candidates"], 1)
         self.assertEqual(report["trace"][0]["source_note"], record["source_note"])
         self.assertEqual(report["results"][0]["evidence"][1]["provenance"], "operator source note")
+        self.assertEqual(report["results"][0]["evidence"][2]["provenance"], "imported record")
         self.assertIn("not verified eligibility", report["caution"])
 
     def test_live_grant_requires_nonprofit_applicant_evidence(self):
@@ -55,8 +56,9 @@ class GrantlineTests(unittest.TestCase):
         self.assertEqual(result["status"], "excluded")
         self.assertIn("Listed applicant types exclude nonprofits", result["reasons"])
         self.assertEqual(result["score"], 0)
-        reviewed = dict(record, applicant_types="Nonprofits", source_note="Applicant eligibility section of original notice")
+        reviewed = dict(record, applicant_types="Nonprofits", source_note="Applicant eligibility section of original notice", reviewed_fields=["applicant_types"])
         self.assertEqual(analyze(ORG, [reviewed], TODAY)["results"][0]["status"], "candidate")
+        self.assertEqual(analyze(ORG, [reviewed], TODAY)["results"][0]["evidence"][4]["provenance"], "operator source note")
 
     def test_organization_must_be_complete(self):
         with self.assertRaises(ValueError):
