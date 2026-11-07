@@ -7,7 +7,7 @@ test('reports complete evidence without claiming release approval', () => {
     summary: 'Ship the fix', assignee: { accountId: 'abc', displayName: 'Amaan' },
     duedate: '2026-12-01', description: { content: [{ content: [{ text: 'Acceptance criteria: buyer sees receipt' }] }] },
     subtasks: [{ fields: { status: { statusCategory: { key: 'done' } } } }]
-  } });
+  } }, '2026-11-07');
   assert.equal(report.passed, 4);
   assert.match(report.note, /not a release approval/);
 });
@@ -19,4 +19,16 @@ test('names missing evidence and unfinished subtasks', () => {
   } });
   assert.equal(report.passed, 0);
   assert.match(report.checks.find((check) => check.id === 'subtasks').detail, /1 subtask still open/);
+});
+
+test('rejects an overdue target date and does not claim missing subtasks are complete', () => {
+  const report = assessIssue({ key: 'DEMO-9', fields: {
+    assignee: { accountId: 'abc' },
+    duedate: '2026-11-06',
+    description: 'Acceptance criteria: buyer sees a receipt',
+    subtasks: []
+  } }, '2026-11-07');
+  assert.equal(report.passed, 2);
+  assert.match(report.checks.find((check) => check.id === 'deadline').detail, /has passed/);
+  assert.match(report.checks.find((check) => check.id === 'subtasks').detail, /Add subtasks/);
 });

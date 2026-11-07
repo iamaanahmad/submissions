@@ -5,11 +5,14 @@ function adfText(value) {
   return [value.text || '', adfText(value.content)].filter(Boolean).join(' ');
 }
 
-export function assessIssue(issue) {
+export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)) {
   const fields = issue?.fields || {};
   const description = adfText(fields.description);
   const subtasks = fields.subtasks || [];
   const unfinished = subtasks.filter((item) => item.fields?.status?.statusCategory?.key !== 'done');
+  const dueDate = typeof fields.duedate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(fields.duedate)
+    ? fields.duedate : '';
+  const overdue = Boolean(dueDate && dueDate < today);
   const checks = [
     {
       id: 'owner',
@@ -19,9 +22,10 @@ export function assessIssue(issue) {
     },
     {
       id: 'deadline',
-      label: 'A target date is set',
-      passed: Boolean(fields.duedate),
-      detail: fields.duedate || 'Set a due date so the work can be planned.'
+      label: 'A current target date is set',
+      passed: Boolean(dueDate && !overdue),
+      detail: overdue ? `The ${dueDate} due date has passed. Set a current target date.`
+        : dueDate || 'Set a due date so the work can be planned.'
     },
     {
       id: 'acceptance',
@@ -32,8 +36,10 @@ export function assessIssue(issue) {
     {
       id: 'subtasks',
       label: 'Subtasks are complete',
-      passed: unfinished.length === 0,
-      detail: unfinished.length ? `${unfinished.length} subtask${unfinished.length === 1 ? '' : 's'} still open.` : `${subtasks.length} subtasks checked.`
+      passed: subtasks.length > 0 && unfinished.length === 0,
+      detail: !subtasks.length ? 'Add subtasks so completion can be checked.'
+        : unfinished.length ? `${unfinished.length} subtask${unfinished.length === 1 ? '' : 's'} still open.`
+          : `${subtasks.length} subtasks checked.`
     }
   ];
   const passed = checks.filter((check) => check.passed).length;
