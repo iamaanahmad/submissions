@@ -49,12 +49,16 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
     }
   ];
   const passed = checks.filter((check) => check.passed).length;
+  const nextAction = checks.find((check) => !check.passed);
   return {
     issueKey: issue?.key || '',
     summary: fields.summary || '',
     passed,
     total: checks.length,
     checks,
+    nextAction: nextAction
+      ? `${nextAction.label}: ${nextAction.detail}`
+      : 'All four checks have evidence. Review the actual work before handoff.',
     note: 'This is an evidence check, not a release approval. Review the work before shipping.'
   };
 }

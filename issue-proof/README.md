@@ -1,6 +1,6 @@
 # Issue Proof
 
-Issue Proof is a Forge Jira issue panel for software teams. It reads the current issue and shows four evidence checks: owner, target date, written acceptance criteria, and completed subtasks. It does not change Jira data or claim release approval.
+Issue Proof is a Forge Jira issue panel for software teams. It reads the current issue and shows four evidence checks: owner, target date, written acceptance criteria, and completed subtasks. It highlights the first missing item as the next action. It does not change Jira data or claim release approval.
 
 ## Run locally
 

@@ -9,6 +9,7 @@ test('reports complete evidence without claiming release approval', () => {
     subtasks: [{ fields: { status: { statusCategory: { key: 'done' } } } }]
   } }, '2026-11-07');
   assert.equal(report.passed, 4);
+  assert.match(report.nextAction, /Review the actual work/);
   assert.match(report.note, /not a release approval/);
 });
 
@@ -18,6 +19,7 @@ test('names missing evidence and unfinished subtasks', () => {
     subtasks: [{ fields: { status: { statusCategory: { key: 'indeterminate' } } } }]
   } });
   assert.equal(report.passed, 0);
+  assert.match(report.nextAction, /Assign someone/);
   assert.match(report.checks.find((check) => check.id === 'subtasks').detail, /1 subtask still open/);
 });
 
@@ -30,6 +32,7 @@ test('rejects an overdue target date and does not claim missing subtasks are com
   } }, '2026-11-07');
   assert.equal(report.passed, 2);
   assert.match(report.checks.find((check) => check.id === 'deadline').detail, /has passed/);
+  assert.match(report.nextAction, /2026-11-06 due date has passed/);
   assert.match(report.checks.find((check) => check.id === 'subtasks').detail, /Add subtasks/);
 });
 

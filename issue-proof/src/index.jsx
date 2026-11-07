@@ -33,9 +33,12 @@ function App() {
     <Text>Check the evidence on this Jira issue before a handoff.</Text>
     {!issueKey && <Spinner />}
     {error && <SectionMessage appearance="error"><Text>{error}</Text></SectionMessage>}
-    {report && <>
+    {report && report.issueKey === issueKey && <>
       <Heading size="medium">{report.passed} of {report.total} checks have evidence</Heading>
       <Text>{report.issueKey}: {report.summary}</Text>
+      <SectionMessage appearance={report.passed === report.total ? 'success' : 'warning'}>
+        <Text>Next action: {report.nextAction}</Text>
+      </SectionMessage>
       {report.checks.map((check) => <Stack key={check.id} space="space.050">
         <Lozenge appearance={check.passed ? 'success' : 'moved'}>{check.passed ? 'Found' : 'Missing'}</Lozenge>
         <Text>{check.label}. {check.detail}</Text>
