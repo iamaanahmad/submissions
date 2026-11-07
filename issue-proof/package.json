@@ -1,0 +1,15 @@
+{
+  "name": "issue-proof",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test",
+    "check": "npm test"
+  },
+  "dependencies": {
+    "@forge/bridge": "^7.2.1",
+    "@forge/react": "^12.4.0",
+    "react": "^18.3.1"
+  }
+}

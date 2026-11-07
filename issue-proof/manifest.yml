@@ -1,0 +1,15 @@
+modules:
+  jira:issuePanel:
+    - key: issue-proof-panel
+      title: Issue Proof
+      resource: issue-proof-ui
+      render: native
+resources:
+  - key: issue-proof-ui
+    path: src/index.jsx
+permissions:
+  scopes:
+    - read:jira-work
+app:
+  runtime:
+    name: nodejs22.x
