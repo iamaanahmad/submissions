@@ -32,3 +32,11 @@ test('rejects an overdue target date and does not claim missing subtasks are com
   assert.match(report.checks.find((check) => check.id === 'deadline').detail, /has passed/);
   assert.match(report.checks.find((check) => check.id === 'subtasks').detail, /Add subtasks/);
 });
+
+test('does not count an empty acceptance heading as evidence', () => {
+  const report = assessIssue({ fields: {
+    description: { content: [{ content: [{ text: 'Acceptance criteria:' }] }] }
+  } });
+  assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false);
+  assert.match(report.checks.find((check) => check.id === 'acceptance').detail, /specific result/);
+});

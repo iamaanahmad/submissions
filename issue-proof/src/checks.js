@@ -13,6 +13,11 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
   const dueDate = typeof fields.duedate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(fields.duedate)
     ? fields.duedate : '';
   const overdue = Boolean(dueDate && dueDate < today);
+  const acceptanceSection = description.match(/(?:acceptance criteria|definition of done)\s*:\s*(.+)/i);
+  const hasAcceptance = Boolean(
+    (acceptanceSection && acceptanceSection[1].trim().length >= 12)
+    || /\bgiven\b.{1,100}\bwhen\b.{1,100}\bthen\b.{1,100}\S/i.test(description)
+  );
   const checks = [
     {
       id: 'owner',
@@ -30,8 +35,9 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
     {
       id: 'acceptance',
       label: 'Acceptance criteria are written',
-      passed: /acceptance criteria|definition of done|\bgiven\b.{0,100}\bwhen\b.{0,100}\bthen\b/i.test(description),
-      detail: 'Add an Acceptance criteria section or a Given / When / Then test.'
+      passed: hasAcceptance,
+      detail: hasAcceptance ? 'A written result to check is present.'
+        : 'Write a specific result under Acceptance criteria or Given / When / Then.'
     },
     {
       id: 'subtasks',
