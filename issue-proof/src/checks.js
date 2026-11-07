@@ -38,16 +38,18 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
       passed: hasAcceptance,
       detail: hasAcceptance ? 'A written result to check is present.'
         : 'Write a specific result under Acceptance criteria or Given / When / Then.'
-    },
-    {
+    }
+  ];
+  if (!fields.issuetype?.subtask) {
+    checks.push({
       id: 'subtasks',
       label: 'Subtasks are complete',
       passed: subtasks.length > 0 && unfinished.length === 0,
       detail: !subtasks.length ? 'Add subtasks so completion can be checked.'
         : unfinished.length ? `${unfinished.length} subtask${unfinished.length === 1 ? '' : 's'} still open.`
           : `${subtasks.length} subtasks checked.`
-    }
-  ];
+    });
+  }
   const passed = checks.filter((check) => check.passed).length;
   const nextAction = checks.find((check) => !check.passed);
   return {
@@ -58,7 +60,7 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
     checks,
     nextAction: nextAction
       ? `${nextAction.label}: ${nextAction.detail}`
-      : 'All four checks have evidence. Review the actual work before handoff.',
+      : `All ${checks.length} checks have evidence. Review the actual work before handoff.`,
     note: 'This is an evidence check, not a release approval. Review the work before shipping.'
   };
 }

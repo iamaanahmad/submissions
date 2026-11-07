@@ -43,3 +43,17 @@ test('does not count an empty acceptance heading as evidence', () => {
   assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false);
   assert.match(report.checks.find((check) => check.id === 'acceptance').detail, /specific result/);
 });
+
+test('does not demand child subtasks from a Jira subtask', () => {
+  const report = assessIssue({ key: 'DEMO-10', fields: {
+    issuetype: { name: 'Sub-task', subtask: true },
+    assignee: { accountId: 'abc' },
+    duedate: '2026-12-01',
+    description: 'Acceptance criteria: buyer sees a receipt',
+    subtasks: []
+  } }, '2026-11-07');
+  assert.equal(report.total, 3);
+  assert.equal(report.passed, 3);
+  assert.equal(report.checks.some((check) => check.id === 'subtasks'), false);
+  assert.match(report.nextAction, /All 3 checks/);
+});
