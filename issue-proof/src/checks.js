@@ -34,18 +34,21 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
   const acceptanceIndex = descriptionBlocks.findIndex((block) => /^(?:acceptance criteria|definition of done)[ \t]*(?::|$)/i.test(block.text));
   const inlineAcceptance = acceptanceIndex >= 0
     ? descriptionBlocks[acceptanceIndex].text.replace(/^(?:acceptance criteria|definition of done)[ \t]*:?[ \t]*/i, '') : '';
-  const followingAcceptance = acceptanceIndex >= 0
-    ? (descriptionBlocks[acceptanceIndex + 1]?.heading ? ''
-      : (descriptionBlocks[acceptanceIndex + 1]?.text || '').replace(/^[-*\u2022]\s*/, '')) : '';
-  const acceptanceEvidence = inlineAcceptance || (
-    /^[a-z][^:]{2,40}:/i.test(followingAcceptance) ? '' : followingAcceptance
-  );
-  const isPlaceholder = /^(?:tbd|todo|none|n\/a|not applicable|to be (?:determined|defined|added)|coming soon|pending|see (?:later|ticket))\.?$/i.test(acceptanceEvidence.trim());
+  const isPlaceholder = (text) => /^(?:tbd|todo|none|n\/a|not applicable|to be (?:determined|defined|added)|coming soon|pending|see (?:later|ticket))\.?$/i.test(text.trim());
+  const isSpecific = (text) => text.length >= 12 && !isPlaceholder(text);
+  const acceptanceLines = [];
+  if (acceptanceIndex >= 0 && !isPlaceholder(inlineAcceptance)) {
+    if (inlineAcceptance) acceptanceLines.push(inlineAcceptance);
+    for (const block of descriptionBlocks.slice(acceptanceIndex + 1)) {
+      if (block.heading || /^[a-z][^:]{2,40}:/i.test(block.text)) break;
+      acceptanceLines.push(...block.text.split('\n').map((line) => line.replace(/^[-*\u2022]\s*/, '').trim()));
+    }
+  }
   const standaloneScenario = acceptanceIndex < 0 && descriptionBlocks.some((block) =>
     /\bgiven\b.{1,100}\bwhen\b.{1,100}\bthen\b.{1,100}\S/i.test(block.text)
   );
   const hasAcceptance = Boolean(
-    (acceptanceEvidence.length >= 12 && !isPlaceholder)
+    acceptanceLines.some(isSpecific)
     || standaloneScenario
   );
   const checks = [

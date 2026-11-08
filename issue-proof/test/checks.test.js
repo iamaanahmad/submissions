@@ -125,6 +125,33 @@ test('accepts a Jira heading followed by a bullet result', () => {
   assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, true);
 });
 
+test('finds a specific result after an empty first bullet', () => {
+  const report = assessIssue({ fields: {
+    description: { type: 'doc', content: [
+      { type: 'heading', content: [{ type: 'text', text: 'Acceptance criteria' }] },
+      { type: 'bulletList', content: [
+        { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'TBD' }] }] },
+        { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Buyer can download a receipt after checkout.' }] }] }
+      ] }
+    ] }
+  } });
+  assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, true);
+});
+
+test('does not borrow a result from a later heading', () => {
+  const report = assessIssue({ fields: {
+    description: { type: 'doc', content: [
+      { type: 'heading', content: [{ type: 'text', text: 'Acceptance criteria' }] },
+      { type: 'bulletList', content: [
+        { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'TBD' }] }] }
+      ] },
+      { type: 'heading', content: [{ type: 'text', text: 'Implementation notes' }] },
+      { type: 'paragraph', content: [{ type: 'text', text: 'Buyer can download a receipt after checkout.' }] }
+    ] }
+  } });
+  assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false);
+});
+
 test('does not demand child subtasks from a Jira subtask', () => {
   const report = assessIssue({ key: 'DEMO-10', fields: {
     issuetype: { name: 'Sub-task', subtask: true },
