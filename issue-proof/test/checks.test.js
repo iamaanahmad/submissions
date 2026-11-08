@@ -104,6 +104,18 @@ test('does not count an unfinished note inside a longer acceptance result', () =
   assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false);
 });
 
+test('does not pass an unchecked plain-text acceptance item', () => {
+  const report = assessIssue({ fields: {
+    description: 'Acceptance criteria:\n- [ ] Buyer can download the receipt.'
+  } });
+  assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false);
+});
+
+test('does not pass a calendar date that does not exist', () => {
+  const report = assessIssue({ fields: { duedate: '2026-02-30' } }, '2026-01-01');
+  assert.equal(report.checks.find((check) => check.id === 'deadline').passed, false);
+});
+
 test('does not count a scenario with an unfinished result', () => {
   const report = assessIssue({ fields: {
     description: 'Given a buyer has paid when they open orders then the receipt flow is TODO.'

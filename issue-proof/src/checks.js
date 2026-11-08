@@ -28,15 +28,17 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
     return linkedIssue && linkedIssue.fields?.status?.statusCategory?.key !== 'done'
       ? [linkedIssue.key || 'Linked issue'] : [];
   });
-  const dueDate = typeof fields.duedate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(fields.duedate)
-    ? fields.duedate : '';
+  const parsedDate = typeof fields.duedate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(fields.duedate)
+    ? new Date(`${fields.duedate}T00:00:00Z`) : null;
+  const dueDate = parsedDate && !Number.isNaN(parsedDate.valueOf())
+    && parsedDate.toISOString().slice(0, 10) === fields.duedate ? fields.duedate : '';
   const overdue = Boolean(dueDate && dueDate < today);
   const acceptanceIndex = descriptionBlocks.findIndex((block) => /^(?:acceptance criteria|definition of done)[ \t]*(?::|$)/i.test(block.text));
   const inlineAcceptance = acceptanceIndex >= 0
     ? descriptionBlocks[acceptanceIndex].text.replace(/^(?:acceptance criteria|definition of done)[ \t]*:?[ \t]*/i, '') : '';
   const isPlaceholder = (text) => /^(?:tbd|todo|none|n\/a|not applicable|to be (?:determined|defined|added)|coming soon|pending|see (?:later|ticket))\.?$/i.test(text.trim());
   const hasUnfinishedMarker = (text) => /\b(?:tbd|todo|to be (?:determined|defined|added)|coming soon)\b|\.{3,}/i.test(text);
-  const isSpecific = (text) => text.length >= 12 && !isPlaceholder(text) && !hasUnfinishedMarker(text);
+  const isSpecific = (text) => text.length >= 12 && !/^\[\s\]/.test(text) && !isPlaceholder(text) && !hasUnfinishedMarker(text);
   const acceptanceLines = [];
   if (acceptanceIndex >= 0 && !isPlaceholder(inlineAcceptance)) {
     if (inlineAcceptance) acceptanceLines.push(inlineAcceptance);
