@@ -23,6 +23,18 @@ test('names missing evidence and unfinished subtasks', () => {
   assert.match(report.checks.find((check) => check.id === 'subtasks').detail, /Finish DEMO-8A before handoff/);
 });
 
+test('does not accept an inactive Jira assignee as the handoff owner', () => {
+  const report = assessIssue({ key: 'DEMO-14', fields: {
+    assignee: { accountId: 'former-user', displayName: 'Former owner', active: false },
+    duedate: '2026-12-01',
+    description: 'Acceptance criteria: buyer receives a receipt after checkout',
+    status: { name: 'Done', statusCategory: { key: 'done' } },
+    subtasks: [{ fields: { status: { statusCategory: { key: 'done' } } } }]
+  } }, '2026-11-08');
+  assert.equal(report.passed, 4);
+  assert.match(report.nextAction, /Assign an active owner/);
+});
+
 test('rejects an overdue target date and does not claim missing subtasks are complete', () => {
   const report = assessIssue({ key: 'DEMO-9', fields: {
     assignee: { accountId: 'abc' },
