@@ -19,7 +19,7 @@ function App() {
     setError('');
     setReport(null);
     try {
-      const fields = 'summary,description,assignee,duedate,subtasks,issuetype,issuelinks';
+      const fields = 'summary,description,assignee,duedate,subtasks,issuetype,issuelinks,status';
       const response = await requestJira(`/rest/api/3/issue/${encodeURIComponent(issueKey)}?fields=${fields}`);
       if (!response.ok) throw new Error(`Jira returned ${response.status}. Check your issue access and try again.`);
       const result = assessIssue(await response.json());

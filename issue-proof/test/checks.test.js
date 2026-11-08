@@ -4,11 +4,11 @@ import { assessIssue } from '../src/checks.js';
 
 test('reports complete evidence without claiming release approval', () => {
   const report = assessIssue({ key: 'DEMO-7', fields: {
-    summary: 'Ship the fix', assignee: { accountId: 'abc', displayName: 'Amaan' },
+    summary: 'Ship the fix', status: { name: 'Done', statusCategory: { key: 'done' } }, assignee: { accountId: 'abc', displayName: 'Amaan' },
     duedate: '2026-12-01', description: { content: [{ content: [{ text: 'Acceptance criteria: buyer sees receipt' }] }] },
     subtasks: [{ fields: { status: { statusCategory: { key: 'done' } } } }]
   } }, '2026-11-07');
-  assert.equal(report.passed, 4);
+  assert.equal(report.passed, 5);
   assert.match(report.nextAction, /Review the actual work/);
   assert.match(report.note, /not a release approval/);
 });
@@ -177,15 +177,28 @@ test('does not borrow a result from a later heading', () => {
 test('does not demand child subtasks from a Jira subtask', () => {
   const report = assessIssue({ key: 'DEMO-10', fields: {
     issuetype: { name: 'Sub-task', subtask: true },
+    status: { name: 'Done', statusCategory: { key: 'done' } },
     assignee: { accountId: 'abc' },
     duedate: '2026-12-01',
     description: 'Acceptance criteria: buyer sees a receipt',
     subtasks: []
   } }, '2026-11-07');
-  assert.equal(report.total, 3);
-  assert.equal(report.passed, 3);
+  assert.equal(report.total, 4);
+  assert.equal(report.passed, 4);
   assert.equal(report.checks.some((check) => check.id === 'subtasks'), false);
-  assert.match(report.nextAction, /All 3 checks/);
+  assert.match(report.nextAction, /All 4 checks/);
+});
+
+test('does not show full handoff evidence for an open issue', () => {
+  const report = assessIssue({ key: 'DEMO-13', fields: {
+    summary: 'Ship the fix', status: { name: 'In Progress', statusCategory: { key: 'indeterminate' } },
+    assignee: { accountId: 'abc' }, duedate: '2026-12-01',
+    description: 'Acceptance criteria: buyer sees a receipt after checkout',
+    subtasks: [{ fields: { status: { statusCategory: { key: 'done' } } } }]
+  } }, '2026-11-08');
+  assert.equal(report.passed, 4);
+  assert.equal(report.total, 5);
+  assert.match(report.nextAction, /Move the issue to a done status/);
 });
 
 test('flags only unresolved issues that block this issue', () => {

@@ -95,6 +95,14 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
       detail: `Resolve ${blockers.join(', ')} before handoff.`
     });
   }
+  checks.push({
+    id: 'status',
+    label: 'Issue is marked done',
+    passed: fields.status?.statusCategory?.key === 'done',
+    detail: fields.status?.statusCategory?.key === 'done'
+      ? `${fields.status?.name || 'Done'} is the current status.`
+      : `Move the issue to a done status after the work is verified. Current status: ${fields.status?.name || 'unknown'}.`
+  });
   const passed = checks.filter((check) => check.passed).length;
   const nextAction = checks.find((check) => !check.passed);
   return {
