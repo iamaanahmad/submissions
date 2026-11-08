@@ -55,6 +55,24 @@ test('does not treat placeholder acceptance criteria as a result', () => {
   }
 });
 
+test('does not let a later scenario override placeholder acceptance criteria', () => {
+  const report = assessIssue({ fields: {
+    description: { type: 'doc', content: [
+      { type: 'paragraph', content: [{ type: 'text', text: 'Acceptance criteria: TBD' }] },
+      { type: 'heading', content: [{ type: 'text', text: 'Implementation notes' }] },
+      { type: 'paragraph', content: [{ type: 'text', text: 'Given a local mock when the test runs then the fixture returns a response.' }] }
+    ] }
+  } });
+  assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false);
+});
+
+test('accepts a standalone specific Given When Then scenario', () => {
+  const report = assessIssue({ fields: {
+    description: 'Given a buyer has paid when they open orders then they can download their receipt.'
+  } });
+  assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, true);
+});
+
 test('does not treat a later section as acceptance evidence', () => {
   const report = assessIssue({ fields: {
     description: { type: 'doc', content: [
