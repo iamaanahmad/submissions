@@ -44,6 +44,25 @@ test('does not count an empty acceptance heading as evidence', () => {
   assert.match(report.checks.find((check) => check.id === 'acceptance').detail, /specific result/);
 });
 
+test('does not treat a later section as acceptance evidence', () => {
+  const report = assessIssue({ fields: {
+    description: { type: 'doc', content: [
+      { type: 'paragraph', content: [{ type: 'text', text: 'Acceptance criteria:' }] },
+      { type: 'paragraph', content: [{ type: 'text', text: 'Implementation notes: update the API and deploy it.' }] }
+    ] }
+  } });
+  assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false);
+});
+
+test('accepts a specific result on the acceptance line', () => {
+  const report = assessIssue({ fields: {
+    description: { type: 'doc', content: [{ type: 'paragraph', content: [
+      { type: 'text', text: 'Acceptance criteria: Buyer can download a receipt after checkout.' }
+    ] }] }
+  } });
+  assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, true);
+});
+
 test('does not demand child subtasks from a Jira subtask', () => {
   const report = assessIssue({ key: 'DEMO-10', fields: {
     issuetype: { name: 'Sub-task', subtask: true },
