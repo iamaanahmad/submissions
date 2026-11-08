@@ -54,6 +54,17 @@ test('does not treat a later section as acceptance evidence', () => {
   assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false);
 });
 
+test('does not count a later Jira heading as acceptance evidence', () => {
+  const report = assessIssue({ fields: {
+    description: { type: 'doc', content: [
+      { type: 'heading', content: [{ type: 'text', text: 'Acceptance criteria' }] },
+      { type: 'heading', content: [{ type: 'text', text: 'Deployment notes' }] },
+      { type: 'paragraph', content: [{ type: 'text', text: 'Ship after review.' }] }
+    ] }
+  } });
+  assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false);
+});
+
 test('accepts a specific result on the acceptance line', () => {
   const report = assessIssue({ fields: {
     description: { type: 'doc', content: [{ type: 'paragraph', content: [

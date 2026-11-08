@@ -11,6 +11,12 @@ function adfText(value) {
 export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)) {
   const fields = issue?.fields || {};
   const description = adfText(fields.description);
+  const descriptionBlocks = Array.isArray(fields.description?.content)
+    ? fields.description.content.map((block) => ({
+      text: adfText(block).trim(),
+      heading: block.type === 'heading'
+    })).filter((block) => block.text)
+    : description.split('\n').map((text) => ({ text: text.trim(), heading: false })).filter((block) => block.text);
   const subtasks = fields.subtasks || [];
   const unfinished = subtasks.filter((item) => item.fields?.status?.statusCategory?.key !== 'done');
   const unfinishedNames = unfinished.map((item) => item.key || item.fields?.summary || 'Unnamed subtask');
@@ -25,12 +31,12 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
   const dueDate = typeof fields.duedate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(fields.duedate)
     ? fields.duedate : '';
   const overdue = Boolean(dueDate && dueDate < today);
-  const lines = description.split('\n').map((line) => line.trim()).filter(Boolean);
-  const acceptanceIndex = lines.findIndex((line) => /^(?:acceptance criteria|definition of done)[ \t]*(?::|$)/i.test(line));
+  const acceptanceIndex = descriptionBlocks.findIndex((block) => /^(?:acceptance criteria|definition of done)[ \t]*(?::|$)/i.test(block.text));
   const inlineAcceptance = acceptanceIndex >= 0
-    ? lines[acceptanceIndex].replace(/^(?:acceptance criteria|definition of done)[ \t]*:?[ \t]*/i, '') : '';
+    ? descriptionBlocks[acceptanceIndex].text.replace(/^(?:acceptance criteria|definition of done)[ \t]*:?[ \t]*/i, '') : '';
   const followingAcceptance = acceptanceIndex >= 0
-    ? (lines[acceptanceIndex + 1] || '').replace(/^[-*\u2022]\s*/, '') : '';
+    ? (descriptionBlocks[acceptanceIndex + 1]?.heading ? ''
+      : (descriptionBlocks[acceptanceIndex + 1]?.text || '').replace(/^[-*\u2022]\s*/, '')) : '';
   const acceptanceEvidence = inlineAcceptance || (
     /^[a-z][^:]{2,40}:/i.test(followingAcceptance) ? '' : followingAcceptance
   );
