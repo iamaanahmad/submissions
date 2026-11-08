@@ -25,9 +25,16 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
   const dueDate = typeof fields.duedate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(fields.duedate)
     ? fields.duedate : '';
   const overdue = Boolean(dueDate && dueDate < today);
-  const acceptanceSection = description.match(/(?:^|\n)[ \t]*(?:acceptance criteria|definition of done)[ \t]*:[ \t]*([^\n]+)/i);
+  const lines = description.split('\n').map((line) => line.trim()).filter(Boolean);
+  const acceptanceIndex = lines.findIndex((line) => /^(?:acceptance criteria|definition of done)[ \t]*:/i.test(line));
+  const inlineAcceptance = acceptanceIndex >= 0
+    ? lines[acceptanceIndex].replace(/^(?:acceptance criteria|definition of done)[ \t]*:[ \t]*/i, '') : '';
+  const followingAcceptance = acceptanceIndex >= 0 ? lines[acceptanceIndex + 1] || '' : '';
+  const acceptanceEvidence = inlineAcceptance || (
+    /^[a-z][^:]{2,40}:/i.test(followingAcceptance) ? '' : followingAcceptance
+  );
   const hasAcceptance = Boolean(
-    (acceptanceSection && acceptanceSection[1].trim().length >= 12)
+    acceptanceEvidence.length >= 12
     || /\bgiven\b.{1,100}\bwhen\b.{1,100}\bthen\b.{1,100}\S/i.test(description)
   );
   const checks = [

@@ -63,6 +63,16 @@ test('accepts a specific result on the acceptance line', () => {
   assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, true);
 });
 
+test('accepts a specific result below an acceptance heading', () => {
+  const report = assessIssue({ fields: {
+    description: { type: 'doc', content: [
+      { type: 'paragraph', content: [{ type: 'text', text: 'Acceptance criteria:' }] },
+      { type: 'paragraph', content: [{ type: 'text', text: 'Buyer can download a receipt after checkout.' }] }
+    ] }
+  } });
+  assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, true);
+});
+
 test('does not demand child subtasks from a Jira subtask', () => {
   const report = assessIssue({ key: 'DEMO-10', fields: {
     issuetype: { name: 'Sub-task', subtask: true },
