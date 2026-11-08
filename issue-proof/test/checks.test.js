@@ -111,6 +111,17 @@ test('does not pass an unchecked plain-text acceptance item', () => {
   assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false);
 });
 
+test('does not pass an unfinished Jira task item under acceptance criteria', () => {
+  const report = assessIssue({ fields: { description: { type: 'doc', content: [
+    { type: 'heading', content: [{ type: 'text', text: 'Acceptance criteria' }] },
+    { type: 'taskList', content: [
+      { type: 'taskItem', attrs: { state: 'DONE' }, content: [{ type: 'text', text: 'Buyer receives a receipt after checkout.' }] },
+      { type: 'taskItem', attrs: { state: 'TODO' }, content: [{ type: 'text', text: 'Buyer can reopen the receipt from order history.' }] }
+    ] }
+  ] } } });
+  assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false);
+});
+
 test('does not pass a calendar date that does not exist', () => {
   const report = assessIssue({ fields: { duedate: '2026-02-30' } }, '2026-01-01');
   assert.equal(report.checks.find((check) => check.id === 'deadline').passed, false);

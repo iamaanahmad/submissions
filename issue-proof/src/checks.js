@@ -8,13 +8,21 @@ function adfText(value) {
   return [value.text || '', content].filter(Boolean).join(' ');
 }
 
+function hasOpenTask(value) {
+  if (!value || typeof value !== 'object') return false;
+  if (Array.isArray(value)) return value.some(hasOpenTask);
+  if ((value.type === 'taskItem' || value.type === 'blockTaskItem') && value.attrs?.state !== 'DONE') return true;
+  return hasOpenTask(value.content);
+}
+
 export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)) {
   const fields = issue?.fields || {};
   const description = adfText(fields.description);
   const descriptionBlocks = Array.isArray(fields.description?.content)
     ? fields.description.content.map((block) => ({
       text: adfText(block).trim(),
-      heading: block.type === 'heading'
+      heading: block.type === 'heading',
+      openTask: hasOpenTask(block)
     })).filter((block) => block.text)
     : description.split('\n').map((text) => ({ text: text.trim(), heading: false })).filter((block) => block.text);
   const subtasks = fields.subtasks || [];
@@ -44,7 +52,8 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
     if (inlineAcceptance) acceptanceLines.push(inlineAcceptance);
     for (const block of descriptionBlocks.slice(acceptanceIndex + 1)) {
       if (block.heading || /^[a-z][^:]{2,40}:/i.test(block.text)) break;
-      acceptanceLines.push(...block.text.split('\n').map((line) => line.replace(/^[-*\u2022]\s*/, '').trim()));
+      acceptanceLines.push(...block.text.split('\n').map((line) =>
+        `${block.openTask ? '[ ] ' : ''}${line.replace(/^[-*\u2022]\s*/, '').trim()}`));
     }
   }
   const standaloneScenario = acceptanceIndex < 0 && descriptionBlocks.some((block) =>
