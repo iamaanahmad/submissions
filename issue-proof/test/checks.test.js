@@ -230,6 +230,26 @@ test('does not borrow a result from a later heading', () => {
   assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false);
 });
 
+test('names the unfinished Jira checklist item after a completed item', () => {
+  const report = assessIssue({ fields: {
+    description: { type: 'doc', content: [
+      { type: 'heading', content: [{ type: 'text', text: 'Acceptance criteria' }] },
+      { type: 'taskList', content: [
+        { type: 'taskItem', attrs: { state: 'DONE' }, content: [
+          { type: 'text', text: 'Buyer can review the order.' }
+        ] },
+        { type: 'taskItem', attrs: { state: 'TODO' }, content: [
+          { type: 'text', text: 'Buyer can download a receipt.' }
+        ] }
+      ] }
+    ] }
+  } });
+  const acceptance = report.checks.find((check) => check.id === 'acceptance');
+  assert.equal(acceptance.passed, false);
+  assert.match(acceptance.detail, /Buyer can download a receipt/);
+  assert.doesNotMatch(acceptance.detail, /Buyer can review the order/);
+});
+
 test('does not demand child subtasks from a Jira subtask', () => {
   const report = assessIssue({ key: 'DEMO-10', fields: {
     issuetype: { name: 'Sub-task', subtask: true },

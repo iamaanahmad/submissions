@@ -65,7 +65,7 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
       if (block.heading || /^[a-z][^:]{2,40}:/i.test(block.text)) break;
       acceptanceBlocks.push(block);
       acceptanceLines.push(...block.text.split('\n').map((line) =>
-        `${block.openTask ? '[ ] ' : ''}${line.replace(/^[-*\u2022]\s*/, '').trim()}`));
+        line.replace(/^[-*\u2022]\s*/, '').trim()));
     }
   }
   const standaloneScenario = acceptanceIndex < 0 && descriptionBlocks.some((block) =>
@@ -83,6 +83,7 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
     : [];
   const hasAcceptance = acceptanceIndex >= 0
     ? listedCriteria.length > 0 && listedCriteria.every(isSpecific)
+      && !acceptanceBlocks.some((block) => block.openTask)
     : standaloneScenario;
   const checks = [
     {
