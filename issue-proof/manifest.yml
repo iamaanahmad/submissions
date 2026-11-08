@@ -2,6 +2,7 @@ modules:
   jira:issuePanel:
     - key: issue-proof-panel
       title: Issue Proof
+      icon: https://developer.atlassian.com/platform/forge/images/icons/issue-panel-icon.svg
       resource: issue-proof-ui
       render: native
 resources:
