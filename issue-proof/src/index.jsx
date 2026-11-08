@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import ForgeReconciler, { Button, Heading, Lozenge, SectionMessage, Spinner, Stack, Text, useProductContext } from '@forge/react';
 import { requestJira } from '@forge/bridge';
 import { assessIssue } from './checks.js';
+import { createRequestGate } from './request-gate.js';
 
 function App() {
   const context = useProductContext();
@@ -9,24 +10,33 @@ function App() {
   const [report, setReport] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const requestGate = useRef(createRequestGate());
 
   async function refresh() {
     if (!issueKey) return;
+    const request = requestGate.current.start();
     setLoading(true);
     setError('');
+    setReport(null);
     try {
       const fields = 'summary,description,assignee,duedate,subtasks,issuetype,issuelinks';
       const response = await requestJira(`/rest/api/3/issue/${encodeURIComponent(issueKey)}?fields=${fields}`);
       if (!response.ok) throw new Error(`Jira returned ${response.status}. Check your issue access and try again.`);
-      setReport(assessIssue(await response.json()));
+      const result = assessIssue(await response.json());
+      if (requestGate.current.isCurrent(request)) setReport(result);
     } catch (cause) {
-      setError(cause.message || 'The issue could not be checked.');
+      if (requestGate.current.isCurrent(request)) {
+        setError(cause.message || 'The issue could not be checked.');
+      }
     } finally {
-      setLoading(false);
+      if (requestGate.current.isCurrent(request)) setLoading(false);
     }
   }
 
-  useEffect(() => { refresh(); }, [issueKey]);
+  useEffect(() => {
+    refresh();
+    return () => requestGate.current.invalidate();
+  }, [issueKey]);
 
   return <Stack space="space.300">
     <Heading size="large">Issue Proof</Heading>
