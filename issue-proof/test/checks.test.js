@@ -35,7 +35,7 @@ test('does not accept an inactive Jira assignee as the handoff owner', () => {
   assert.match(report.nextAction, /Assign an active owner/);
 });
 
-test('rejects an overdue target date and does not claim missing subtasks are complete', () => {
+test('rejects an overdue target date without requiring optional subtasks', () => {
   const report = assessIssue({ key: 'DEMO-9', fields: {
     assignee: { accountId: 'abc' },
     duedate: '2026-11-06',
@@ -45,7 +45,20 @@ test('rejects an overdue target date and does not claim missing subtasks are com
   assert.equal(report.passed, 2);
   assert.match(report.checks.find((check) => check.id === 'deadline').detail, /has passed/);
   assert.match(report.nextAction, /2026-11-06 due date has passed/);
-  assert.match(report.checks.find((check) => check.id === 'subtasks').detail, /Add subtasks/);
+  assert.equal(report.checks.some((check) => check.id === 'subtasks'), false);
+});
+
+test('an ordinary completed issue can pass without creating child subtasks', () => {
+  const report = assessIssue({ key: 'DEMO-15', fields: {
+    summary: 'Update the checkout label',
+    status: { name: 'Done', statusCategory: { key: 'done' } },
+    assignee: { accountId: 'abc', active: true },
+    duedate: '2026-12-01',
+    description: 'Acceptance criteria: Buyer sees the updated checkout label.'
+  } }, '2026-11-08');
+  assert.equal(report.passed, 4);
+  assert.equal(report.total, 4);
+  assert.equal(report.checks.some((check) => check.id === 'subtasks'), false);
 });
 
 test('does not count an empty acceptance heading as evidence', () => {

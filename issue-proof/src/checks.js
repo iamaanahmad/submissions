@@ -79,13 +79,12 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
           : 'Write a specific result under Acceptance criteria or Given / When / Then.'
     }
   ];
-  if (!fields.issuetype?.subtask) {
+  if (!fields.issuetype?.subtask && subtasks.length > 0) {
     checks.push({
       id: 'subtasks',
       label: 'Subtasks are complete',
-      passed: subtasks.length > 0 && unfinished.length === 0,
-      detail: !subtasks.length ? 'Add subtasks so completion can be checked.'
-        : unfinished.length ? `Finish ${unfinishedNames.join(', ')} before handoff.`
+      passed: unfinished.length === 0,
+      detail: unfinished.length ? `Finish ${unfinishedNames.join(', ')} before handoff.`
           : `${subtasks.length} subtasks checked.`
     });
   }
