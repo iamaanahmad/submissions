@@ -125,7 +125,7 @@ test('accepts a Jira heading followed by a bullet result', () => {
   assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, true);
 });
 
-test('finds a specific result after an empty first bullet', () => {
+test('does not pass a list with one specific result and one placeholder', () => {
   const report = assessIssue({ fields: {
     description: { type: 'doc', content: [
       { type: 'heading', content: [{ type: 'text', text: 'Acceptance criteria' }] },
@@ -135,7 +135,9 @@ test('finds a specific result after an empty first bullet', () => {
       ] }
     ] }
   } });
-  assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, true);
+  const acceptance = report.checks.find((check) => check.id === 'acceptance');
+  assert.equal(acceptance.passed, false);
+  assert.match(acceptance.detail, /Replace every placeholder/);
 });
 
 test('does not borrow a result from a later heading', () => {

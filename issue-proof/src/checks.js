@@ -47,10 +47,10 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
   const standaloneScenario = acceptanceIndex < 0 && descriptionBlocks.some((block) =>
     /\bgiven\b.{1,100}\bwhen\b.{1,100}\bthen\b.{1,100}\S/i.test(block.text)
   );
-  const hasAcceptance = Boolean(
-    acceptanceLines.some(isSpecific)
-    || standaloneScenario
-  );
+  const listedCriteria = acceptanceLines.filter(Boolean);
+  const hasAcceptance = acceptanceIndex >= 0
+    ? listedCriteria.length > 0 && listedCriteria.every(isSpecific)
+    : standaloneScenario;
   const checks = [
     {
       id: 'owner',
@@ -69,8 +69,10 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
       id: 'acceptance',
       label: 'Acceptance criteria are written',
       passed: hasAcceptance,
-      detail: hasAcceptance ? 'A written result to check is present.'
-        : 'Write a specific result under Acceptance criteria or Given / When / Then.'
+      detail: hasAcceptance ? `${listedCriteria.length || 1} written result${listedCriteria.length === 1 ? '' : 's'} to check.`
+        : listedCriteria.length && listedCriteria.some(isSpecific)
+          ? 'Replace every placeholder or vague acceptance item with a specific result.'
+          : 'Write a specific result under Acceptance criteria or Given / When / Then.'
     }
   ];
   if (!fields.issuetype?.subtask) {
