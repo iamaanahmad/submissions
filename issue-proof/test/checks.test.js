@@ -255,3 +255,18 @@ test('flags only unresolved issues that block this issue', () => {
   assert.match(report.checks.find((check) => check.id === 'blockers').detail, /DEMO-4/);
   assert.doesNotMatch(report.checks.find((check) => check.id === 'blockers').detail, /DEMO-12|DEMO-3/);
 });
+
+test('keeps resolved blocking issues visible as checked evidence', () => {
+  const report = assessIssue({ key: 'DEMO-16', fields: {
+    assignee: { accountId: 'abc', active: true },
+    duedate: '2026-12-01',
+    description: 'Acceptance criteria: Buyer can download a receipt after checkout.',
+    status: { name: 'Done', statusCategory: { key: 'done' } },
+    issuelinks: [{ type: { inward: 'is blocked by', outward: 'blocks' }, inwardIssue: {
+      key: 'DEMO-4', fields: { status: { statusCategory: { key: 'done' } } }
+    } }]
+  } }, '2026-11-08');
+  assert.equal(report.total, 5);
+  assert.equal(report.passed, 5);
+  assert.match(report.checks.find((check) => check.id === 'blockers').detail, /1 blocking issue checked/);
+});

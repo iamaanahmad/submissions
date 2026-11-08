@@ -20,14 +20,14 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
   const subtasks = fields.subtasks || [];
   const unfinished = subtasks.filter((item) => item.fields?.status?.statusCategory?.key !== 'done');
   const unfinishedNames = unfinished.map((item) => item.key || item.fields?.summary || 'Unnamed subtask');
-  const blockers = (fields.issuelinks || []).flatMap((link) => {
+  const blockingIssues = (fields.issuelinks || []).flatMap((link) => {
     const isInwardBlocker = link.type?.inward?.toLowerCase() === 'is blocked by';
     const isOutwardBlocker = link.type?.outward?.toLowerCase() === 'is blocked by';
     const linkedIssue = isInwardBlocker ? link.inwardIssue
       : isOutwardBlocker ? link.outwardIssue : null;
-    return linkedIssue && linkedIssue.fields?.status?.statusCategory?.key !== 'done'
-      ? [linkedIssue.key || 'Linked issue'] : [];
+    return linkedIssue ? [linkedIssue] : [];
   });
+  const blockers = blockingIssues.filter((item) => item.fields?.status?.statusCategory?.key !== 'done');
   const parsedDate = typeof fields.duedate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(fields.duedate)
     ? new Date(`${fields.duedate}T00:00:00Z`) : null;
   const dueDate = parsedDate && !Number.isNaN(parsedDate.valueOf())
@@ -90,12 +90,14 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
           : `${subtasks.length} subtasks checked.`
     });
   }
-  if (blockers.length) {
+  if (blockingIssues.length) {
     checks.push({
       id: 'blockers',
       label: 'Blocking issues are complete',
-      passed: false,
-      detail: `Resolve ${blockers.join(', ')} before handoff.`
+      passed: blockers.length === 0,
+      detail: blockers.length
+        ? `Resolve ${blockers.map((item) => item.key || 'Linked issue').join(', ')} before handoff.`
+        : `${blockingIssues.length} blocking issue${blockingIssues.length === 1 ? '' : 's'} checked.`
     });
   }
   checks.push({
