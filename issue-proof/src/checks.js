@@ -40,8 +40,9 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
   const acceptanceEvidence = inlineAcceptance || (
     /^[a-z][^:]{2,40}:/i.test(followingAcceptance) ? '' : followingAcceptance
   );
+  const isPlaceholder = /^(?:tbd|todo|none|n\/a|not applicable|to be (?:determined|defined|added)|coming soon|pending|see (?:later|ticket))\.?$/i.test(acceptanceEvidence.trim());
   const hasAcceptance = Boolean(
-    acceptanceEvidence.length >= 12
+    (acceptanceEvidence.length >= 12 && !isPlaceholder)
     || /\bgiven\b.{1,100}\bwhen\b.{1,100}\bthen\b.{1,100}\S/i.test(description)
   );
   const checks = [

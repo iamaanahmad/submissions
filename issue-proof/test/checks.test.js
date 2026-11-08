@@ -44,6 +44,17 @@ test('does not count an empty acceptance heading as evidence', () => {
   assert.match(report.checks.find((check) => check.id === 'acceptance').detail, /specific result/);
 });
 
+test('does not treat placeholder acceptance criteria as a result', () => {
+  for (const placeholder of ['to be determined', 'not applicable', 'coming soon']) {
+    const report = assessIssue({ fields: {
+      description: { type: 'doc', content: [{ type: 'paragraph', content: [
+        { type: 'text', text: `Acceptance criteria: ${placeholder}` }
+      ] }] }
+    } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, placeholder);
+  }
+});
+
 test('does not treat a later section as acceptance evidence', () => {
   const report = assessIssue({ fields: {
     description: { type: 'doc', content: [
