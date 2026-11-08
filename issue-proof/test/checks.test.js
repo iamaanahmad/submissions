@@ -57,3 +57,21 @@ test('does not demand child subtasks from a Jira subtask', () => {
   assert.equal(report.checks.some((check) => check.id === 'subtasks'), false);
   assert.match(report.nextAction, /All 3 checks/);
 });
+
+test('flags only unresolved issues that block this issue', () => {
+  const report = assessIssue({ key: 'DEMO-11', fields: {
+    issuelinks: [
+      { type: { inward: 'is blocked by', outward: 'blocks' }, inwardIssue: {
+        key: 'DEMO-4', fields: { status: { statusCategory: { key: 'indeterminate' } } }
+      } },
+      { type: { inward: 'is blocked by', outward: 'blocks' }, outwardIssue: {
+        key: 'DEMO-12', fields: { status: { statusCategory: { key: 'indeterminate' } } }
+      } },
+      { type: { inward: 'is blocked by', outward: 'blocks' }, inwardIssue: {
+        key: 'DEMO-3', fields: { status: { statusCategory: { key: 'done' } } }
+      } }
+    ]
+  } });
+  assert.match(report.checks.find((check) => check.id === 'blockers').detail, /DEMO-4/);
+  assert.doesNotMatch(report.checks.find((check) => check.id === 'blockers').detail, /DEMO-12|DEMO-3/);
+});

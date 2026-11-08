@@ -10,6 +10,14 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
   const description = adfText(fields.description);
   const subtasks = fields.subtasks || [];
   const unfinished = subtasks.filter((item) => item.fields?.status?.statusCategory?.key !== 'done');
+  const blockers = (fields.issuelinks || []).flatMap((link) => {
+    const isInwardBlocker = link.type?.inward?.toLowerCase() === 'is blocked by';
+    const isOutwardBlocker = link.type?.outward?.toLowerCase() === 'is blocked by';
+    const linkedIssue = isInwardBlocker ? link.inwardIssue
+      : isOutwardBlocker ? link.outwardIssue : null;
+    return linkedIssue && linkedIssue.fields?.status?.statusCategory?.key !== 'done'
+      ? [linkedIssue.key || 'Linked issue'] : [];
+  });
   const dueDate = typeof fields.duedate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(fields.duedate)
     ? fields.duedate : '';
   const overdue = Boolean(dueDate && dueDate < today);
@@ -48,6 +56,14 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
       detail: !subtasks.length ? 'Add subtasks so completion can be checked.'
         : unfinished.length ? `${unfinished.length} subtask${unfinished.length === 1 ? '' : 's'} still open.`
           : `${subtasks.length} subtasks checked.`
+    });
+  }
+  if (blockers.length) {
+    checks.push({
+      id: 'blockers',
+      label: 'Blocking issues are complete',
+      passed: false,
+      detail: `Resolve ${blockers.join(', ')} before handoff.`
     });
   }
   const passed = checks.filter((check) => check.passed).length;
