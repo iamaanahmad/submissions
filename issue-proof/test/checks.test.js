@@ -120,6 +120,14 @@ test('does not pass an unfinished Jira task item under acceptance criteria', () 
     ] }
   ] } } });
   assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false);
+  assert.match(report.checks.find((check) => check.id === 'acceptance').detail, /Finish Buyer can reopen the receipt/);
+});
+
+test('names the unfinished plain-text acceptance item', () => {
+  const report = assessIssue({ fields: {
+    description: 'Acceptance criteria:\n- [x] Buyer sees the receipt.\n- [ ] Buyer can download the receipt.'
+  } });
+  assert.match(report.checks.find((check) => check.id === 'acceptance').detail, /Finish Buyer can download the receipt/);
 });
 
 test('does not pass a calendar date that does not exist', () => {

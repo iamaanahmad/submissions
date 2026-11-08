@@ -15,16 +15,26 @@ function hasOpenTask(value) {
   return hasOpenTask(value.content);
 }
 
+function openTaskLabels(value) {
+  if (!value || typeof value !== 'object') return [];
+  if (Array.isArray(value)) return value.flatMap(openTaskLabels);
+  if ((value.type === 'taskItem' || value.type === 'blockTaskItem') && value.attrs?.state !== 'DONE') {
+    return [adfText(value).trim() || 'an unnamed checklist item'];
+  }
+  return openTaskLabels(value.content);
+}
+
 export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)) {
   const fields = issue?.fields || {};
   const description = adfText(fields.description);
   const descriptionBlocks = Array.isArray(fields.description?.content)
     ? fields.description.content.map((block) => ({
+      node: block,
       text: adfText(block).trim(),
       heading: block.type === 'heading',
       openTask: hasOpenTask(block)
     })).filter((block) => block.text)
-    : description.split('\n').map((text) => ({ text: text.trim(), heading: false })).filter((block) => block.text);
+    : description.split('\n').map((text) => ({ node: null, text: text.trim(), heading: false })).filter((block) => block.text);
   const subtasks = fields.subtasks || [];
   const unfinished = subtasks.filter((item) => item.fields?.status?.statusCategory?.key !== 'done');
   const unfinishedNames = unfinished.map((item) => item.key || item.fields?.summary || 'Unnamed subtask');
@@ -48,10 +58,12 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
   const hasUnfinishedMarker = (text) => /\b(?:tbd|todo|to be (?:determined|defined|added)|coming soon)\b|\.{3,}/i.test(text);
   const isSpecific = (text) => text.length >= 12 && !/^\[\s\]/.test(text) && !isPlaceholder(text) && !hasUnfinishedMarker(text);
   const acceptanceLines = [];
+  const acceptanceBlocks = [];
   if (acceptanceIndex >= 0 && !isPlaceholder(inlineAcceptance)) {
     if (inlineAcceptance) acceptanceLines.push(inlineAcceptance);
     for (const block of descriptionBlocks.slice(acceptanceIndex + 1)) {
       if (block.heading || /^[a-z][^:]{2,40}:/i.test(block.text)) break;
+      acceptanceBlocks.push(block);
       acceptanceLines.push(...block.text.split('\n').map((line) =>
         `${block.openTask ? '[ ] ' : ''}${line.replace(/^[-*\u2022]\s*/, '').trim()}`));
     }
@@ -61,6 +73,14 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
       && !hasUnfinishedMarker(block.text)
   );
   const listedCriteria = acceptanceLines.filter(Boolean);
+  const uncheckedCriteria = acceptanceIndex >= 0
+    ? [
+      ...[inlineAcceptance, ...acceptanceBlocks.flatMap((block) => block.text.split('\n'))]
+        .filter((line) => /^\s*[-*\u2022]?\s*\[\s\]/.test(line))
+        .map((line) => line.replace(/^\s*[-*\u2022]?\s*\[\s\]\s*/, '').trim()),
+      ...openTaskLabels(acceptanceBlocks.map((block) => block.node))
+    ].filter(Boolean)
+    : [];
   const hasAcceptance = acceptanceIndex >= 0
     ? listedCriteria.length > 0 && listedCriteria.every(isSpecific)
     : standaloneScenario;
@@ -85,6 +105,8 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
       label: 'Acceptance criteria are written',
       passed: hasAcceptance,
       detail: hasAcceptance ? `${listedCriteria.length || 1} written result${listedCriteria.length === 1 ? '' : 's'} to check.`
+        : uncheckedCriteria.length
+          ? `Finish ${uncheckedCriteria[0]}${uncheckedCriteria.length > 1 ? ` and ${uncheckedCriteria.length - 1} more checklist item${uncheckedCriteria.length === 2 ? '' : 's'}` : ''}.`
         : listedCriteria.length && listedCriteria.some(isSpecific)
           ? 'Replace every placeholder or vague acceptance item with a specific result.'
           : 'Write a specific result under Acceptance criteria or Given / When / Then.'
