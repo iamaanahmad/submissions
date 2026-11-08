@@ -35,7 +35,8 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
   const inlineAcceptance = acceptanceIndex >= 0
     ? descriptionBlocks[acceptanceIndex].text.replace(/^(?:acceptance criteria|definition of done)[ \t]*:?[ \t]*/i, '') : '';
   const isPlaceholder = (text) => /^(?:tbd|todo|none|n\/a|not applicable|to be (?:determined|defined|added)|coming soon|pending|see (?:later|ticket))\.?$/i.test(text.trim());
-  const isSpecific = (text) => text.length >= 12 && !isPlaceholder(text);
+  const hasUnfinishedMarker = (text) => /\b(?:tbd|todo|to be (?:determined|defined|added)|coming soon)\b|\.{3,}/i.test(text);
+  const isSpecific = (text) => text.length >= 12 && !isPlaceholder(text) && !hasUnfinishedMarker(text);
   const acceptanceLines = [];
   if (acceptanceIndex >= 0 && !isPlaceholder(inlineAcceptance)) {
     if (inlineAcceptance) acceptanceLines.push(inlineAcceptance);
@@ -46,6 +47,7 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
   }
   const standaloneScenario = acceptanceIndex < 0 && descriptionBlocks.some((block) =>
     /\bgiven\b.{1,100}\bwhen\b.{1,100}\bthen\b.{1,100}\S/i.test(block.text)
+      && !hasUnfinishedMarker(block.text)
   );
   const listedCriteria = acceptanceLines.filter(Boolean);
   const hasAcceptance = acceptanceIndex >= 0

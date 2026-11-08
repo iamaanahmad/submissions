@@ -66,6 +66,26 @@ test('does not let a later scenario override placeholder acceptance criteria', (
   assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false);
 });
 
+test('does not count an unfinished note inside a longer acceptance result', () => {
+  const report = assessIssue({ fields: {
+    description: { type: 'doc', content: [
+      { type: 'heading', content: [{ type: 'text', text: 'Acceptance criteria' }] },
+      { type: 'bulletList', content: [
+        { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Buyer receives a receipt after checkout.' }] }] },
+        { type: 'listItem', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'The retry flow is TBD after provider review.' }] }] }
+      ] }
+    ] }
+  } });
+  assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false);
+});
+
+test('does not count a scenario with an unfinished result', () => {
+  const report = assessIssue({ fields: {
+    description: 'Given a buyer has paid when they open orders then the receipt flow is TODO.'
+  } });
+  assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false);
+});
+
 test('accepts a standalone specific Given When Then scenario', () => {
   const report = assessIssue({ fields: {
     description: 'Given a buyer has paid when they open orders then they can download their receipt.'
