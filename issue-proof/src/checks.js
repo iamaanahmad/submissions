@@ -26,10 +26,11 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
     ? fields.duedate : '';
   const overdue = Boolean(dueDate && dueDate < today);
   const lines = description.split('\n').map((line) => line.trim()).filter(Boolean);
-  const acceptanceIndex = lines.findIndex((line) => /^(?:acceptance criteria|definition of done)[ \t]*:/i.test(line));
+  const acceptanceIndex = lines.findIndex((line) => /^(?:acceptance criteria|definition of done)[ \t]*(?::|$)/i.test(line));
   const inlineAcceptance = acceptanceIndex >= 0
-    ? lines[acceptanceIndex].replace(/^(?:acceptance criteria|definition of done)[ \t]*:[ \t]*/i, '') : '';
-  const followingAcceptance = acceptanceIndex >= 0 ? lines[acceptanceIndex + 1] || '' : '';
+    ? lines[acceptanceIndex].replace(/^(?:acceptance criteria|definition of done)[ \t]*:?[ \t]*/i, '') : '';
+  const followingAcceptance = acceptanceIndex >= 0
+    ? (lines[acceptanceIndex + 1] || '').replace(/^[-*\u2022]\s*/, '') : '';
   const acceptanceEvidence = inlineAcceptance || (
     /^[a-z][^:]{2,40}:/i.test(followingAcceptance) ? '' : followingAcceptance
   );
