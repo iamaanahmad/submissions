@@ -10,6 +10,7 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
   const description = adfText(fields.description);
   const subtasks = fields.subtasks || [];
   const unfinished = subtasks.filter((item) => item.fields?.status?.statusCategory?.key !== 'done');
+  const unfinishedNames = unfinished.map((item) => item.key || item.fields?.summary || 'Unnamed subtask');
   const blockers = (fields.issuelinks || []).flatMap((link) => {
     const isInwardBlocker = link.type?.inward?.toLowerCase() === 'is blocked by';
     const isOutwardBlocker = link.type?.outward?.toLowerCase() === 'is blocked by';
@@ -54,7 +55,7 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
       label: 'Subtasks are complete',
       passed: subtasks.length > 0 && unfinished.length === 0,
       detail: !subtasks.length ? 'Add subtasks so completion can be checked.'
-        : unfinished.length ? `${unfinished.length} subtask${unfinished.length === 1 ? '' : 's'} still open.`
+        : unfinished.length ? `Finish ${unfinishedNames.join(', ')} before handoff.`
           : `${subtasks.length} subtasks checked.`
     });
   }

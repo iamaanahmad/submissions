@@ -16,11 +16,11 @@ test('reports complete evidence without claiming release approval', () => {
 test('names missing evidence and unfinished subtasks', () => {
   const report = assessIssue({ key: 'DEMO-8', fields: {
     summary: 'Draft work', description: { content: [{ content: [{ text: 'A short description' }] }] },
-    subtasks: [{ fields: { status: { statusCategory: { key: 'indeterminate' } } } }]
+    subtasks: [{ key: 'DEMO-8A', fields: { status: { statusCategory: { key: 'indeterminate' } } } }]
   } });
   assert.equal(report.passed, 0);
   assert.match(report.nextAction, /Assign someone/);
-  assert.match(report.checks.find((check) => check.id === 'subtasks').detail, /1 subtask still open/);
+  assert.match(report.checks.find((check) => check.id === 'subtasks').detail, /Finish DEMO-8A before handoff/);
 });
 
 test('rejects an overdue target date and does not claim missing subtasks are complete', () => {
