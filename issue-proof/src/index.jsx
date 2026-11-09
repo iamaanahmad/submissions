@@ -10,7 +10,17 @@ function App() {
   const [report, setReport] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [contextTimedOut, setContextTimedOut] = useState(false);
   const requestGate = useRef(createRequestGate());
+
+  useEffect(() => {
+    if (issueKey) {
+      setContextTimedOut(false);
+      return;
+    }
+    const timeout = setTimeout(() => setContextTimedOut(true), 5000);
+    return () => clearTimeout(timeout);
+  }, [issueKey]);
 
   async function refresh() {
     if (!issueKey) return;
@@ -41,7 +51,11 @@ function App() {
   return <Stack space="space.300">
     <Heading size="large">Issue Proof</Heading>
     <Text>Check the evidence on this Jira issue before a handoff.</Text>
-    {!issueKey && <Spinner />}
+    {!issueKey && !contextTimedOut && <Spinner />}
+    {!issueKey && contextTimedOut && <SectionMessage appearance="error">
+      <Text>Jira did not provide an issue. Open a Jira issue and reopen Issue Proof.</Text>
+    </SectionMessage>}
+    {loading && <Spinner />}
     {error && <SectionMessage appearance="error"><Text>{error}</Text></SectionMessage>}
     {report && report.issueKey === issueKey && <>
       <Heading size="medium">{report.passed} of {report.total} checks have evidence</Heading>
