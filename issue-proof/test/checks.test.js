@@ -372,6 +372,16 @@ test('names the unfinished Jira checklist item after a completed item', () => {
   assert.doesNotMatch(acceptance.detail, /Buyer can review the order/);
 });
 
+test('does not count a pasted unchecked acceptance result as complete evidence', () => {
+  const report = assessIssue({ fields: {
+    description: 'Acceptance criteria:\n- [ ] Buyer can download a receipt after checkout.'
+  } });
+  const acceptance = report.checks.find((check) => check.id === 'acceptance');
+  assert.equal(acceptance.passed, false);
+  assert.match(acceptance.detail, /Buyer can download a receipt/);
+  assert.equal(report.checks.find((check) => check.id === 'checklist').passed, false);
+});
+
 test('does not demand child subtasks from a Jira subtask', () => {
   const report = assessIssue({ key: 'DEMO-10', fields: {
     issuetype: { name: 'Sub-task', subtask: true },

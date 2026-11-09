@@ -105,7 +105,7 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
     : [];
   const hasAcceptance = acceptanceIndex >= 0
     ? listedCriteria.length > 0 && listedCriteria.every(isSpecific)
-      && !acceptanceBlocks.some((block) => block.openTask)
+      && uncheckedCriteria.length === 0
     : standaloneScenario;
   const checks = [
     {
