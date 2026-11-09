@@ -23,6 +23,28 @@ test('names missing evidence and unfinished subtasks', () => {
   assert.match(report.checks.find((check) => check.id === 'subtasks').detail, /Finish DEMO-8A before handoff/);
 });
 
+test('blocks handoff for open Jira checklist items outside acceptance criteria', () => {
+  const report = assessIssue({ key: 'DEMO-30', fields: {
+    assignee: { accountId: 'abc', active: true },
+    duedate: '2026-12-01',
+    status: { name: 'Done', statusCategory: { key: 'done' } },
+    description: { type: 'doc', content: [
+      { type: 'paragraph', content: [{ type: 'text', text: 'Acceptance criteria: Buyer receives a receipt after checkout.' }] },
+      { type: 'heading', content: [{ type: 'text', text: 'Implementation notes' }] },
+      { type: 'taskList', content: [
+        { type: 'taskItem', attrs: { state: 'DONE' }, content: [{ type: 'text', text: 'Review copy' }] },
+        { type: 'taskItem', attrs: { state: 'TODO' }, content: [{ type: 'text', text: 'Verify refund path' }] }
+      ] }
+    ] }
+  } }, '2026-11-09');
+  const checklist = report.checks.find((check) => check.id === 'checklist');
+  assert.equal(checklist.passed, false);
+  assert.match(checklist.detail, /Verify refund path/);
+  assert.doesNotMatch(checklist.detail, /Review copy/);
+  assert.equal(report.passed, 4);
+  assert.equal(report.total, 5);
+});
+
 test('does not accept an inactive Jira assignee as the handoff owner', () => {
   const report = assessIssue({ key: 'DEMO-14', fields: {
     assignee: { accountId: 'former-user', displayName: 'Former owner', active: false },

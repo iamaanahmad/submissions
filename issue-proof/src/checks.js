@@ -40,6 +40,7 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
   const subtasks = fields.subtasks || [];
   const unfinished = subtasks.filter((item) => item.fields?.status?.statusCategory?.key !== 'done');
   const unfinishedNames = unfinished.map((item) => item.key || item.fields?.summary || 'Unnamed subtask');
+  const openChecklistItems = openTaskLabels(fields.description);
   const blockingIssues = (fields.issuelinks || []).flatMap((link) => {
     const isBlockingLabel = (label) => /^(?:is blocked by|depends on)$/i.test(label?.trim() || '');
     const isInwardBlocker = isBlockingLabel(link.type?.inward);
@@ -131,6 +132,14 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
       passed: unfinished.length === 0,
       detail: unfinished.length ? `Finish ${unfinishedNames.join(', ')} before handoff.`
           : `${subtasks.length} subtasks checked.`
+    });
+  }
+  if (openChecklistItems.length) {
+    checks.push({
+      id: 'checklist',
+      label: 'Jira checklist items are complete',
+      passed: false,
+      detail: `Finish ${openChecklistItems[0]}${openChecklistItems.length > 1 ? ` and ${openChecklistItems.length - 1} more checklist item${openChecklistItems.length === 2 ? '' : 's'}` : ''} before handoff.`
     });
   }
   if (blockingIssues.length) {
