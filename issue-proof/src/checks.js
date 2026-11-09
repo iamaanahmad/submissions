@@ -28,7 +28,7 @@ function openTaskLabels(value) {
 
 function openTextChecklistLabels(value) {
   return adfText(value).split('\n').flatMap((line) => {
-    const match = line.match(/^\s*(?:[-*\u2022]\s*)?\[\s\]\s*(.*)$/);
+    const match = line.match(/^\s*(?:(?:[-*\u2022]|\d+[.)])\s*)?\[\s\]\s*(.*)$/);
     return match ? [match[1].trim() || 'an unnamed checklist item'] : [];
   });
 }
@@ -75,14 +75,14 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
   const acceptanceBlocks = [];
   if (acceptanceIndex >= 0 && !isPlaceholder(inlineAcceptance)) {
     if (inlineAcceptance) acceptanceLines.push(...inlineAcceptance.split('\n').map((line) =>
-      line.trim().replace(/^[-*\u2022]\s*/, '').trim()));
+      line.trim().replace(/^(?:[-*\u2022]|\d+[.)])\s*/, '').trim()));
     for (const block of descriptionBlocks.slice(acceptanceIndex + 1)) {
       const nextSection = /^(?:implementation notes?|technical notes?|background|context|risks?|dependencies|test plan|design|out of scope|non-goals?|release notes?|deployment notes?)\s*(?::\s*.*)?$/i.test(block.text)
         || /^[a-z][^:]{2,40}:\s*$/i.test(block.text);
       if (block.heading || nextSection) break;
       acceptanceBlocks.push(block);
       acceptanceLines.push(...block.text.split('\n').map((line) =>
-        line.replace(/^[-*\u2022]\s*/, '').trim()));
+        line.replace(/^(?:[-*\u2022]|\d+[.)])\s*/, '').trim()));
     }
   }
   const standaloneScenario = acceptanceIndex < 0 && descriptionBlocks.some((block, index) => {
@@ -98,8 +98,8 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
   const uncheckedCriteria = acceptanceIndex >= 0
     ? [
       ...[...inlineAcceptance.split('\n'), ...acceptanceBlocks.flatMap((block) => block.text.split('\n'))]
-        .filter((line) => /^\s*[-*\u2022]?\s*\[\s\]/.test(line))
-        .map((line) => line.replace(/^\s*[-*\u2022]?\s*\[\s\]\s*/, '').trim()),
+        .filter((line) => /^\s*(?:(?:[-*\u2022]|\d+[.)])\s*)?\[\s\]/.test(line))
+        .map((line) => line.replace(/^\s*(?:(?:[-*\u2022]|\d+[.)])\s*)?\[\s\]\s*/, '').trim()),
       ...openTaskLabels(acceptanceBlocks.map((block) => block.node))
     ].filter(Boolean)
     : [];

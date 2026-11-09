@@ -382,6 +382,19 @@ test('does not count a pasted unchecked acceptance result as complete evidence',
   assert.equal(report.checks.find((check) => check.id === 'checklist').passed, false);
 });
 
+test('blocks numbered unchecked checklist items in acceptance and handoff notes', () => {
+  const report = assessIssue({ fields: {
+    description: 'Acceptance criteria:\n1. [x] Buyer can review the order.\n2) [ ] Buyer can download a receipt.\nImplementation notes:\n3. [ ] Verify the refund path.'
+  } });
+  const acceptance = report.checks.find((check) => check.id === 'acceptance');
+  const checklist = report.checks.find((check) => check.id === 'checklist');
+  assert.equal(acceptance.passed, false);
+  assert.match(acceptance.detail, /Buyer can download a receipt/);
+  assert.equal(checklist.passed, false);
+  assert.match(checklist.detail, /Buyer can download a receipt/);
+  assert.match(checklist.detail, /1 more checklist item/);
+});
+
 test('does not demand child subtasks from a Jira subtask', () => {
   const report = assessIssue({ key: 'DEMO-10', fields: {
     issuetype: { name: 'Sub-task', subtask: true },
