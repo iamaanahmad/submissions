@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ForgeReconciler, { Button, Heading, Lozenge, SectionMessage, Spinner, Stack, Text, useProductContext } from '@forge/react';
-import { requestJira } from '@forge/bridge';
+import { events, requestJira } from '@forge/bridge';
 import { assessIssue } from './checks.js';
 import { createRequestGate } from './request-gate.js';
 
 function App() {
   const context = useProductContext();
   const issueKey = context?.extension?.issue?.key;
+  const issueId = context?.extension?.issue?.id;
   const [report, setReport] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -47,6 +48,21 @@ function App() {
     refresh();
     return () => requestGate.current.invalidate();
   }, [issueKey]);
+
+  useEffect(() => {
+    if (!issueKey || !issueId) return;
+    let active = true;
+    const subscription = events.on('JIRA_ISSUE_CHANGED', (event) => {
+      if (active && String(event?.issueId) === String(issueId)
+        && event.changes?.some((change) => change.changeType === 'updated')) {
+        refresh();
+      }
+    }).catch(() => null);
+    return () => {
+      active = false;
+      subscription.then((listener) => listener?.unsubscribe());
+    };
+  }, [issueKey, issueId]);
 
   return <Stack space="space.300">
     <Heading size="large">Issue Proof</Heading>

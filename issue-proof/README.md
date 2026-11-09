@@ -22,6 +22,8 @@ Use an Atlassian developer account and a Jira Cloud development site. Run `forge
 
 The app uses the current viewer's Jira permissions and the `read:jira-work` scope. A viewer without access sees an error, not another user's issue data. No external API or paid service is required.
 
+The panel refreshes its checks after the current Jira issue changes. The **Check again** button remains available for changes that Jira does not send to an open panel.
+
 ## Contest status
 
 This is the first testable source advance for Codegeist 2026. A real Forge deployment, Jira install, judge installation link, public demo video, entrant facts, Devpost sign-in, and submission receipt are still required before entry.
