@@ -91,6 +91,24 @@ test('does not let a later scenario override placeholder acceptance criteria', (
   assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false);
 });
 
+test('accepts a specific Given When Then scenario on separate Jira paragraphs', () => {
+  const report = assessIssue({ fields: { description: { type: 'doc', content: [
+    { type: 'paragraph', content: [{ type: 'text', text: 'Given a buyer has paid for an order' }] },
+    { type: 'paragraph', content: [{ type: 'text', text: 'When they open their order history' }] },
+    { type: 'paragraph', content: [{ type: 'text', text: 'Then they can download the receipt' }] }
+  ] } } });
+  assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, true);
+});
+
+test('rejects an unfinished multi-line scenario', () => {
+  const report = assessIssue({ fields: { description: [
+    'Given a buyer has paid for an order',
+    'When they open their order history',
+    'Then the receipt flow is TBD'
+  ].join('\n') } });
+  assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false);
+});
+
 test('does not count an unfinished note inside a longer acceptance result', () => {
   const report = assessIssue({ fields: {
     description: { type: 'doc', content: [

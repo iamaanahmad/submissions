@@ -68,10 +68,15 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
         line.replace(/^[-*\u2022]\s*/, '').trim()));
     }
   }
-  const standaloneScenario = acceptanceIndex < 0 && descriptionBlocks.some((block) =>
-    /\bgiven\b.{1,100}\bwhen\b.{1,100}\bthen\b.{1,100}\S/i.test(block.text)
-      && !hasUnfinishedMarker(block.text)
-  );
+  const standaloneScenario = acceptanceIndex < 0 && descriptionBlocks.some((block, index) => {
+    const singleLine = /\bgiven\b.{1,100}\bwhen\b.{1,100}\bthen\b.{1,100}\S/i.test(block.text);
+    const lines = descriptionBlocks.slice(index, index + 3);
+    const separateLines = lines.length === 3 && lines.every((line, offset) =>
+      !line.heading && new RegExp(`^${['given', 'when', 'then'][offset]}\\s+\\S`, 'i').test(line.text)
+        && line.text.length >= 12 && !hasUnfinishedMarker(line.text)
+    );
+    return (singleLine && !hasUnfinishedMarker(block.text)) || separateLines;
+  });
   const listedCriteria = acceptanceLines.filter(Boolean);
   const uncheckedCriteria = acceptanceIndex >= 0
     ? [
