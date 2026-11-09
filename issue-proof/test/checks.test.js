@@ -108,6 +108,22 @@ test('does not count an empty acceptance heading as evidence', () => {
   assert.match(report.checks.find((check) => check.id === 'acceptance').detail, /specific result/);
 });
 
+test('reads acceptance criteria under a pasted Markdown heading', () => {
+  const report = assessIssue({ fields: {
+    description: '## Acceptance criteria\n- Buyer receives a receipt after checkout.\n- Buyer can download it from order history.'
+  } });
+  const acceptance = report.checks.find((check) => check.id === 'acceptance');
+  assert.equal(acceptance.passed, true);
+  assert.match(acceptance.detail, /2 written results/);
+});
+
+test('stops pasted Markdown criteria at the next heading', () => {
+  const report = assessIssue({ fields: {
+    description: '## Acceptance criteria\n- Buyer receives a receipt after checkout.\n## Implementation\n- TODO: add receipt storage.'
+  } });
+  assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, true);
+});
+
 test('does not treat placeholder acceptance criteria as a result', () => {
   for (const placeholder of ['to be determined', 'not applicable', 'coming soon']) {
     const report = assessIssue({ fields: {

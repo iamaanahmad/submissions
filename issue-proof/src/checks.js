@@ -65,9 +65,10 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
   const dueDate = parsedDate && !Number.isNaN(parsedDate.valueOf())
     && parsedDate.toISOString().slice(0, 10) === fields.duedate ? fields.duedate : '';
   const overdue = Boolean(dueDate && dueDate < today);
-  const acceptanceIndex = descriptionBlocks.findIndex((block) => /^(?:acceptance criteria|definition of done)[ \t]*(?::|$)/i.test(block.text));
+  const withoutMarkdownHeading = (text) => text.replace(/^#{1,6}[ \t]+/, '').trim();
+  const acceptanceIndex = descriptionBlocks.findIndex((block) => /^(?:acceptance criteria|definition of done)[ \t]*(?::|$)/i.test(withoutMarkdownHeading(block.text)));
   const inlineAcceptance = acceptanceIndex >= 0
-    ? descriptionBlocks[acceptanceIndex].text.replace(/^(?:acceptance criteria|definition of done)[ \t]*:?[ \t]*/i, '') : '';
+    ? withoutMarkdownHeading(descriptionBlocks[acceptanceIndex].text).replace(/^(?:acceptance criteria|definition of done)[ \t]*:?[ \t]*/i, '') : '';
   const isPlaceholder = (text) => /^(?:tbd|todo|none|n\/a|not applicable|to be (?:determined|defined|added)|coming soon|pending|see (?:later|ticket))\.?$/i.test(text.trim());
   const hasUnfinishedMarker = (text) => /\b(?:tbd|todo|to be (?:determined|defined|added)|coming soon)\b|\.{3,}/i.test(text);
   const isSpecific = (text) => text.length >= 12 && !/^(?:\[\s\]|[\u2610\u25a1])/.test(text) && !isPlaceholder(text) && !hasUnfinishedMarker(text);
@@ -77,7 +78,8 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
     if (inlineAcceptance) acceptanceLines.push(...inlineAcceptance.split('\n').map((line) =>
       line.trim().replace(/^(?:[-*\u2022]|\d+[.)])\s*/, '').trim()));
     for (const block of descriptionBlocks.slice(acceptanceIndex + 1)) {
-      const nextSection = /^(?:implementation notes?|technical notes?|background|context|risks?|dependencies|test plan|design|out of scope|non-goals?|release notes?|deployment notes?)\s*(?::\s*.*)?$/i.test(block.text)
+      const nextSection = /^#{1,6}[ \t]+\S/.test(block.text)
+        || /^(?:implementation notes?|technical notes?|background|context|risks?|dependencies|test plan|design|out of scope|non-goals?|release notes?|deployment notes?)\s*(?::\s*.*)?$/i.test(block.text)
         || /^[a-z][^:]{2,40}:\s*$/i.test(block.text);
       if (block.heading || nextSection) break;
       acceptanceBlocks.push(block);
