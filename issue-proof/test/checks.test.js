@@ -191,6 +191,15 @@ test('does not count an unfinished note inside a longer acceptance result', () =
   assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false);
 });
 
+test('does not count pending decisions as completed acceptance evidence', () => {
+  for (const unfinished of ['TBC', 'WIP', 'to be confirmed', 'pending review', '???']) {
+    const report = assessIssue({ fields: {
+      description: `Acceptance criteria:\n- Buyer receives a receipt after checkout.\n- Refund behavior is ${unfinished}`
+    } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, unfinished);
+  }
+});
+
 test('does not pass an unchecked plain-text acceptance item', () => {
   const report = assessIssue({ fields: {
     description: 'Acceptance criteria:\n- [ ] Buyer can download the receipt.'
