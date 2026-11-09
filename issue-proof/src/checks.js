@@ -3,10 +3,11 @@ function adfText(value) {
   if (typeof value === 'string') return value;
   if (Array.isArray(value)) return value.map(adfText).filter(Boolean).join('\n');
   if (value.type === 'hardBreak') return '\n';
+  const blockContainer = new Set(['doc', 'bulletList', 'orderedList', 'taskList', 'listItem', 'blockquote']);
   const content = Array.isArray(value.content)
-    ? value.content.map(adfText).filter(Boolean).join(value.type === 'paragraph' ? ' ' : '\n')
+    ? value.content.map(adfText).filter(Boolean).join(blockContainer.has(value.type) ? '\n' : '')
     : '';
-  return [value.text || '', content].filter(Boolean).join(' ');
+  return `${value.text || ''}${content}`;
 }
 
 function hasOpenTask(value) {

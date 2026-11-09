@@ -225,6 +225,19 @@ test('accepts a specific result on the acceptance line', () => {
   assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, true);
 });
 
+test('keeps styled Jira text together inside an acceptance heading and result', () => {
+  const report = assessIssue({ fields: {
+    description: { type: 'doc', content: [
+      { type: 'paragraph', content: [
+        { type: 'text', text: 'Accept', marks: [{ type: 'strong' }] },
+        { type: 'text', text: 'ance criteria: Buyer can down' },
+        { type: 'text', text: 'load a receipt after checkout.', marks: [{ type: 'em' }] }
+      ] }
+    ] }
+  } });
+  assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, true);
+});
+
 test('accepts a specific result below an acceptance heading', () => {
   const report = assessIssue({ fields: {
     description: { type: 'doc', content: [
