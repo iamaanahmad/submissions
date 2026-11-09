@@ -28,7 +28,7 @@ function openTaskLabels(value) {
 
 function openTextChecklistLabels(value) {
   return adfText(value).split('\n').flatMap((line) => {
-    const match = line.match(/^\s*(?:(?:[-*\u2022]|\d+[.)])\s*)?\[\s\]\s*(.*)$/);
+    const match = line.match(/^\s*(?:(?:[-*\u2022]|\d+[.)])\s*)?(?:\[\s\]|[\u2610\u25a1])\s*(.*)$/);
     return match ? [match[1].trim() || 'an unnamed checklist item'] : [];
   });
 }
@@ -70,7 +70,7 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
     ? descriptionBlocks[acceptanceIndex].text.replace(/^(?:acceptance criteria|definition of done)[ \t]*:?[ \t]*/i, '') : '';
   const isPlaceholder = (text) => /^(?:tbd|todo|none|n\/a|not applicable|to be (?:determined|defined|added)|coming soon|pending|see (?:later|ticket))\.?$/i.test(text.trim());
   const hasUnfinishedMarker = (text) => /\b(?:tbd|todo|to be (?:determined|defined|added)|coming soon)\b|\.{3,}/i.test(text);
-  const isSpecific = (text) => text.length >= 12 && !/^\[\s\]/.test(text) && !isPlaceholder(text) && !hasUnfinishedMarker(text);
+  const isSpecific = (text) => text.length >= 12 && !/^(?:\[\s\]|[\u2610\u25a1])/.test(text) && !isPlaceholder(text) && !hasUnfinishedMarker(text);
   const acceptanceLines = [];
   const acceptanceBlocks = [];
   if (acceptanceIndex >= 0 && !isPlaceholder(inlineAcceptance)) {
@@ -98,8 +98,8 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
   const uncheckedCriteria = acceptanceIndex >= 0
     ? [
       ...[...inlineAcceptance.split('\n'), ...acceptanceBlocks.flatMap((block) => block.text.split('\n'))]
-        .filter((line) => /^\s*(?:(?:[-*\u2022]|\d+[.)])\s*)?\[\s\]/.test(line))
-        .map((line) => line.replace(/^\s*(?:(?:[-*\u2022]|\d+[.)])\s*)?\[\s\]\s*/, '').trim()),
+        .filter((line) => /^\s*(?:(?:[-*\u2022]|\d+[.)])\s*)?(?:\[\s\]|[\u2610\u25a1])/.test(line))
+        .map((line) => line.replace(/^\s*(?:(?:[-*\u2022]|\d+[.)])\s*)?(?:\[\s\]|[\u2610\u25a1])\s*/, '').trim()),
       ...openTaskLabels(acceptanceBlocks.map((block) => block.node))
     ].filter(Boolean)
     : [];

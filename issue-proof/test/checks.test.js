@@ -395,6 +395,19 @@ test('blocks numbered unchecked checklist items in acceptance and handoff notes'
   assert.match(checklist.detail, /1 more checklist item/);
 });
 
+test('blocks pasted empty-square checklist items in Jira descriptions', () => {
+  const report = assessIssue({ fields: {
+    description: 'Acceptance criteria:\n☑ Buyer can review the order.\n☐ Buyer can download a receipt.\nImplementation notes:\n□ Verify the refund path.'
+  } });
+  const acceptance = report.checks.find((check) => check.id === 'acceptance');
+  const checklist = report.checks.find((check) => check.id === 'checklist');
+  assert.equal(acceptance.passed, false);
+  assert.match(acceptance.detail, /Buyer can download a receipt/);
+  assert.match(checklist.detail, /Buyer can download a receipt/);
+  assert.match(checklist.detail, /1 more checklist item/);
+  assert.doesNotMatch(checklist.detail, /Buyer can review the order/);
+});
+
 test('does not demand child subtasks from a Jira subtask', () => {
   const report = assessIssue({ key: 'DEMO-10', fields: {
     issuetype: { name: 'Sub-task', subtask: true },
