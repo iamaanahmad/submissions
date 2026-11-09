@@ -129,6 +129,34 @@ test('does not pass an unchecked plain-text acceptance item', () => {
   assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false);
 });
 
+test('does not hide an unchecked Jira line break inside a checked result', () => {
+  const report = assessIssue({ fields: { description: { type: 'doc', content: [
+    { type: 'paragraph', content: [
+      { type: 'text', text: 'Acceptance criteria: Buyer receives a receipt after checkout.' },
+      { type: 'hardBreak' },
+      { type: 'text', text: '- [ ] Buyer can download the receipt from order history.' }
+    ] }
+  ] } } });
+  const acceptance = report.checks.find((check) => check.id === 'acceptance');
+  assert.equal(acceptance.passed, false);
+  assert.match(acceptance.detail, /Finish Buyer can download the receipt/);
+});
+
+test('counts two complete Jira results separated by a line break', () => {
+  const report = assessIssue({ fields: { description: { type: 'doc', content: [
+    { type: 'paragraph', content: [
+      { type: 'text', text: 'Acceptance criteria:' },
+      { type: 'hardBreak' },
+      { type: 'text', text: 'Buyer receives a receipt after checkout.' },
+      { type: 'hardBreak' },
+      { type: 'text', text: 'Buyer can download it from order history.' }
+    ] }
+  ] } } });
+  const acceptance = report.checks.find((check) => check.id === 'acceptance');
+  assert.equal(acceptance.passed, true);
+  assert.match(acceptance.detail, /2 written results/);
+});
+
 test('does not pass an unfinished Jira task item under acceptance criteria', () => {
   const report = assessIssue({ fields: { description: { type: 'doc', content: [
     { type: 'heading', content: [{ type: 'text', text: 'Acceptance criteria' }] },

@@ -2,6 +2,7 @@ function adfText(value) {
   if (!value) return '';
   if (typeof value === 'string') return value;
   if (Array.isArray(value)) return value.map(adfText).filter(Boolean).join('\n');
+  if (value.type === 'hardBreak') return '\n';
   const content = Array.isArray(value.content)
     ? value.content.map(adfText).filter(Boolean).join(value.type === 'paragraph' ? ' ' : '\n')
     : '';
@@ -60,7 +61,8 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
   const acceptanceLines = [];
   const acceptanceBlocks = [];
   if (acceptanceIndex >= 0 && !isPlaceholder(inlineAcceptance)) {
-    if (inlineAcceptance) acceptanceLines.push(inlineAcceptance);
+    if (inlineAcceptance) acceptanceLines.push(...inlineAcceptance.split('\n').map((line) =>
+      line.trim().replace(/^[-*\u2022]\s*/, '').trim()));
     for (const block of descriptionBlocks.slice(acceptanceIndex + 1)) {
       const nextSection = /^(?:implementation notes?|technical notes?|background|context|risks?|dependencies|test plan|design|out of scope|non-goals?|release notes?|deployment notes?)\s*(?::\s*.*)?$/i.test(block.text)
         || /^[a-z][^:]{2,40}:\s*$/i.test(block.text);
@@ -82,7 +84,7 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
   const listedCriteria = acceptanceLines.filter(Boolean);
   const uncheckedCriteria = acceptanceIndex >= 0
     ? [
-      ...[inlineAcceptance, ...acceptanceBlocks.flatMap((block) => block.text.split('\n'))]
+      ...[...inlineAcceptance.split('\n'), ...acceptanceBlocks.flatMap((block) => block.text.split('\n'))]
         .filter((line) => /^\s*[-*\u2022]?\s*\[\s\]/.test(line))
         .map((line) => line.replace(/^\s*[-*\u2022]?\s*\[\s\]\s*/, '').trim()),
       ...openTaskLabels(acceptanceBlocks.map((block) => block.node))
