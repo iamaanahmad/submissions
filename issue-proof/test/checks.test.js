@@ -62,7 +62,7 @@ test('blocks an unchecked pasted checklist outside acceptance criteria', () => {
   assert.doesNotMatch(checklist.detail, /Review the copy/);
 });
 
-test('does not accept an inactive Jira assignee as the handoff owner', () => {
+test('accepts an inactive Jira assignee as the recorded owner', () => {
   const report = assessIssue({ key: 'DEMO-14', fields: {
     assignee: { accountId: 'former-user', displayName: 'Former owner', active: false },
     duedate: '2026-12-01',
@@ -70,8 +70,17 @@ test('does not accept an inactive Jira assignee as the handoff owner', () => {
     status: { name: 'Done', statusCategory: { key: 'done' } },
     subtasks: [{ fields: { status: { statusCategory: { key: 'done' } } } }]
   } }, '2026-11-08');
-  assert.equal(report.passed, 4);
-  assert.match(report.nextAction, /Assign an active owner/);
+  assert.equal(report.passed, 5);
+  assert.match(report.nextAction, /Review the actual work/);
+  assert.match(report.checks.find((check) => check.id === 'owner').detail, /inactive account/);
+});
+
+test('an inactive account without an assignee ID does not count as an owner', () => {
+  const report = assessIssue({ fields: {
+    assignee: { displayName: 'Former owner', active: false }
+  } });
+  assert.equal(report.checks.find((check) => check.id === 'owner').passed, false);
+  assert.match(report.nextAction, /Assign someone/);
 });
 
 test('rejects an overdue target date without requiring optional subtasks', () => {

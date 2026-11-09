@@ -115,10 +115,12 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
     {
       id: 'owner',
       label: 'An owner is assigned',
-      passed: Boolean(fields.assignee?.accountId && fields.assignee.active !== false),
-      detail: fields.assignee?.active === false
-        ? `${fields.assignee.displayName || 'The assigned user'} is inactive. Assign an active owner.`
-        : fields.assignee?.displayName || 'Assign someone who owns the next step.'
+      passed: Boolean(fields.assignee?.accountId),
+      detail: fields.assignee?.active === false && fields.assignee?.accountId
+        ? `${fields.assignee.displayName || 'The assigned user'} owns this issue in Jira (inactive account).`
+        : fields.assignee?.accountId
+          ? fields.assignee.displayName || 'An owner is assigned in Jira.'
+          : 'Assign someone who owns the next step.'
     },
     {
       id: 'deadline',
