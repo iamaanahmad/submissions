@@ -62,7 +62,9 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
   if (acceptanceIndex >= 0 && !isPlaceholder(inlineAcceptance)) {
     if (inlineAcceptance) acceptanceLines.push(inlineAcceptance);
     for (const block of descriptionBlocks.slice(acceptanceIndex + 1)) {
-      if (block.heading || /^[a-z][^:]{2,40}:/i.test(block.text)) break;
+      const nextSection = /^(?:implementation notes?|technical notes?|background|context|risks?|dependencies|test plan|design|out of scope|non-goals?)\s*:/i.test(block.text)
+        || /^[a-z][^:]{2,40}:\s*$/i.test(block.text);
+      if (block.heading || nextSection) break;
       acceptanceBlocks.push(block);
       acceptanceLines.push(...block.text.split('\n').map((line) =>
         line.replace(/^[-*\u2022]\s*/, '').trim()));

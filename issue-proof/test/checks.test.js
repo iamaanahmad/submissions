@@ -207,6 +207,23 @@ test('accepts a specific result below an acceptance heading', () => {
   assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, true);
 });
 
+test('keeps a labeled result inside acceptance criteria', () => {
+  const report = assessIssue({ fields: {
+    description: { type: 'doc', content: [
+      { type: 'heading', content: [{ type: 'text', text: 'Acceptance criteria' }] },
+      { type: 'paragraph', content: [{ type: 'text', text: 'API response: buyer can download a receipt after checkout.' }] }
+    ] }
+  } });
+  assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, true);
+});
+
+test('stops acceptance results at a later notes section', () => {
+  const report = assessIssue({ fields: {
+    description: 'Acceptance criteria:\nImplementation notes: buyer can download a receipt after checkout.'
+  } });
+  assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false);
+});
+
 test('accepts a Jira heading followed by a bullet result', () => {
   const report = assessIssue({ fields: {
     description: { type: 'doc', content: [
