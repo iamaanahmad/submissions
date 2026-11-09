@@ -224,6 +224,13 @@ test('stops acceptance results at a later notes section', () => {
   assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false);
 });
 
+test('does not use an unpunctuated notes heading as acceptance evidence', () => {
+  const report = assessIssue({ fields: {
+    description: 'Acceptance criteria:\nRelease notes\nBuyer can download a receipt after checkout.'
+  } });
+  assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false);
+});
+
 test('accepts a Jira heading followed by a bullet result', () => {
   const report = assessIssue({ fields: {
     description: { type: 'doc', content: [
