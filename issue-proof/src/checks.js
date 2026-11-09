@@ -41,8 +41,9 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
   const unfinished = subtasks.filter((item) => item.fields?.status?.statusCategory?.key !== 'done');
   const unfinishedNames = unfinished.map((item) => item.key || item.fields?.summary || 'Unnamed subtask');
   const blockingIssues = (fields.issuelinks || []).flatMap((link) => {
-    const isInwardBlocker = link.type?.inward?.toLowerCase() === 'is blocked by';
-    const isOutwardBlocker = link.type?.outward?.toLowerCase() === 'is blocked by';
+    const isBlockingLabel = (label) => /^(?:is blocked by|depends on)$/i.test(label?.trim() || '');
+    const isInwardBlocker = isBlockingLabel(link.type?.inward);
+    const isOutwardBlocker = isBlockingLabel(link.type?.outward);
     const linkedIssue = isInwardBlocker ? link.inwardIssue
       : isOutwardBlocker ? link.outwardIssue : null;
     return linkedIssue ? [linkedIssue] : [];

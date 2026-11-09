@@ -392,3 +392,20 @@ test('keeps resolved blocking issues visible as checked evidence', () => {
   assert.equal(report.passed, 5);
   assert.match(report.checks.find((check) => check.id === 'blockers').detail, /1 blocking issue checked/);
 });
+
+test('treats an unresolved depends-on link as a handoff blocker', () => {
+  const report = assessIssue({ key: 'DEMO-20', fields: {
+    issuelinks: [
+      { type: { inward: 'is depended on by', outward: 'depends on' }, outwardIssue: {
+        key: 'DEMO-21', fields: { status: { statusCategory: { key: 'indeterminate' } } }
+      } },
+      { type: { inward: 'is depended on by', outward: 'depends on' }, inwardIssue: {
+        key: 'DEMO-22', fields: { status: { statusCategory: { key: 'indeterminate' } } }
+      } }
+    ]
+  } });
+  const blocker = report.checks.find((check) => check.id === 'blockers');
+  assert.equal(blocker.passed, false);
+  assert.match(blocker.detail, /DEMO-21/);
+  assert.doesNotMatch(blocker.detail, /DEMO-22/);
+});
