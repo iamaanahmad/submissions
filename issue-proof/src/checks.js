@@ -26,6 +26,13 @@ function openTaskLabels(value) {
   return openTaskLabels(value.content);
 }
 
+function openTextChecklistLabels(value) {
+  return adfText(value).split('\n').flatMap((line) => {
+    const match = line.match(/^\s*(?:[-*\u2022]\s*)?\[\s\]\s*(.*)$/);
+    return match ? [match[1].trim() || 'an unnamed checklist item'] : [];
+  });
+}
+
 export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)) {
   const fields = issue?.fields || {};
   const description = adfText(fields.description);
@@ -40,7 +47,10 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
   const subtasks = fields.subtasks || [];
   const unfinished = subtasks.filter((item) => item.fields?.status?.statusCategory?.key !== 'done');
   const unfinishedNames = unfinished.map((item) => item.key || item.fields?.summary || 'Unnamed subtask');
-  const openChecklistItems = openTaskLabels(fields.description);
+  const openChecklistItems = [
+    ...openTaskLabels(fields.description),
+    ...openTextChecklistLabels(fields.description)
+  ];
   const blockingIssues = (fields.issuelinks || []).flatMap((link) => {
     const isBlockingLabel = (label) => /^(?:is blocked by|depends on)$/i.test(label?.trim() || '');
     const isInwardBlocker = isBlockingLabel(link.type?.inward);

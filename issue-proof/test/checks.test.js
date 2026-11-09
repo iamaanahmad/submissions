@@ -45,6 +45,23 @@ test('blocks handoff for open Jira checklist items outside acceptance criteria',
   assert.equal(report.total, 5);
 });
 
+test('blocks an unchecked pasted checklist outside acceptance criteria', () => {
+  const report = assessIssue({ key: 'DEMO-31', fields: {
+    assignee: { accountId: 'abc' }, duedate: '2026-12-01',
+    status: { name: 'Done', statusCategory: { key: 'done' } },
+    description: { type: 'doc', content: [
+      { type: 'paragraph', content: [{ type: 'text', text: 'Acceptance criteria: Buyer sees the receipt after checkout.' }] },
+      { type: 'heading', content: [{ type: 'text', text: 'Handoff checklist' }] },
+      { type: 'paragraph', content: [{ type: 'text', text: '- [x] Review the copy' }] },
+      { type: 'paragraph', content: [{ type: 'text', text: '- [ ] Verify the refund path' }] }
+    ] }
+  } }, '2026-11-09');
+  const checklist = report.checks.find((check) => check.id === 'checklist');
+  assert.equal(checklist.passed, false);
+  assert.match(checklist.detail, /Verify the refund path/);
+  assert.doesNotMatch(checklist.detail, /Review the copy/);
+});
+
 test('does not accept an inactive Jira assignee as the handoff owner', () => {
   const report = assessIssue({ key: 'DEMO-14', fields: {
     assignee: { accountId: 'former-user', displayName: 'Former owner', active: false },
