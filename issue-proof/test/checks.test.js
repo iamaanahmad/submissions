@@ -547,3 +547,14 @@ test('treats an unresolved depends-on link as a handoff blocker', () => {
   assert.match(blocker.detail, /DEMO-21/);
   assert.doesNotMatch(blocker.detail, /DEMO-22/);
 });
+
+test('reads acceptance results after a dash separator', () => {
+  const report = assessIssue({ key: 'DEMO-23', fields: {
+    assignee: { accountId: 'abc' },
+    duedate: '2026-12-01',
+    description: 'Acceptance criteria - Buyer can download a receipt after checkout.',
+    status: { name: 'Done', statusCategory: { key: 'done' } }
+  } }, '2026-11-09');
+  assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, true);
+  assert.equal(report.passed, report.total);
+});
