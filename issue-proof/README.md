@@ -2,6 +2,8 @@
 
 Issue Proof is a Forge Jira issue panel for software teams. It reads the current issue and shows evidence checks for owner, target date, written acceptance criteria, and done status. Parent issues check their subtasks when they have any. Jira subtasks skip that child-work check. Open Jira checklist items and pasted unchecked boxes in the description block handoff, even outside acceptance criteria. When a linked issue blocks the current issue, the panel names it until its status is done. The panel highlights the first missing item as the next action. It does not change Jira data or claim release approval.
 
+For written results, the panel accepts Acceptance criteria, Definition of done, Success criteria, and Done when headings. An empty heading does not count as evidence.
+
 ## Run locally
 
 Open issues with past target dates need a new date. Completed issues keep their original target date as evidence.

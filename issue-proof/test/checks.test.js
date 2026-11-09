@@ -117,6 +117,20 @@ test('reads acceptance criteria under a pasted Markdown heading', () => {
   assert.match(acceptance.detail, /2 written results/);
 });
 
+test('reads concrete results under success criteria and done when headings', () => {
+  for (const heading of ['Success criteria', 'Done when']) {
+    const report = assessIssue({ fields: {
+      description: `## ${heading}\n- Buyer receives a receipt after checkout.`
+    } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, true, heading);
+  }
+});
+
+test('does not accept an empty done when heading', () => {
+  const report = assessIssue({ fields: { description: 'Done when:\nImplementation notes: add a receipt.' } });
+  assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false);
+});
+
 test('stops pasted Markdown criteria at the next heading', () => {
   const report = assessIssue({ fields: {
     description: '## Acceptance criteria\n- Buyer receives a receipt after checkout.\n## Implementation\n- TODO: add receipt storage.'

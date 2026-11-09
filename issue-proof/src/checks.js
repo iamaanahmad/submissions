@@ -67,9 +67,10 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
   const overdue = Boolean(dueDate && dueDate < today);
   const done = fields.status?.statusCategory?.key === 'done';
   const withoutMarkdownHeading = (text) => text.replace(/^#{1,6}[ \t]+/, '').trim();
-  const acceptanceIndex = descriptionBlocks.findIndex((block) => /^(?:acceptance criteria|definition of done)[ \t]*(?::|$)/i.test(withoutMarkdownHeading(block.text)));
+  const criteriaHeading = /^(?:acceptance criteria|definition of done|success criteria|done when)[ \t]*(?::|$)/i;
+  const acceptanceIndex = descriptionBlocks.findIndex((block) => criteriaHeading.test(withoutMarkdownHeading(block.text)));
   const inlineAcceptance = acceptanceIndex >= 0
-    ? withoutMarkdownHeading(descriptionBlocks[acceptanceIndex].text).replace(/^(?:acceptance criteria|definition of done)[ \t]*:?[ \t]*/i, '') : '';
+    ? withoutMarkdownHeading(descriptionBlocks[acceptanceIndex].text).replace(/^(?:acceptance criteria|definition of done|success criteria|done when)[ \t]*:?[ \t]*/i, '') : '';
   const isPlaceholder = (text) => /^(?:tbd|todo|none|n\/a|not applicable|to be (?:determined|defined|added)|coming soon|pending|see (?:later|ticket))\.?$/i.test(text.trim());
   const hasUnfinishedMarker = (text) => /\b(?:tbd|todo|to be (?:determined|defined|added)|coming soon)\b|\.{3,}/i.test(text);
   const isSpecific = (text) => text.length >= 12 && !/^(?:\[\s\]|[\u2610\u25a1])/.test(text) && !isPlaceholder(text) && !hasUnfinishedMarker(text);
