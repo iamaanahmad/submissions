@@ -65,6 +65,7 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
   const dueDate = parsedDate && !Number.isNaN(parsedDate.valueOf())
     && parsedDate.toISOString().slice(0, 10) === fields.duedate ? fields.duedate : '';
   const overdue = Boolean(dueDate && dueDate < today);
+  const done = fields.status?.statusCategory?.key === 'done';
   const withoutMarkdownHeading = (text) => text.replace(/^#{1,6}[ \t]+/, '').trim();
   const acceptanceIndex = descriptionBlocks.findIndex((block) => /^(?:acceptance criteria|definition of done)[ \t]*(?::|$)/i.test(withoutMarkdownHeading(block.text)));
   const inlineAcceptance = acceptanceIndex >= 0
@@ -121,8 +122,9 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
     {
       id: 'deadline',
       label: 'A current target date is set',
-      passed: Boolean(dueDate && !overdue),
-      detail: overdue ? `The ${dueDate} due date has passed. Set a current target date.`
+      passed: Boolean(dueDate && (!overdue || done)),
+      detail: overdue && done ? `${dueDate} was the target date for this completed issue.`
+        : overdue ? `The ${dueDate} due date has passed. Set a current target date.`
         : dueDate || 'Set a due date so the work can be planned.'
     },
     {

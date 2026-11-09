@@ -4,6 +4,8 @@ Issue Proof is a Forge Jira issue panel for software teams. It reads the current
 
 ## Run locally
 
+Open issues with past target dates need a new date. Completed issues keep their original target date as evidence.
+
 ```sh
 npm install
 npm test

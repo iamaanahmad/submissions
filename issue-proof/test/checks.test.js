@@ -451,6 +451,21 @@ test('does not show full handoff evidence for an open issue', () => {
   assert.match(report.nextAction, /Move the issue to a done status/);
 });
 
+test('keeps a completed issue’s original target date as evidence', () => {
+  const issue = { fields: {
+    duedate: '2026-11-01',
+    status: { name: 'Done', statusCategory: { key: 'done' } }
+  } };
+  const completed = assessIssue(issue, '2026-11-09');
+  assert.equal(completed.checks.find((check) => check.id === 'deadline').passed, true);
+  assert.match(completed.checks.find((check) => check.id === 'deadline').detail, /2026-11-01 was the target date/);
+
+  issue.fields.status = { name: 'In Progress', statusCategory: { key: 'indeterminate' } };
+  const open = assessIssue(issue, '2026-11-09');
+  assert.equal(open.checks.find((check) => check.id === 'deadline').passed, false);
+  assert.match(open.checks.find((check) => check.id === 'deadline').detail, /due date has passed/);
+});
+
 test('flags only unresolved issues that block this issue', () => {
   const report = assessIssue({ key: 'DEMO-11', fields: {
     issuelinks: [
