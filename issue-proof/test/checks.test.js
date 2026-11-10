@@ -549,6 +549,27 @@ test('treats an unresolved depends-on link as a handoff blocker', () => {
   assert.doesNotMatch(blocker.detail, /DEMO-22/);
 });
 
+test('recognizes custom Jira blocked-by and depends-upon labels without reversing links', () => {
+  const report = assessIssue({ key: 'DEMO-25', fields: {
+    issuelinks: [
+      { type: { inward: 'blocked by', outward: 'blocks' }, inwardIssue: {
+        key: 'DEMO-26', fields: { status: { statusCategory: { key: 'indeterminate' } } }
+      } },
+      { type: { inward: 'is depended upon by', outward: 'depends upon' }, outwardIssue: {
+        key: 'DEMO-27', fields: { status: { statusCategory: { key: 'indeterminate' } } }
+      } },
+      { type: { inward: 'blocked by', outward: 'blocks' }, outwardIssue: {
+        key: 'DEMO-28', fields: { status: { statusCategory: { key: 'indeterminate' } } }
+      } }
+    ]
+  } });
+  const blocker = report.checks.find((check) => check.id === 'blockers');
+  assert.equal(blocker.passed, false);
+  assert.match(blocker.detail, /DEMO-26/);
+  assert.match(blocker.detail, /DEMO-27/);
+  assert.doesNotMatch(blocker.detail, /DEMO-28/);
+});
+
 test('reads acceptance results after a dash separator', () => {
   const report = assessIssue({ key: 'DEMO-23', fields: {
     assignee: { accountId: 'abc' },
