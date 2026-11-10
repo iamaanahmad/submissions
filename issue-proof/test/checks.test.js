@@ -23,6 +23,23 @@ test('names missing evidence and unfinished subtasks', () => {
   assert.match(report.checks.find((check) => check.id === 'subtasks').detail, /Finish DEMO-8A before handoff/);
 });
 
+test('recognizes custom Jira dependency links in the correct direction', () => {
+  const report = assessIssue({ key: 'DEMO-50', fields: {
+    issuelinks: [
+      { type: { outward: 'requires', inward: 'is required by' }, outwardIssue: {
+        key: 'DEMO-51', fields: { status: { statusCategory: { key: 'indeterminate' } } }
+      } },
+      { type: { outward: 'requires', inward: 'is required by' }, inwardIssue: {
+        key: 'DEMO-52', fields: { status: { statusCategory: { key: 'indeterminate' } } }
+      } }
+    ]
+  } });
+  const blockers = report.checks.find((check) => check.id === 'blockers');
+  assert.equal(blockers.passed, false);
+  assert.match(blockers.detail, /DEMO-51/);
+  assert.doesNotMatch(blockers.detail, /DEMO-52/);
+});
+
 test('blocks handoff for open Jira checklist items outside acceptance criteria', () => {
   const report = assessIssue({ key: 'DEMO-30', fields: {
     assignee: { accountId: 'abc', active: true },

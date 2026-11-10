@@ -52,7 +52,7 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
     ...openTextChecklistLabels(fields.description)
   ];
   const blockingIssues = (fields.issuelinks || []).flatMap((link) => {
-    const isBlockingLabel = (label) => /^(?:(?:is )?blocked by|depends (?:on|upon))$/i.test(label?.trim() || '');
+    const isBlockingLabel = (label) => /^(?:(?:is )?blocked by|(?:is )?depend(?:s|ent) (?:on|upon)|requires?)$/i.test(label?.trim() || '');
     const isInwardBlocker = isBlockingLabel(link.type?.inward);
     const isOutwardBlocker = isBlockingLabel(link.type?.outward);
     const linkedIssue = isInwardBlocker ? link.inwardIssue
