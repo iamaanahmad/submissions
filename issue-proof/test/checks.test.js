@@ -154,6 +154,20 @@ test('does not count an empty acceptance heading as evidence', () => {
   assert.match(report.checks.find((check) => check.id === 'acceptance').detail, /specific result/);
 });
 
+test('does not count a Jira code example as acceptance evidence', () => {
+  const codeBlock = { type: 'codeBlock', content: [{ type: 'text', text: 'Given a buyer has paid when they open history then a receipt appears.' }] };
+  const underHeading = assessIssue({ fields: { description: { type: 'doc', content: [
+    { type: 'heading', content: [{ type: 'text', text: 'Acceptance criteria' }] }, codeBlock
+  ] } } });
+  const standalone = assessIssue({ fields: { description: { type: 'doc', content: [codeBlock] } } });
+  const headingInCode = assessIssue({ fields: { description: { type: 'doc', content: [
+    { type: 'codeBlock', content: [{ type: 'text', text: 'Acceptance criteria: Buyer receives a receipt after checkout.' }] }
+  ] } } });
+  assert.equal(underHeading.checks.find((check) => check.id === 'acceptance').passed, false);
+  assert.equal(standalone.checks.find((check) => check.id === 'acceptance').passed, false);
+  assert.equal(headingInCode.checks.find((check) => check.id === 'acceptance').passed, false);
+});
+
 test('reads acceptance criteria under a pasted Markdown heading', () => {
   const report = assessIssue({ fields: {
     description: '## Acceptance criteria\n- Buyer receives a receipt after checkout.\n- Buyer can download it from order history.'

@@ -68,7 +68,8 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
   const done = fields.status?.statusCategory?.key === 'done';
   const withoutMarkdownHeading = (text) => text.replace(/^#{1,6}[ \t]+/, '').trim();
   const criteriaHeading = /^(?:acceptance criteria|definition of done|success criteria|done when)[ \t]*(?::|[\u2013\u2014-]|$)/i;
-  const acceptanceIndex = descriptionBlocks.findIndex((block) => criteriaHeading.test(withoutMarkdownHeading(block.text)));
+  const acceptanceIndex = descriptionBlocks.findIndex((block) =>
+    block.node?.type !== 'codeBlock' && criteriaHeading.test(withoutMarkdownHeading(block.text)));
   const inlineAcceptance = acceptanceIndex >= 0
     ? withoutMarkdownHeading(descriptionBlocks[acceptanceIndex].text).replace(/^(?:acceptance criteria|definition of done|success criteria|done when)[ \t]*(?::|[\u2013\u2014-])?[ \t]*/i, '') : '';
   const isPlaceholder = (text) => /^(?:tbd|tbc|todo|wip|none|n\/a|not applicable|to be (?:determined|defined|added|confirmed)|coming soon|pending|see (?:later|ticket))\.?$/i.test(text.trim());
@@ -82,6 +83,7 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
     if (inlineAcceptance) acceptanceLines.push(...inlineAcceptance.split('\n').map((line) =>
       line.trim().replace(/^(?:[-*\u2022]|\d+[.)])\s*/, '').trim()));
     for (const block of descriptionBlocks.slice(acceptanceIndex + 1)) {
+      if (block.node?.type === 'codeBlock') continue;
       const nextSection = /^#{1,6}[ \t]+\S/.test(block.text)
         || /^(?:implementation(?: notes?)?|technical notes?|background|context|risks?|dependencies|test plan|design|out of scope|non-goals?|release notes?|deployment notes?)\s*(?::\s*.*)?$/i.test(block.text)
         || /^[a-z][^:]{2,40}:\s*$/i.test(block.text);
@@ -93,6 +95,7 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
   }
   let inImplementationSection = false;
   const standaloneScenario = acceptanceIndex < 0 && descriptionBlocks.some((block, index) => {
+    if (block.node?.type === 'codeBlock') return false;
     const technicalHeading = /^(?:implementation(?: notes?)?|technical notes?|deployment notes?|test plan)\s*(?::\s*.*)?$/i.test(withoutMarkdownHeading(block.text));
     if (technicalHeading) inImplementationSection = true;
     else if (block.heading || /^#{1,6}[ \t]+\S/.test(block.text)) inImplementationSection = false;
@@ -100,7 +103,8 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
     const singleLine = /\bgiven\b.{1,100}\bwhen\b.{1,100}\bthen\b.{1,100}\S/i.test(block.text);
     const lines = descriptionBlocks.slice(index, index + 3);
     const separateLines = lines.length === 3 && lines.every((line, offset) =>
-      !line.heading && !/^(?:implementation(?: notes?)?|technical notes?|deployment notes?|test plan)\s*:/i.test(line.text)
+      !line.heading && line.node?.type !== 'codeBlock'
+        && !/^(?:implementation(?: notes?)?|technical notes?|deployment notes?|test plan)\s*:/i.test(line.text)
         && new RegExp(`^${['given', 'when', 'then'][offset]}\\s+\\S`, 'i').test(line.text)
         && line.text.length >= 12 && !hasUnfinishedMarker(line.text)
     );
