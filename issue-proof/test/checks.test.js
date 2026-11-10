@@ -93,6 +93,16 @@ test('names the first vague result when every acceptance item is vague', () => {
   assert.match(acceptance.detail, /Start with: TBD/);
 });
 
+test('does not accept a generic completion claim as a testable result', () => {
+  const report = assessIssue({ fields: {
+    description: 'Acceptance criteria:\n- Buyer receives a receipt after checkout.\n- Works as expected',
+    status: { name: 'Done', statusCategory: { key: 'done' } }
+  } });
+  const acceptance = report.checks.find((check) => check.id === 'acceptance');
+  assert.equal(acceptance.passed, false);
+  assert.match(acceptance.detail, /Start with: Works as expected/);
+});
+
 test('rejects an overdue target date without requiring optional subtasks', () => {
   const report = assessIssue({ key: 'DEMO-9', fields: {
     assignee: { accountId: 'abc' },

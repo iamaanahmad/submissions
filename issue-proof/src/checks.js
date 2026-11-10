@@ -73,7 +73,9 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
     ? withoutMarkdownHeading(descriptionBlocks[acceptanceIndex].text).replace(/^(?:acceptance criteria|definition of done|success criteria|done when)[ \t]*(?::|[\u2013\u2014-])?[ \t]*/i, '') : '';
   const isPlaceholder = (text) => /^(?:tbd|tbc|todo|wip|none|n\/a|not applicable|to be (?:determined|defined|added|confirmed)|coming soon|pending|see (?:later|ticket))\.?$/i.test(text.trim());
   const hasUnfinishedMarker = (text) => /\b(?:tbd|tbc|todo|wip|to be (?:determined|defined|added|confirmed)|coming soon|pending (?:review|decision|confirmation))\b|\.{3,}|\?{3,}/i.test(text);
-  const isSpecific = (text) => text.length >= 12 && !/^(?:\[\s\]|[\u2610\u25a1])/.test(text) && !isPlaceholder(text) && !hasUnfinishedMarker(text);
+  const vagueResult = /^(?:(?:it|this|the (?:feature|app|issue))\s+)?(?:works? (?:as expected|correctly|properly|well)|looks? good|is (?:done|ready|complete)|has no bugs)(?:\.|!)?$/i;
+  const isSpecific = (text) => text.length >= 12 && !/^(?:\[\s\]|[\u2610\u25a1])/.test(text)
+    && !isPlaceholder(text) && !hasUnfinishedMarker(text) && !vagueResult.test(text.trim());
   const acceptanceLines = [];
   const acceptanceBlocks = [];
   if (acceptanceIndex >= 0 && !isPlaceholder(inlineAcceptance)) {
