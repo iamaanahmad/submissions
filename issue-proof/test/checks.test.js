@@ -384,6 +384,7 @@ test('does not pass a list with one specific result and one placeholder', () => 
   const acceptance = report.checks.find((check) => check.id === 'acceptance');
   assert.equal(acceptance.passed, false);
   assert.match(acceptance.detail, /Replace every placeholder/);
+  assert.match(acceptance.detail, /Start with: TBD/);
 });
 
 test('does not borrow a result from a later heading', () => {

@@ -99,6 +99,7 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
     return (singleLine && !hasUnfinishedMarker(block.text)) || separateLines;
   });
   const listedCriteria = acceptanceLines.filter(Boolean);
+  const firstUnclearCriterion = listedCriteria.find((line) => !isSpecific(line));
   const uncheckedCriteria = acceptanceIndex >= 0
     ? [
       ...[...inlineAcceptance.split('\n'), ...acceptanceBlocks.flatMap((block) => block.text.split('\n'))]
@@ -137,8 +138,8 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
       detail: hasAcceptance ? `${listedCriteria.length || 1} written result${listedCriteria.length === 1 ? '' : 's'} to check.`
         : uncheckedCriteria.length
           ? `Finish ${uncheckedCriteria[0]}${uncheckedCriteria.length > 1 ? ` and ${uncheckedCriteria.length - 1} more checklist item${uncheckedCriteria.length === 2 ? '' : 's'}` : ''}.`
-        : listedCriteria.length && listedCriteria.some(isSpecific)
-          ? 'Replace every placeholder or vague acceptance item with a specific result.'
+        : firstUnclearCriterion && listedCriteria.some(isSpecific)
+          ? `Replace every placeholder or vague acceptance item with a specific result. Start with: ${firstUnclearCriterion}.`
           : 'Write a specific result under Acceptance criteria or Given / When / Then.'
     }
   ];
