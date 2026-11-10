@@ -81,7 +81,7 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
       line.trim().replace(/^(?:[-*\u2022]|\d+[.)])\s*/, '').trim()));
     for (const block of descriptionBlocks.slice(acceptanceIndex + 1)) {
       const nextSection = /^#{1,6}[ \t]+\S/.test(block.text)
-        || /^(?:implementation notes?|technical notes?|background|context|risks?|dependencies|test plan|design|out of scope|non-goals?|release notes?|deployment notes?)\s*(?::\s*.*)?$/i.test(block.text)
+        || /^(?:implementation(?: notes?)?|technical notes?|background|context|risks?|dependencies|test plan|design|out of scope|non-goals?|release notes?|deployment notes?)\s*(?::\s*.*)?$/i.test(block.text)
         || /^[a-z][^:]{2,40}:\s*$/i.test(block.text);
       if (block.heading || nextSection) break;
       acceptanceBlocks.push(block);

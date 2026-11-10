@@ -7,6 +7,7 @@ An assigned Jira account remains the recorded owner after deactivation. Issue Pr
 For written results, the panel accepts Acceptance criteria, Definition of done, Success criteria, and Done when headings. An empty heading does not count as evidence.
 It accepts a colon or dash before a result on the same line.
 Unfinished results such as TBC, WIP, pending review, and to be confirmed do not count as evidence.
+Implementation steps below an empty acceptance heading do not count as acceptance results.
 
 ## Run locally
 

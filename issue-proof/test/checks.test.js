@@ -292,6 +292,13 @@ test('does not treat a later section as acceptance evidence', () => {
   assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false);
 });
 
+test('does not borrow implementation steps as acceptance evidence', () => {
+  const report = assessIssue({ fields: {
+    description: 'Acceptance criteria:\nImplementation: Add a download button to the order page.'
+  } });
+  assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false);
+});
+
 test('does not count a later Jira heading as acceptance evidence', () => {
   const report = assessIssue({ fields: {
     description: { type: 'doc', content: [
