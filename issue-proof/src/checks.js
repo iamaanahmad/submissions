@@ -89,11 +89,17 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
         line.replace(/^(?:[-*\u2022]|\d+[.)])\s*/, '').trim()));
     }
   }
+  let inImplementationSection = false;
   const standaloneScenario = acceptanceIndex < 0 && descriptionBlocks.some((block, index) => {
+    const technicalHeading = /^(?:implementation(?: notes?)?|technical notes?|deployment notes?|test plan)\s*(?::\s*.*)?$/i.test(withoutMarkdownHeading(block.text));
+    if (technicalHeading) inImplementationSection = true;
+    else if (block.heading || /^#{1,6}[ \t]+\S/.test(block.text)) inImplementationSection = false;
+    if (inImplementationSection) return false;
     const singleLine = /\bgiven\b.{1,100}\bwhen\b.{1,100}\bthen\b.{1,100}\S/i.test(block.text);
     const lines = descriptionBlocks.slice(index, index + 3);
     const separateLines = lines.length === 3 && lines.every((line, offset) =>
-      !line.heading && new RegExp(`^${['given', 'when', 'then'][offset]}\\s+\\S`, 'i').test(line.text)
+      !line.heading && !/^(?:implementation(?: notes?)?|technical notes?|deployment notes?|test plan)\s*:/i.test(line.text)
+        && new RegExp(`^${['given', 'when', 'then'][offset]}\\s+\\S`, 'i').test(line.text)
         && line.text.length >= 12 && !hasUnfinishedMarker(line.text)
     );
     return (singleLine && !hasUnfinishedMarker(block.text)) || separateLines;

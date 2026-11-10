@@ -8,6 +8,7 @@ For written results, the panel accepts Acceptance criteria, Definition of done, 
 It accepts a colon or dash before a result on the same line.
 Unfinished results such as TBC, WIP, pending review, and to be confirmed do not count as evidence.
 Implementation steps below an empty acceptance heading do not count as acceptance results.
+Given / When / Then examples inside implementation notes do not count as acceptance results either.
 
 ## Run locally
 

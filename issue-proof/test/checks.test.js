@@ -282,6 +282,16 @@ test('accepts a standalone specific Given When Then scenario', () => {
   assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, true);
 });
 
+test('does not count an implementation example as acceptance evidence', () => {
+  for (const description of [
+    'Implementation notes: Given a mock buyer when a stub runs then a fake receipt appears.',
+    '## Implementation notes\nGiven a mock buyer when a stub runs then a fake receipt appears.'
+  ]) {
+    const report = assessIssue({ fields: { description } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false);
+  }
+});
+
 test('does not treat a later section as acceptance evidence', () => {
   const report = assessIssue({ fields: {
     description: { type: 'doc', content: [
