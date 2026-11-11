@@ -6,6 +6,7 @@ An assigned Jira account remains the recorded owner after deactivation. Issue Pr
 
 Unchecked examples inside Jira code blocks are ignored. Actual open Jira tasks and pasted checklists still block handoff.
 Pasted Markdown code fences are also ignored, so examples cannot create false missing-work results.
+Inline Markdown code examples are ignored for the same reason. Real unchecked checklist items still block handoff.
 
 For written results, the panel accepts Acceptance criteria, Definition of done, Success criteria, and Done when headings. An empty heading does not count as evidence.
 It accepts a colon or dash before a result on the same line.

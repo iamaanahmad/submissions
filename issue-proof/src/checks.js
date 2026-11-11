@@ -46,6 +46,10 @@ function withoutFencedCode(text, state = { fence: null }) {
   }).join('\n');
 }
 
+function withoutInlineCode(text) {
+  return text.replace(/(`+)([^`\n]|(?!\1)`)*\1/g, '');
+}
+
 function descriptionWithoutCode(value) {
   if (!value || typeof value !== 'object') return value;
   if (Array.isArray(value)) return value.map(descriptionWithoutCode).filter(Boolean);
@@ -56,12 +60,12 @@ function descriptionWithoutCode(value) {
 export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)) {
   const fields = issue?.fields || {};
   const checklistDescription = descriptionWithoutCode(fields.description);
-  const description = withoutFencedCode(adfText(checklistDescription));
+  const description = withoutInlineCode(withoutFencedCode(adfText(checklistDescription)));
   const fenceState = { fence: null };
   const descriptionBlocks = Array.isArray(checklistDescription?.content)
     ? checklistDescription.content.map((block) => ({
       node: block,
-      text: block.type === 'codeBlock' ? '' : withoutFencedCode(adfText(block), fenceState).trim(),
+      text: block.type === 'codeBlock' ? '' : withoutInlineCode(withoutFencedCode(adfText(block), fenceState)).trim(),
       heading: block.type === 'heading',
       openTask: hasOpenTask(block)
     })).filter((block) => block.text)
@@ -71,7 +75,7 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
   const unfinishedNames = unfinished.map((item) => item.key || item.fields?.summary || 'Unnamed subtask');
   const openChecklistItems = [
     ...openTaskLabels(checklistDescription),
-    ...openTextChecklistLabels(withoutFencedCode(adfText(checklistDescription)))
+    ...openTextChecklistLabels(withoutInlineCode(withoutFencedCode(adfText(checklistDescription))))
   ];
   const blockingIssues = (fields.issuelinks || []).flatMap((link) => {
     const isBlockingLabel = (label) => /^(?:(?:is )?blocked by|(?:is )?depend(?:s|ent) (?:on|upon)|requires?)$/i.test(label?.trim() || '');
