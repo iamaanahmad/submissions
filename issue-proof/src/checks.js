@@ -28,7 +28,7 @@ function openTaskLabels(value) {
 
 function openTextChecklistLabels(value) {
   return adfText(value).split('\n').flatMap((line) => {
-    const match = line.match(/^\s*(?:(?:[-*\u2022]|\d+[.)])\s*)?(?:\[\s\]|[\u2610\u25a1])\s*(.*)$/);
+    const match = line.match(/^\s*(?:>\s*)*(?:(?:[-*\u2022]|\d+[.)])\s*)?(?:\[\s\]|[\u2610\u25a1])\s*(.*)$/);
     return match ? [match[1].trim() || 'an unnamed checklist item'] : [];
   });
 }
@@ -140,8 +140,8 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
   const uncheckedCriteria = acceptanceIndex >= 0
     ? [
       ...[...inlineAcceptance.split('\n'), ...acceptanceBlocks.flatMap((block) => block.text.split('\n'))]
-        .filter((line) => /^\s*(?:(?:[-*\u2022]|\d+[.)])\s*)?(?:\[\s\]|[\u2610\u25a1])/.test(line))
-        .map((line) => line.replace(/^\s*(?:(?:[-*\u2022]|\d+[.)])\s*)?(?:\[\s\]|[\u2610\u25a1])\s*/, '').trim()),
+        .filter((line) => /^\s*(?:>\s*)*(?:(?:[-*\u2022]|\d+[.)])\s*)?(?:\[\s\]|[\u2610\u25a1])/.test(line))
+        .map((line) => line.replace(/^\s*(?:>\s*)*(?:(?:[-*\u2022]|\d+[.)])\s*)?(?:\[\s\]|[\u2610\u25a1])\s*/, '').trim()),
       ...openTaskLabels(acceptanceBlocks.map((block) => block.node))
     ].filter(Boolean)
     : [];
