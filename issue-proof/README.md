@@ -16,8 +16,10 @@ Open issues with past target dates need a new date. Completed issues keep their 
 
 ```sh
 npm install
-npm test
+npm run check
 ```
+
+Use Node.js 22.23.4 or newer in the supported 22.x line, or another version in `package.json`'s engine range. `npm run check` runs local tests. After the app owner registers the app, `npm run lint:forge` checks the Forge manifest. Forge registration and installation require the app owner's Atlassian account.
 
 ## Install in Jira
 
