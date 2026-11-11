@@ -140,6 +140,18 @@ test('ignores pasted Markdown code fences but keeps real checklist work', () => 
   assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false);
 });
 
+test('ignores quoted code examples while keeping quoted unfinished work', () => {
+  const report = assessIssue({ fields: {
+    description: 'Acceptance criteria: Buyer receives a receipt after checkout.\n> ```md\n> - [ ] Example only\n> ```\n> - [ ] Verify the actual receipt',
+    assignee: { accountId: 'abc' }, duedate: '2026-12-01',
+    status: { name: 'Done', statusCategory: { key: 'done' } }
+  } }, '2026-11-09');
+  const checklist = report.checks.find((check) => check.id === 'checklist');
+  assert.equal(checklist.passed, false);
+  assert.match(checklist.detail, /Verify the actual receipt/);
+  assert.doesNotMatch(checklist.detail, /Example only/);
+});
+
 test('ignores a pasted fence spread across Jira paragraphs', () => {
   const paragraph = (text) => ({ type: 'paragraph', content: [{ type: 'text', text }] });
   const report = assessIssue({ fields: {

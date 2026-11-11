@@ -35,7 +35,7 @@ function openTextChecklistLabels(value) {
 
 function withoutFencedCode(text, state = { fence: null }) {
   return text.split('\n').filter((line) => {
-    const marker = line.match(/^\s*(`{3,}|~{3,})/);
+    const marker = line.match(/^\s*(?:>\s*)*(`{3,}|~{3,})/);
     if (marker) {
       const token = marker[1];
       if (!state.fence) state.fence = token;
