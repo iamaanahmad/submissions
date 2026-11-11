@@ -35,11 +35,13 @@ function openTextChecklistLabels(value) {
 
 function withoutFencedCode(text, state = { fence: null }) {
   return text.split('\n').filter((line) => {
-    const marker = line.match(/^\s*(?:>\s*)*(`{3,}|~{3,})/);
+    const marker = line.match(/^\s*(?:>\s*)*(`{3,}|~{3,})(.*)$/);
     if (marker) {
       const token = marker[1];
+      const trailingText = marker[2].trim();
       if (!state.fence) state.fence = token;
-      else if (token[0] === state.fence[0] && token.length >= state.fence.length) state.fence = null;
+      else if (token[0] === state.fence[0] && token.length >= state.fence.length
+        && trailingText === '') state.fence = null;
       return false;
     }
     return !state.fence;
