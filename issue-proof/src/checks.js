@@ -33,17 +33,16 @@ function openTextChecklistLabels(value) {
   });
 }
 
-function withoutFencedCode(text) {
-  let fence = null;
+function withoutFencedCode(text, state = { fence: null }) {
   return text.split('\n').filter((line) => {
     const marker = line.match(/^\s*(`{3,}|~{3,})/);
     if (marker) {
       const token = marker[1];
-      if (!fence) fence = token;
-      else if (token[0] === fence[0] && token.length >= fence.length) fence = null;
+      if (!state.fence) state.fence = token;
+      else if (token[0] === state.fence[0] && token.length >= state.fence.length) state.fence = null;
       return false;
     }
-    return !fence;
+    return !state.fence;
   }).join('\n');
 }
 
@@ -57,10 +56,11 @@ function descriptionWithoutCode(value) {
 export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)) {
   const fields = issue?.fields || {};
   const description = withoutFencedCode(adfText(fields.description));
+  const fenceState = { fence: null };
   const descriptionBlocks = Array.isArray(fields.description?.content)
     ? fields.description.content.map((block) => ({
       node: block,
-      text: block.type === 'codeBlock' ? '' : withoutFencedCode(adfText(block)).trim(),
+      text: block.type === 'codeBlock' ? '' : withoutFencedCode(adfText(block), fenceState).trim(),
       heading: block.type === 'heading',
       openTask: hasOpenTask(block)
     })).filter((block) => block.text)

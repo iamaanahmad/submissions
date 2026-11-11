@@ -123,6 +123,21 @@ test('ignores pasted Markdown code fences but keeps real checklist work', () => 
   assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false);
 });
 
+test('ignores a pasted fence spread across Jira paragraphs', () => {
+  const paragraph = (text) => ({ type: 'paragraph', content: [{ type: 'text', text }] });
+  const report = assessIssue({ fields: {
+    description: { type: 'doc', content: [
+      paragraph('```md'),
+      paragraph('Acceptance criteria: Example only passes.'),
+      paragraph('```'),
+      paragraph('Acceptance criteria: Buyer receives the receipt after checkout.')
+    ] }
+  } });
+  const acceptance = report.checks.find((check) => check.id === 'acceptance');
+  assert.equal(acceptance.passed, true);
+  assert.match(acceptance.detail, /1 written result/);
+});
+
 test('accepts an inactive Jira assignee as the recorded owner', () => {
   const report = assessIssue({ key: 'DEMO-14', fields: {
     assignee: { accountId: 'former-user', displayName: 'Former owner', active: false },
