@@ -79,6 +79,37 @@ test('blocks an unchecked pasted checklist outside acceptance criteria', () => {
   assert.doesNotMatch(checklist.detail, /Review the copy/);
 });
 
+test('ignores unchecked examples in code while checking real Jira tasks', () => {
+  const report = assessIssue({ key: 'DEMO-32', fields: {
+    assignee: { accountId: 'abc' }, duedate: '2026-12-01',
+    status: { name: 'Done', statusCategory: { key: 'done' } },
+    description: { type: 'doc', content: [
+      { type: 'paragraph', content: [{ type: 'text', text: 'Acceptance criteria: Buyer sees the receipt after checkout.' }] },
+      { type: 'codeBlock', content: [{ type: 'text', text: '- [ ] Example only' }] },
+      { type: 'taskList', content: [
+        { type: 'taskItem', attrs: { state: 'TODO' }, content: [{ type: 'text', text: 'Verify the actual receipt' }] }
+      ] }
+    ] }
+  } }, '2026-11-09');
+  const checklist = report.checks.find((check) => check.id === 'checklist');
+  assert.equal(checklist.passed, false);
+  assert.match(checklist.detail, /Verify the actual receipt/);
+  assert.doesNotMatch(checklist.detail, /Example only/);
+});
+
+test('does not block handoff for unchecked examples inside code blocks', () => {
+  const report = assessIssue({ key: 'DEMO-33', fields: {
+    assignee: { accountId: 'abc' }, duedate: '2026-12-01',
+    status: { name: 'Done', statusCategory: { key: 'done' } },
+    description: { type: 'doc', content: [
+      { type: 'paragraph', content: [{ type: 'text', text: 'Acceptance criteria: Buyer sees the receipt after checkout.' }] },
+      { type: 'codeBlock', content: [{ type: 'text', text: '- [ ] Example only' }] }
+    ] }
+  } }, '2026-11-09');
+  assert.equal(report.checks.some((check) => check.id === 'checklist'), false);
+  assert.equal(report.passed, report.total);
+});
+
 test('accepts an inactive Jira assignee as the recorded owner', () => {
   const report = assessIssue({ key: 'DEMO-14', fields: {
     assignee: { accountId: 'former-user', displayName: 'Former owner', active: false },

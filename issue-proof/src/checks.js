@@ -33,6 +33,13 @@ function openTextChecklistLabels(value) {
   });
 }
 
+function descriptionWithoutCode(value) {
+  if (!value || typeof value !== 'object') return value;
+  if (Array.isArray(value)) return value.map(descriptionWithoutCode).filter(Boolean);
+  if (value.type === 'codeBlock') return null;
+  return { ...value, content: descriptionWithoutCode(value.content) };
+}
+
 export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)) {
   const fields = issue?.fields || {};
   const description = adfText(fields.description);
@@ -47,9 +54,10 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
   const subtasks = fields.subtasks || [];
   const unfinished = subtasks.filter((item) => item.fields?.status?.statusCategory?.key !== 'done');
   const unfinishedNames = unfinished.map((item) => item.key || item.fields?.summary || 'Unnamed subtask');
+  const checklistDescription = descriptionWithoutCode(fields.description);
   const openChecklistItems = [
-    ...openTaskLabels(fields.description),
-    ...openTextChecklistLabels(fields.description)
+    ...openTaskLabels(checklistDescription),
+    ...openTextChecklistLabels(checklistDescription)
   ];
   const blockingIssues = (fields.issuelinks || []).flatMap((link) => {
     const isBlockingLabel = (label) => /^(?:(?:is )?blocked by|(?:is )?depend(?:s|ent) (?:on|upon)|requires?)$/i.test(label?.trim() || '');
