@@ -110,6 +110,23 @@ test('does not block handoff for unchecked examples inside code blocks', () => {
   assert.equal(report.passed, report.total);
 });
 
+test('ignores inline code examples while keeping real acceptance and checklist work', () => {
+  const report = assessIssue({ fields: {
+    assignee: { accountId: 'abc' }, duedate: '2026-12-01',
+    status: { name: 'Done', statusCategory: { key: 'done' } },
+    description: { type: 'doc', content: [
+      { type: 'paragraph', content: [{ type: 'text', text: 'Acceptance criteria: Example only passes.', marks: [{ type: 'code' }] }] },
+      { type: 'paragraph', content: [{ type: 'text', text: 'Acceptance criteria: Buyer receives the receipt after checkout.' }] },
+      { type: 'paragraph', content: [{ type: 'text', text: '- [ ] Example only', marks: [{ type: 'code' }] }] },
+      { type: 'paragraph', content: [{ type: 'text', text: '- [ ] Verify the actual receipt' }] }
+    ] }
+  } }, '2026-11-09');
+  const checklist = report.checks.find((check) => check.id === 'checklist');
+  assert.match(checklist.detail, /Verify the actual receipt/);
+  assert.doesNotMatch(checklist.detail, /Example only/);
+  assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false);
+});
+
 test('ignores pasted Markdown code fences but keeps real checklist work', () => {
   const report = assessIssue({ key: 'DEMO-34', fields: {
     description: '```md\nAcceptance criteria: Example only passes.\n- [ ] Example only\n```\nAcceptance criteria: Buyer receives the receipt after checkout.\n- [ ] Verify the actual receipt',
