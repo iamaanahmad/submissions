@@ -196,6 +196,15 @@ test('does not accept a generic completion claim as a testable result', () => {
   assert.match(acceptance.detail, /Start with: Works as expected/);
 });
 
+test('a checked box cannot turn a vague acceptance claim into evidence', () => {
+  const report = assessIssue({ fields: {
+    description: 'Acceptance criteria:\n- [x] Works as expected\n- [x] Buyer receives a receipt after checkout.'
+  } });
+  const acceptance = report.checks.find((check) => check.id === 'acceptance');
+  assert.equal(acceptance.passed, false);
+  assert.match(acceptance.detail, /Works as expected/);
+});
+
 test('rejects an overdue target date without requiring optional subtasks', () => {
   const report = assessIssue({ key: 'DEMO-9', fields: {
     assignee: { accountId: 'abc' },
