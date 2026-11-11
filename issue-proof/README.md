@@ -5,6 +5,7 @@ Issue Proof is a Forge Jira issue panel for software teams. It reads the current
 An assigned Jira account remains the recorded owner after deactivation. Issue Proof shows that state without failing the owner check. An issue with no assignee account ID still needs an owner.
 
 Unchecked examples inside Jira code blocks are ignored. Actual open Jira tasks and pasted checklists still block handoff.
+Pasted Markdown code fences are also ignored, so examples cannot create false missing-work results.
 
 For written results, the panel accepts Acceptance criteria, Definition of done, Success criteria, and Done when headings. An empty heading does not count as evidence.
 It accepts a colon or dash before a result on the same line.

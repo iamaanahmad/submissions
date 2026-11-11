@@ -33,6 +33,20 @@ function openTextChecklistLabels(value) {
   });
 }
 
+function withoutFencedCode(text) {
+  let fence = null;
+  return text.split('\n').filter((line) => {
+    const marker = line.match(/^\s*(`{3,}|~{3,})/);
+    if (marker) {
+      const token = marker[1];
+      if (!fence) fence = token;
+      else if (token[0] === fence[0] && token.length >= fence.length) fence = null;
+      return false;
+    }
+    return !fence;
+  }).join('\n');
+}
+
 function descriptionWithoutCode(value) {
   if (!value || typeof value !== 'object') return value;
   if (Array.isArray(value)) return value.map(descriptionWithoutCode).filter(Boolean);
@@ -42,11 +56,11 @@ function descriptionWithoutCode(value) {
 
 export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)) {
   const fields = issue?.fields || {};
-  const description = adfText(fields.description);
+  const description = withoutFencedCode(adfText(fields.description));
   const descriptionBlocks = Array.isArray(fields.description?.content)
     ? fields.description.content.map((block) => ({
       node: block,
-      text: adfText(block).trim(),
+      text: block.type === 'codeBlock' ? '' : withoutFencedCode(adfText(block)).trim(),
       heading: block.type === 'heading',
       openTask: hasOpenTask(block)
     })).filter((block) => block.text)
@@ -57,7 +71,7 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
   const checklistDescription = descriptionWithoutCode(fields.description);
   const openChecklistItems = [
     ...openTaskLabels(checklistDescription),
-    ...openTextChecklistLabels(checklistDescription)
+    ...openTextChecklistLabels(withoutFencedCode(adfText(checklistDescription)))
   ];
   const blockingIssues = (fields.issuelinks || []).flatMap((link) => {
     const isBlockingLabel = (label) => /^(?:(?:is )?blocked by|(?:is )?depend(?:s|ent) (?:on|upon)|requires?)$/i.test(label?.trim() || '');

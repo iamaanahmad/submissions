@@ -110,6 +110,19 @@ test('does not block handoff for unchecked examples inside code blocks', () => {
   assert.equal(report.passed, report.total);
 });
 
+test('ignores pasted Markdown code fences but keeps real checklist work', () => {
+  const report = assessIssue({ key: 'DEMO-34', fields: {
+    description: '```md\nAcceptance criteria: Example only passes.\n- [ ] Example only\n```\nAcceptance criteria: Buyer receives the receipt after checkout.\n- [ ] Verify the actual receipt',
+    assignee: { accountId: 'abc' }, duedate: '2026-12-01',
+    status: { name: 'Done', statusCategory: { key: 'done' } }
+  } }, '2026-11-09');
+  const checklist = report.checks.find((check) => check.id === 'checklist');
+  assert.equal(checklist.passed, false);
+  assert.match(checklist.detail, /Verify the actual receipt/);
+  assert.doesNotMatch(checklist.detail, /Example only/);
+  assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false);
+});
+
 test('accepts an inactive Jira assignee as the recorded owner', () => {
   const report = assessIssue({ key: 'DEMO-14', fields: {
     assignee: { accountId: 'former-user', displayName: 'Former owner', active: false },
