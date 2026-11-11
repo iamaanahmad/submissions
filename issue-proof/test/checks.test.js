@@ -79,6 +79,23 @@ test('blocks an unchecked pasted checklist outside acceptance criteria', () => {
   assert.doesNotMatch(checklist.detail, /Review the copy/);
 });
 
+test('checks an unfinished item in a Jira description table', () => {
+  const report = assessIssue({ key: 'DEMO-36', fields: {
+    assignee: { accountId: 'abc' }, duedate: '2026-12-01',
+    status: { name: 'Done', statusCategory: { key: 'done' } },
+    description: { type: 'doc', content: [
+      { type: 'paragraph', content: [{ type: 'text', text: 'Acceptance criteria: Buyer sees a receipt after checkout.' }] },
+      { type: 'table', content: [{ type: 'tableRow', content: [
+        { type: 'tableHeader', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Handoff' }] }] },
+        { type: 'tableCell', content: [{ type: 'paragraph', content: [{ type: 'text', text: '[ ] Verify the refund path' }] }] }
+      ] }] }
+    ] }
+  } }, '2026-11-09');
+  const checklist = report.checks.find((check) => check.id === 'checklist');
+  assert.equal(checklist.passed, false);
+  assert.match(checklist.detail, /Verify the refund path/);
+});
+
 test('ignores unchecked examples in code while checking real Jira tasks', () => {
   const report = assessIssue({ key: 'DEMO-32', fields: {
     assignee: { accountId: 'abc' }, duedate: '2026-12-01',
