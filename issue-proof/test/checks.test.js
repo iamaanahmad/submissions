@@ -148,6 +148,18 @@ test('does not count work waiting for a review or blocked by QA', () => {
   assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, true);
 });
 
+test('does not count review or verification that has not started or is underway', () => {
+  for (const result of [
+    'Security review has not started for this release.',
+    'Buyer verification is underway after checkout.',
+    'Final QA never completed for the payment flow.',
+    'Release sign-off is in progress with the owner.'
+  ]) {
+    const report = assessIssue({ fields: { description: `Acceptance criteria: ${result}` } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, result);
+  }
+});
+
 test('names missing evidence and unfinished subtasks', () => {
   const report = assessIssue({ key: 'DEMO-8', fields: {
     summary: 'Draft work', description: { content: [{ content: [{ text: 'A short description' }] }] },
