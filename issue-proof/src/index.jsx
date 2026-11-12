@@ -3,6 +3,7 @@ import ForgeReconciler, { Button, Heading, Lozenge, SectionMessage, Spinner, Sta
 import { events, requestJira } from '@forge/bridge';
 import { assessIssue } from './checks.js';
 import { createRequestGate } from './request-gate.js';
+import { issueFetchError } from './issue-error.js';
 
 function App() {
   const context = useProductContext();
@@ -32,7 +33,7 @@ function App() {
     try {
       const fields = 'summary,description,assignee,duedate,subtasks,issuetype,issuelinks,status';
       const response = await requestJira(`/rest/api/3/issue/${encodeURIComponent(issueKey)}?fields=${fields}`);
-      if (!response.ok) throw new Error(`Jira returned ${response.status}. Check your issue access and try again.`);
+      if (!response.ok) throw new Error(issueFetchError(response.status));
       const result = assessIssue(await response.json());
       if (requestGate.current.isCurrent(request)) setReport(result);
     } catch (cause) {
