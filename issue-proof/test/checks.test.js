@@ -69,6 +69,18 @@ test('does not count pending or required proof when the status follows the evide
   }
 });
 
+test('does not count failed or denied acceptance proof as a finished result', () => {
+  for (const result of [
+    'Buyer verification failed after checkout.',
+    'Release approval was denied by the owner.',
+    'Refund tests failed in staging.',
+    'Receipt was not verified by the buyer.'
+  ]) {
+    const report = assessIssue({ fields: { description: `Acceptance criteria: ${result}` } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, result);
+  }
+});
+
 test('names missing evidence and unfinished subtasks', () => {
   const report = assessIssue({ key: 'DEMO-8', fields: {
     summary: 'Draft work', description: { content: [{ content: [{ text: 'A short description' }] }] },
