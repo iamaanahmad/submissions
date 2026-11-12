@@ -109,6 +109,16 @@ test('does not count incomplete or ungranted proof as a finished result', () => 
   }
 });
 
+test('does not count incomplete sign-off or revoked approval as finished proof', () => {
+  for (const result of [
+    'Release sign-off is incomplete for this version.',
+    'Buyer approval was revoked after the test.'
+  ]) {
+    const report = assessIssue({ fields: { description: `Acceptance criteria: ${result}` } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, result);
+  }
+});
+
 test('names missing evidence and unfinished subtasks', () => {
   const report = assessIssue({ key: 'DEMO-8', fields: {
     summary: 'Draft work', description: { content: [{ content: [{ text: 'A short description' }] }] },
