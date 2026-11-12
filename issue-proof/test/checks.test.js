@@ -134,6 +134,20 @@ test('does not count expired or withdrawn approval as finished proof', () => {
   assert.equal(passed.checks.find((check) => check.id === 'acceptance').passed, true);
 });
 
+test('does not count work waiting for a review or blocked by QA', () => {
+  for (const result of [
+    'Waiting for security review before handoff.',
+    'Blocked by final QA on the payment flow.'
+  ]) {
+    const report = assessIssue({ fields: { description: `Acceptance criteria: ${result}` } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, result);
+  }
+  const report = assessIssue({ fields: {
+    description: 'Acceptance criteria: The buyer receives a receipt after payment.'
+  } });
+  assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, true);
+});
+
 test('names missing evidence and unfinished subtasks', () => {
   const report = assessIssue({ key: 'DEMO-8', fields: {
     summary: 'Draft work', description: { content: [{ content: [{ text: 'A short description' }] }] },
