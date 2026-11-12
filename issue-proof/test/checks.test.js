@@ -119,6 +119,21 @@ test('does not count incomplete sign-off or revoked approval as finished proof',
   }
 });
 
+test('does not count expired or withdrawn approval as finished proof', () => {
+  for (const result of [
+    'Release approval expired before handoff.',
+    'Security sign-off was withdrawn after the review.',
+    'The release owner canceled approval for this version.'
+  ]) {
+    const report = assessIssue({ fields: { description: `Acceptance criteria: ${result}` } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, result);
+  }
+  const passed = assessIssue({ fields: {
+    description: 'Acceptance criteria: The release owner approved this version.'
+  } });
+  assert.equal(passed.checks.find((check) => check.id === 'acceptance').passed, true);
+});
+
 test('names missing evidence and unfinished subtasks', () => {
   const report = assessIssue({ key: 'DEMO-8', fields: {
     summary: 'Draft work', description: { content: [{ content: [{ text: 'A short description' }] }] },
