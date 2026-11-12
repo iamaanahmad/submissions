@@ -10,7 +10,7 @@ Inline Markdown code examples are ignored for the same reason. Real unchecked ch
 
 For written results, the panel accepts Acceptance criteria, Definition of done, Success criteria, and Done when headings. An empty heading does not count as evidence.
 It accepts a colon or dash before a result on the same line.
-Unfinished results such as TBC, WIP, pending review, and to be confirmed do not count as evidence.
+Unfinished results such as TBC, WIP, pending review, missing receipts, and to be confirmed do not count as evidence.
 Implementation steps below an empty acceptance heading do not count as acceptance results.
 Given / When / Then examples inside implementation notes do not count as acceptance results either.
 

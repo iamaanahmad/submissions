@@ -57,6 +57,21 @@ test('does not count a failed product result as finished acceptance proof', () =
   assert.equal(complete.checks.find((check) => check.id === 'acceptance').passed, true);
 });
 
+test('does not count missing output as finished acceptance proof', () => {
+  for (const result of [
+    'The receipt is missing after payment.',
+    'The report remains unavailable for the owner.',
+    'The confirmation was absent after checkout.'
+  ]) {
+    const report = assessIssue({ fields: { description: `Acceptance criteria: ${result}` } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, result);
+  }
+  const report = assessIssue({ fields: {
+    description: 'Acceptance criteria: The receipt is visible after payment.'
+  } });
+  assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, true);
+});
+
 test('does not count approval or tests still needed as acceptance evidence', () => {
   for (const result of ['Needs approval from the release owner.', 'Not yet tested with a buyer.']) {
     const report = assessIssue({ fields: {
