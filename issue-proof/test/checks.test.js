@@ -896,3 +896,11 @@ test('reads acceptance results after a dash separator', () => {
   assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, true);
   assert.equal(report.passed, report.total);
 });
+
+test('does not count open review or sign-off as finished acceptance proof', () => {
+  for (const result of ['Security review remains open.', 'Release sign-off is pending.']) {
+    const report = assessIssue({ fields: { description: `Acceptance criteria: ${result}` } });
+    const acceptance = report.checks.find((check) => check.id === 'acceptance');
+    assert.equal(acceptance.passed, false, result);
+  }
+});
