@@ -104,7 +104,7 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
   const inlineAcceptance = acceptanceIndex >= 0
     ? withoutMarkdownHeading(descriptionBlocks[acceptanceIndex].text).replace(/^(?:acceptance criteria|definition of done|success criteria|done when)[ \t]*(?::|[\u2013\u2014-])?[ \t]*/i, '') : '';
   const isPlaceholder = (text) => /^(?:tbd|tbc|todo|wip|none|n\/a|not applicable|to be (?:determined|defined|added|confirmed)|coming soon|pending|see (?:later|ticket))\.?$/i.test(text.trim());
-  const hasUnfinishedMarker = (text) => /\b(?:tbd|tbc|todo|wip|to be (?:determined|defined|added|confirmed)|coming soon|(?:pending|awaiting) (?:review|decision|confirmation|approval|verification|testing))\b|\.{3,}|\?{3,}/i.test(text);
+  const hasUnfinishedMarker = (text) => /\b(?:tbd|tbc|todo|wip|to be (?:determined|defined|added|confirmed)|coming soon|(?:pending|awaiting|needs?|requires?) (?:review|decision|confirmation|approval|verification|testing)|not yet (?:reviewed|decided|confirmed|approved|verified|tested))\b|\.{3,}|\?{3,}/i.test(text);
   const vagueResult = /^(?:(?:it|this|the (?:feature|app|issue))\s+)?(?:works? (?:as expected|correctly|properly|well)|looks? good|is (?:done|ready|complete)|has no bugs)(?:\.|!)?$/i;
   const isSpecific = (text) => {
     const result = text.trim().replace(/^(?:\[[xX ]\]|[\u2610\u2611\u25a1])\s*/, '').trim();
