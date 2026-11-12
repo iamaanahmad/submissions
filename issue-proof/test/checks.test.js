@@ -24,6 +24,15 @@ test('does not count pending approval as completed acceptance evidence', () => {
   assert.match(acceptance.detail, /Pending approval/);
 });
 
+test('does not count awaiting verification as completed acceptance evidence', () => {
+  const report = assessIssue({ fields: {
+    description: 'Acceptance criteria: Awaiting verification from the release owner.'
+  } });
+  const acceptance = report.checks.find((check) => check.id === 'acceptance');
+  assert.equal(acceptance.passed, false);
+  assert.match(acceptance.detail, /Awaiting verification/);
+});
+
 test('names missing evidence and unfinished subtasks', () => {
   const report = assessIssue({ key: 'DEMO-8', fields: {
     summary: 'Draft work', description: { content: [{ content: [{ text: 'A short description' }] }] },
