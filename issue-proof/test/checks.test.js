@@ -904,3 +904,18 @@ test('does not count open review or sign-off as finished acceptance proof', () =
     assert.equal(acceptance.passed, false, result);
   }
 });
+
+test('does not count missing or failed sign-off as finished acceptance proof', () => {
+  for (const result of [
+    'The release owner has not signed off on the receipt.',
+    'Security review failed after the final build.',
+    'QA sign-off still needed before handoff.'
+  ]) {
+    const report = assessIssue({ fields: { description: `Acceptance criteria: ${result}` } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, result);
+  }
+  const passed = assessIssue({ fields: {
+    description: 'Acceptance criteria: The release owner signed off on the receipt.'
+  } });
+  assert.equal(passed.checks.find((check) => check.id === 'acceptance').passed, true);
+});
