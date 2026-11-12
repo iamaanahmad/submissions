@@ -81,6 +81,18 @@ test('does not count failed or denied acceptance proof as a finished result', ()
   }
 });
 
+test('does not count blocked or impossible checks as finished acceptance proof', () => {
+  for (const result of [
+    'Buyer verification remains open after checkout.',
+    'Release approval is blocked by the owner.',
+    'Refund tests still need a live provider.',
+    'The team could not verify the receipt.'
+  ]) {
+    const report = assessIssue({ fields: { description: `Acceptance criteria: ${result}` } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, result);
+  }
+});
+
 test('names missing evidence and unfinished subtasks', () => {
   const report = assessIssue({ key: 'DEMO-8', fields: {
     summary: 'Draft work', description: { content: [{ content: [{ text: 'A short description' }] }] },
