@@ -45,7 +45,12 @@ test('does not count approval or tests still needed as acceptance evidence', () 
 });
 
 test('does not count ongoing approval or verification as finished evidence', () => {
-  for (const result of ['Release approval is in progress.', 'Buyer verification outstanding.']) {
+  for (const result of [
+    'Release approval is in progress.',
+    'Buyer verification outstanding.',
+    'Release approval remains pending with the owner.',
+    'Buyer verification remains in progress after checkout.'
+  ]) {
     const report = assessIssue({ fields: {
       description: `Acceptance criteria: ${result}`
     } });
