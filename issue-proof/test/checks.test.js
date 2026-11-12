@@ -93,6 +93,17 @@ test('does not count blocked or impossible checks as finished acceptance proof',
   }
 });
 
+test('does not count incomplete or ungranted proof as a finished result', () => {
+  for (const result of [
+    'Release approval has not been granted by the owner.',
+    'Buyer verification is incomplete after checkout.',
+    'Refund tests have not passed in staging.'
+  ]) {
+    const report = assessIssue({ fields: { description: `Acceptance criteria: ${result}` } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, result);
+  }
+});
+
 test('names missing evidence and unfinished subtasks', () => {
   const report = assessIssue({ key: 'DEMO-8', fields: {
     summary: 'Draft work', description: { content: [{ content: [{ text: 'A short description' }] }] },
