@@ -13,6 +13,17 @@ test('reports complete evidence without claiming release approval', () => {
   assert.match(report.note, /not a release approval/);
 });
 
+test('does not count pending approval as completed acceptance evidence', () => {
+  const report = assessIssue({ key: 'DEMO-80', fields: {
+    description: { type: 'doc', content: [
+      { type: 'paragraph', content: [{ type: 'text', text: 'Acceptance criteria: Pending approval from the release owner.' }] }
+    ] }
+  } });
+  const acceptance = report.checks.find((check) => check.id === 'acceptance');
+  assert.equal(acceptance.passed, false);
+  assert.match(acceptance.detail, /Pending approval/);
+});
+
 test('names missing evidence and unfinished subtasks', () => {
   const report = assessIssue({ key: 'DEMO-8', fields: {
     summary: 'Draft work', description: { content: [{ content: [{ text: 'A short description' }] }] },
