@@ -55,6 +55,20 @@ test('does not count ongoing approval or verification as finished evidence', () 
   }
 });
 
+test('does not count pending or required proof when the status follows the evidence name', () => {
+  for (const result of [
+    'Release approval pending.',
+    'Buyer verification is required.',
+    'Refund tests are needed.'
+  ]) {
+    const report = assessIssue({ fields: {
+      description: `Acceptance criteria: ${result}`
+    } });
+    const acceptance = report.checks.find((check) => check.id === 'acceptance');
+    assert.equal(acceptance.passed, false, result);
+  }
+});
+
 test('names missing evidence and unfinished subtasks', () => {
   const report = assessIssue({ key: 'DEMO-8', fields: {
     summary: 'Draft work', description: { content: [{ content: [{ text: 'A short description' }] }] },
