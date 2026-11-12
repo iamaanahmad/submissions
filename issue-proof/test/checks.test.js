@@ -33,6 +33,15 @@ test('does not count awaiting verification as completed acceptance evidence', ()
   assert.match(acceptance.detail, /Awaiting verification/);
 });
 
+test('does not count acceptance results awaiting QA or sign-off', () => {
+  for (const result of ['Awaiting QA on the buyer flow.', 'Needs UAT before release.', 'Pending sign-off from the owner.']) {
+    const report = assessIssue({ fields: {
+      description: `Acceptance criteria: ${result}`
+    } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, result);
+  }
+});
+
 test('does not count approval or tests still needed as acceptance evidence', () => {
   for (const result of ['Needs approval from the release owner.', 'Not yet tested with a buyer.']) {
     const report = assessIssue({ fields: {
