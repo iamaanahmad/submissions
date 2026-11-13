@@ -86,6 +86,21 @@ test('does not count missing output as finished acceptance proof', () => {
   assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, true);
 });
 
+test('does not count pending or failed output as finished acceptance proof', () => {
+  for (const result of [
+    'Buyer receipt pending after payment.',
+    'The report is still incomplete for the owner.',
+    'Confirmation records failed to save after checkout.'
+  ]) {
+    const report = assessIssue({ fields: { description: `Acceptance criteria: ${result}` } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, result);
+  }
+  const report = assessIssue({ fields: {
+    description: 'Acceptance criteria: Buyer receipt appears after payment.'
+  } });
+  assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, true);
+});
+
 test('does not count a negated delivery as finished acceptance proof', () => {
   for (const result of [
     'No receipt was generated after checkout.',
