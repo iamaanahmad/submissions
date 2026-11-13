@@ -1039,3 +1039,17 @@ test('rejects numeric zero delivery while allowing a completed receipt', () => {
   } });
   assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, true);
 });
+
+test('does not count partial test results as finished acceptance proof', () => {
+  for (const result of [
+    '2 of 5 checkout tests passed after the release.',
+    '3/4 buyer scenarios verified before handoff.'
+  ]) {
+    const report = assessIssue({ fields: { description: `Acceptance criteria: ${result}` } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, result);
+  }
+  const complete = assessIssue({ fields: {
+    description: 'Acceptance criteria: 5 of 5 checkout tests passed after the release.'
+  } });
+  assert.equal(complete.checks.find((check) => check.id === 'acceptance').passed, true);
+});

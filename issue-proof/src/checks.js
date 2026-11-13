@@ -111,10 +111,14 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
     || /\b(?:0|no|zero)\s+(?:\w+\s+){0,3}(?:receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:was\s+|were\s+|has\s+been\s+)?(?:received|sent|delivered|shown|displayed|created|saved|generated|recorded|produced)\b/i.test(text)
     || /\b(?:receipt|report|result|confirmation|output|record)\s+(?:is|was|remains?)\s+(?:still\s+)?(?:missing|absent|unavailable)\b/i.test(text);
   const vagueResult = /^(?:(?:it|this|the (?:feature|app|issue))\s+)?(?:works? (?:as expected|correctly|properly|well)|looks? good|is (?:done|ready|complete)|has no bugs)(?:\.|!)?$/i;
+  const hasPartialVerification = (text) => {
+    const count = text.match(/\b(\d+)\s*(?:\/|of)\s*(\d+)\s+(?:\w+\s+){0,2}?(?:tests?|checks?|cases?|scenarios?)\s+(?:passed|completed|verified)\b/i);
+    return count && Number(count[1]) < Number(count[2]);
+  };
   const isSpecific = (text) => {
     const result = text.trim().replace(/^(?:\[[xX ]\]|[\u2610\u2611\u25a1])\s*/, '').trim();
     return result.length >= 12 && !isPlaceholder(result)
-      && !hasUnfinishedMarker(result) && !vagueResult.test(result);
+      && !hasUnfinishedMarker(result) && !hasPartialVerification(result) && !vagueResult.test(result);
   };
   const acceptanceLines = [];
   const acceptanceBlocks = [];
