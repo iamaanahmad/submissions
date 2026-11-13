@@ -4,7 +4,10 @@ import { fetchIssue } from '../src/issue-request.js';
 
 test('returns a Jira issue and safely encodes its key', async () => {
   let path;
-  const issue = { key: 'TEAM-1', fields: {} };
+  const issue = { key: 'TEAM-1', fields: {
+    summary: 'Check the release', status: { statusCategory: { key: 'indeterminate' } },
+    issuetype: { subtask: false }
+  } };
   const result = await fetchIssue(async (requestedPath) => {
     path = requestedPath;
     return { ok: true, json: async () => issue };
@@ -14,7 +17,12 @@ test('returns a Jira issue and safely encodes its key', async () => {
 });
 
 test('does not show incomplete Jira data as missing handoff evidence', async () => {
-  for (const issue of [null, {}, { key: 'TEAM-1' }, { key: 'TEAM-1', fields: [] }]) {
+  for (const issue of [
+    null, {}, { key: 'TEAM-1' }, { key: 'TEAM-1', fields: [] },
+    { key: 'TEAM-1', fields: {} },
+    { key: 'TEAM-1', fields: { summary: 'Check the release' } },
+    { key: 'TEAM-1', fields: { summary: 'Check the release', status: { statusCategory: { key: 'done' } } } }
+  ]) {
     await assert.rejects(
       fetchIssue(async () => ({ ok: true, json: async () => issue }), 'TEAM-1'),
       /Jira returned an incomplete issue.*Check again/

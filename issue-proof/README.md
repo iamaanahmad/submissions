@@ -31,6 +31,7 @@ Use Node.js 22.23.4 or newer in the supported 22.x line, or another version in `
 Use an Atlassian developer account and a Jira Cloud development site. Run `forge login`, then `forge register`, `forge deploy`, and `forge install`. Forge registration adds the app ID to `manifest.yml`; no account ID or secret belongs in this repository. Open any Jira issue and select **Issue Proof** in its issue panel.
 
 The app uses the current viewer's Jira permissions and the `read:jira-work` scope. A viewer without access sees an error, not another user's issue data. No external API or paid service is required.
+If Jira returns an incomplete issue, the panel asks for a retry instead of treating absent fields as missing handoff evidence.
 
 The panel refreshes its checks after the current Jira issue changes. The **Check again** button remains available for changes that Jira does not send to an open panel.
 

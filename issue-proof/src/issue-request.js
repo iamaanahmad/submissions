@@ -11,7 +11,10 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000) {
         if (!response.ok) throw new Error(issueFetchError(response.status));
         const issue = await response.json();
         if (!issue || typeof issue.key !== 'string' || !issue.key
-          || !issue.fields || typeof issue.fields !== 'object' || Array.isArray(issue.fields)) {
+          || !issue.fields || typeof issue.fields !== 'object' || Array.isArray(issue.fields)
+          || typeof issue.fields.summary !== 'string'
+          || typeof issue.fields.status?.statusCategory?.key !== 'string'
+          || typeof issue.fields.issuetype?.subtask !== 'boolean') {
           throw new Error('Jira returned an incomplete issue. Check again, or ask a project admin to check issue access.');
         }
         return issue;
