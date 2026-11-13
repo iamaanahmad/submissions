@@ -1024,3 +1024,18 @@ test('does not count missing or failed sign-off as finished acceptance proof', (
   } });
   assert.equal(passed.checks.find((check) => check.id === 'acceptance').passed, true);
 });
+
+test('rejects numeric zero delivery while allowing a completed receipt', () => {
+  for (const result of [
+    '0 receipts were delivered to the buyer.',
+    '0 final reports were generated for the release.',
+    '0 confirmation records were saved in Jira.'
+  ]) {
+    const report = assessIssue({ fields: { description: `Acceptance criteria: ${result}` } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, result);
+  }
+  const report = assessIssue({ fields: {
+    description: 'Acceptance criteria: A receipt was delivered to the buyer after checkout.'
+  } });
+  assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, true);
+});
