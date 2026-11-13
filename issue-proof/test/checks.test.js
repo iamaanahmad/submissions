@@ -1087,7 +1087,10 @@ test('does not count numbered failed evidence as finished acceptance proof', () 
   for (const result of [
     '2 checkout tests failed after the release.',
     '5 of 5 checkout tests passed, but 1 buyer scenario failed.',
-    'Receipts missing: 2 after the buyer run.'
+    'Receipts missing: 2 after the buyer run.',
+    'One checkout test failed after the release.',
+    'The release had 1 failed checkout test.',
+    'Two checks passed, but 1 buyer scenario did not pass.'
   ]) {
     const report = assessIssue({ fields: { description: `Acceptance criteria: ${result}` } });
     assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, result);
