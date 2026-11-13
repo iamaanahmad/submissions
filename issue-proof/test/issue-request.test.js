@@ -6,7 +6,7 @@ test('returns a Jira issue and safely encodes its key', async () => {
   let path;
   const issue = { key: 'TEAM-1', fields: {
     summary: 'Check the release', status: { statusCategory: { key: 'indeterminate' } },
-    issuetype: { subtask: false }
+    issuetype: { subtask: false }, subtasks: [], issuelinks: []
   } };
   const result = await fetchIssue(async (requestedPath) => {
     path = requestedPath;
@@ -20,7 +20,7 @@ test('returns the current key when Jira resolves an issue by stable ID', async (
   let path;
   const issue = { id: '10042', key: 'NEW-42', fields: {
     summary: 'Check the release', status: { statusCategory: { key: 'done' } },
-    issuetype: { subtask: false }
+    issuetype: { subtask: false }, subtasks: [], issuelinks: []
   } };
   const result = await fetchIssue(async (requestedPath) => {
     path = requestedPath;
@@ -37,6 +37,23 @@ test('does not show incomplete Jira data as missing handoff evidence', async () 
     { key: 'TEAM-1', fields: { summary: 'Check the release' } },
     { key: 'TEAM-1', fields: { summary: 'Check the release', status: { statusCategory: { key: 'done' } } } }
   ]) {
+    await assert.rejects(
+      fetchIssue(async () => ({ ok: true, json: async () => issue }), 'TEAM-1'),
+      /Jira returned an incomplete issue.*Check again/
+    );
+  }
+});
+
+test('missing or malformed relationship lists cannot imply no blockers', async () => {
+  const fields = {
+    summary: 'Check the release', status: { statusCategory: { key: 'done' } },
+    issuetype: { subtask: false }, subtasks: [], issuelinks: []
+  };
+  for (const changed of [
+    { subtasks: undefined }, { issuelinks: undefined },
+    { subtasks: null }, { issuelinks: {} }
+  ]) {
+    const issue = { key: 'TEAM-1', fields: { ...fields, ...changed } };
     await assert.rejects(
       fetchIssue(async () => ({ ok: true, json: async () => issue }), 'TEAM-1'),
       /Jira returned an incomplete issue.*Check again/

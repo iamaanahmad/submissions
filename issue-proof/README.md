@@ -33,6 +33,7 @@ Use an Atlassian developer account and a Jira Cloud development site. Run `forge
 
 The app uses the current viewer's Jira permissions and the `read:jira-work` scope. A viewer without access sees an error, not another user's issue data. No external API or paid service is required.
 If Jira returns an incomplete issue, the panel asks for a retry instead of treating absent fields as missing handoff evidence.
+Missing subtask or issue-link lists also trigger a retry. The panel does not treat an incomplete Jira reply as proof that no work is blocked.
 
 The panel refreshes its checks after the current Jira issue changes. The **Check again** button remains available for changes that Jira does not send to an open panel.
 The panel requests the issue by its stable Jira ID when available. If Jira changes the issue key after a move, the panel shows the current key and its checks.
