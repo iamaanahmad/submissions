@@ -61,6 +61,36 @@ test('missing or malformed relationship lists cannot imply no blockers', async (
   }
 });
 
+test('incomplete child and linked issue statuses require a retry', async () => {
+  const fields = {
+    summary: 'Check the release', status: { statusCategory: { key: 'done' } },
+    issuetype: { subtask: false }, subtasks: [], issuelinks: []
+  };
+  const cases = [
+    { subtasks: [{ key: 'TEAM-2', fields: {} }] },
+    { subtasks: [{ fields: { status: { statusCategory: { key: 'done' } } } }] },
+    { issuelinks: [{ type: { inward: 'is blocked by', outward: 'blocks' }, inwardIssue: { key: 'TEAM-3', fields: {} } }] },
+    { issuelinks: [{ inwardIssue: { key: 'TEAM-3', fields: { status: { statusCategory: { key: 'done' } } } } }] }
+  ];
+  for (const changed of cases) {
+    await assert.rejects(
+      fetchIssue(async () => ({ ok: true, json: async () => ({ key: 'TEAM-1', fields: { ...fields, ...changed } }) }), 'TEAM-1'),
+      /Jira returned an incomplete issue.*Check again/
+    );
+  }
+});
+
+test('complete child and linked issue statuses remain readable', async () => {
+  const issue = { key: 'TEAM-1', fields: {
+    summary: 'Check the release', status: { statusCategory: { key: 'done' } },
+    issuetype: { subtask: false },
+    subtasks: [{ key: 'TEAM-2', fields: { status: { statusCategory: { key: 'done' } } } }],
+    issuelinks: [{ type: { inward: 'is blocked by', outward: 'blocks' },
+      inwardIssue: { key: 'TEAM-3', fields: { status: { statusCategory: { key: 'done' } } } } }]
+  } };
+  assert.equal(await fetchIssue(async () => ({ ok: true, json: async () => issue }), 'TEAM-1'), issue);
+});
+
 test('stalled Jira requests give a retry action instead of spinning forever', async () => {
   await assert.rejects(
     fetchIssue(() => new Promise(() => {}), 'TEAM-1', 5),

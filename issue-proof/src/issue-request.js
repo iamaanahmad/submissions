@@ -16,7 +16,17 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000) {
           || typeof issue.fields.status?.statusCategory?.key !== 'string'
           || typeof issue.fields.issuetype?.subtask !== 'boolean'
           || !Array.isArray(issue.fields.subtasks)
-          || !Array.isArray(issue.fields.issuelinks)) {
+          || !Array.isArray(issue.fields.issuelinks)
+          || issue.fields.subtasks.some((item) =>
+            !item || typeof item.key !== 'string'
+            || typeof item.fields?.status?.statusCategory?.key !== 'string')
+          || issue.fields.issuelinks.some((link) =>
+            !link || typeof link.type?.inward !== 'string'
+            || typeof link.type?.outward !== 'string'
+            || (link.inwardIssue && (typeof link.inwardIssue.key !== 'string'
+              || typeof link.inwardIssue.fields?.status?.statusCategory?.key !== 'string'))
+            || (link.outwardIssue && (typeof link.outwardIssue.key !== 'string'
+              || typeof link.outwardIssue.fields?.status?.statusCategory?.key !== 'string')))) {
           throw new Error('Jira returned an incomplete issue. Check again, or ask a project admin to check issue access.');
         }
         return issue;
