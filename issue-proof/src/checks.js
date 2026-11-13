@@ -113,7 +113,7 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
   const vagueResult = /^(?:(?:it|this|the (?:feature|app|issue))\s+)?(?:works? (?:as expected|correctly|properly|well)|looks? good|is (?:done|ready|complete)|has no bugs)(?:\.|!)?$/i;
   const hasPartialVerification = (text) => {
     const count = text.match(/\b(\d+)\s*(?:\/|(?:out )?of)\s*(\d+)\s+(?:\w+\s+){0,2}?(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:pass(?:ed)?|completed|verified|succeed(?:ed)?|received|sent|delivered|shown|displayed|created|saved|generated|recorded|produced)\b/i);
-    return count && Number(count[1]) < Number(count[2]);
+    return count && (Number(count[2]) === 0 || Number(count[1]) !== Number(count[2]));
   };
   const isSpecific = (text) => {
     const result = text.trim().replace(/^(?:\[[xX ]\]|[\u2610\u2611\u25a1])\s*/, '').trim();

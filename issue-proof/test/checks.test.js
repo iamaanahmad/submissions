@@ -1082,3 +1082,18 @@ test('does not count partial delivery as finished acceptance proof', () => {
   } });
   assert.equal(complete.checks.find((check) => check.id === 'acceptance').passed, true);
 });
+
+test('does not count impossible or empty totals as finished acceptance proof', () => {
+  for (const result of [
+    '0 of 0 tests passed after the release.',
+    '6 of 5 checks passed after the release.',
+    '5/4 receipts delivered to buyers.'
+  ]) {
+    const report = assessIssue({ fields: { description: `Acceptance criteria: ${result}` } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, result);
+  }
+  const complete = assessIssue({ fields: {
+    description: 'Acceptance criteria: 5 of 5 checks passed after the release.'
+  } });
+  assert.equal(complete.checks.find((check) => check.id === 'acceptance').passed, true);
+});
