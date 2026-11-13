@@ -80,6 +80,24 @@ test('incomplete child and linked issue statuses require a retry', async () => {
   }
 });
 
+test('a Jira link must identify one linked issue', async () => {
+  const fields = {
+    summary: 'Check the release', status: { statusCategory: { key: 'done' } },
+    issuetype: { subtask: false }, subtasks: [], issuelinks: []
+  };
+  const type = { inward: 'is blocked by', outward: 'blocks' };
+  const linked = { key: 'TEAM-3', fields: { status: { statusCategory: { key: 'done' } } } };
+  for (const link of [
+    { type },
+    { type, inwardIssue: linked, outwardIssue: linked }
+  ]) {
+    await assert.rejects(
+      fetchIssue(async () => ({ ok: true, json: async () => ({ key: 'TEAM-1', fields: { ...fields, issuelinks: [link] } }) }), 'TEAM-1'),
+      /Jira returned an incomplete issue.*Check again/
+    );
+  }
+});
+
 test('complete child and linked issue statuses remain readable', async () => {
   const issue = { key: 'TEAM-1', fields: {
     summary: 'Check the release', status: { statusCategory: { key: 'done' } },

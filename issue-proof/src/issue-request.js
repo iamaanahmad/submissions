@@ -23,6 +23,7 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000) {
           || issue.fields.issuelinks.some((link) =>
             !link || typeof link.type?.inward !== 'string'
             || typeof link.type?.outward !== 'string'
+            || Boolean(link.inwardIssue) === Boolean(link.outwardIssue)
             || (link.inwardIssue && (typeof link.inwardIssue.key !== 'string'
               || typeof link.inwardIssue.fields?.status?.statusCategory?.key !== 'string'))
             || (link.outwardIssue && (typeof link.outwardIssue.key !== 'string'
