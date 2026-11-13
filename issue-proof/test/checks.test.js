@@ -57,6 +57,20 @@ test('does not count a failed product result as finished acceptance proof', () =
   assert.equal(complete.checks.find((check) => check.id === 'acceptance').passed, true);
 });
 
+test('does not count an incomplete check count as finished acceptance proof', () => {
+  for (const result of [
+    'Only 2 of 5 checks succeed after the release review.',
+    '3/5 tests pass in the buyer flow.'
+  ]) {
+    const report = assessIssue({ fields: { description: `Acceptance criteria: ${result}` } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, result);
+  }
+  const complete = assessIssue({ fields: {
+    description: 'Acceptance criteria: All 5 of 5 checks succeed after the release review.'
+  } });
+  assert.equal(complete.checks.find((check) => check.id === 'acceptance').passed, true);
+});
+
 test('does not count missing output as finished acceptance proof', () => {
   for (const result of [
     'The receipt is missing after payment.',
