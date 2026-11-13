@@ -12,6 +12,7 @@ For written results, the panel accepts Acceptance criteria, Definition of done, 
 It accepts a colon or dash before a result on the same line.
 Unfinished results such as TBC, WIP, pending review, missing receipts, and to be confirmed do not count as evidence.
 Partial test results, such as two of five checks passing, do not count as finished acceptance proof.
+Numbered failed tests, missing receipts, and failed scenarios also block acceptance, even when another count says checks passed.
 Implementation steps below an empty acceptance heading do not count as acceptance results.
 Given / When / Then examples inside implementation notes do not count as acceptance results either.
 

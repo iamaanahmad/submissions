@@ -1083,6 +1083,17 @@ test('does not count partial test results as finished acceptance proof', () => {
   assert.equal(complete.checks.find((check) => check.id === 'acceptance').passed, true);
 });
 
+test('does not count numbered failed evidence as finished acceptance proof', () => {
+  for (const result of [
+    '2 checkout tests failed after the release.',
+    '5 of 5 checkout tests passed, but 1 buyer scenario failed.',
+    'Receipts missing: 2 after the buyer run.'
+  ]) {
+    const report = assessIssue({ fields: { description: `Acceptance criteria: ${result}` } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, result);
+  }
+});
+
 test('does not count partial delivery as finished acceptance proof', () => {
   for (const result of [
     '2 of 5 receipts delivered to buyers.',
