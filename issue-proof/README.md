@@ -39,6 +39,7 @@ Subtasks and linked issues must include their Jira status. Missing status data t
 
 The panel refreshes its checks after the current Jira issue changes. The **Check again** button remains available for changes that Jira does not send to an open panel.
 The panel requests the issue by its stable Jira ID when available. If Jira changes the issue key after a move, the panel shows the current key and its checks.
+If Jira returns a different issue ID, the panel asks for a retry instead of showing another issue's evidence.
 
 ## Contest status
 

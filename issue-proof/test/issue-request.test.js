@@ -30,6 +30,18 @@ test('returns the current key when Jira resolves an issue by stable ID', async (
   assert.equal(result.key, 'NEW-42');
 });
 
+test('does not show another issue when Jira resolves the wrong stable ID', async () => {
+  const issue = { id: '10043', key: 'OTHER-43', fields: {
+    summary: 'Other work', description: null, assignee: null, duedate: null,
+    status: { statusCategory: { key: 'done' } }, issuetype: { subtask: false },
+    subtasks: [], issuelinks: []
+  } };
+  await assert.rejects(
+    fetchIssue(async () => ({ ok: true, json: async () => issue }), '10042'),
+    /Jira returned an incomplete issue.*Check again/
+  );
+});
+
 test('does not show incomplete Jira data as missing handoff evidence', async () => {
   for (const issue of [
     null, {}, { key: 'TEAM-1' }, { key: 'TEAM-1', fields: [] },
