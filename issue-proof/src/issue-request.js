@@ -13,6 +13,9 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000) {
         if (!issue || typeof issue.key !== 'string' || !issue.key
           || !issue.fields || typeof issue.fields !== 'object' || Array.isArray(issue.fields)
           || typeof issue.fields.summary !== 'string'
+          || !Object.hasOwn(issue.fields, 'description')
+          || !Object.hasOwn(issue.fields, 'assignee')
+          || !Object.hasOwn(issue.fields, 'duedate')
           || typeof issue.fields.status?.statusCategory?.key !== 'string'
           || typeof issue.fields.issuetype?.subtask !== 'boolean'
           || !Array.isArray(issue.fields.subtasks)

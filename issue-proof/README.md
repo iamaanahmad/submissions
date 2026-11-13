@@ -33,6 +33,7 @@ Use an Atlassian developer account and a Jira Cloud development site. Run `forge
 
 The app uses the current viewer's Jira permissions and the `read:jira-work` scope. A viewer without access sees an error, not another user's issue data. No external API or paid service is required.
 If Jira returns an incomplete issue, the panel asks for a retry instead of treating absent fields as missing handoff evidence.
+Jira may leave owner, target date, or description empty. Those fields must still appear in the reply, so missing data triggers a retry instead of a false missing-evidence result.
 Missing subtask or issue-link lists also trigger a retry. The panel does not treat an incomplete Jira reply as proof that no work is blocked.
 Subtasks and linked issues must include their Jira status. Missing status data triggers a retry instead of a misleading blocker result.
 
