@@ -4,13 +4,22 @@ import { fetchIssue } from '../src/issue-request.js';
 
 test('returns a Jira issue and safely encodes its key', async () => {
   let path;
-  const issue = { key: 'TEAM-1' };
+  const issue = { key: 'TEAM-1', fields: {} };
   const result = await fetchIssue(async (requestedPath) => {
     path = requestedPath;
     return { ok: true, json: async () => issue };
   }, 'TEAM-1/extra');
   assert.equal(result, issue);
   assert.match(path, /TEAM-1%2Fextra/);
+});
+
+test('does not show incomplete Jira data as missing handoff evidence', async () => {
+  for (const issue of [null, {}, { key: 'TEAM-1' }, { key: 'TEAM-1', fields: [] }]) {
+    await assert.rejects(
+      fetchIssue(async () => ({ ok: true, json: async () => issue }), 'TEAM-1'),
+      /Jira returned an incomplete issue.*Check again/
+    );
+  }
 });
 
 test('stalled Jira requests give a retry action instead of spinning forever', async () => {

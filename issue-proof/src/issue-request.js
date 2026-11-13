@@ -9,7 +9,12 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000) {
       (async () => {
         const response = await requestJira(path);
         if (!response.ok) throw new Error(issueFetchError(response.status));
-        return response.json();
+        const issue = await response.json();
+        if (!issue || typeof issue.key !== 'string' || !issue.key
+          || !issue.fields || typeof issue.fields !== 'object' || Array.isArray(issue.fields)) {
+          throw new Error('Jira returned an incomplete issue. Check again, or ask a project admin to check issue access.');
+        }
+        return issue;
       })(),
       new Promise((_, reject) => {
         timer = setTimeout(() => reject(new Error('Jira took too long to respond. Check your connection, then try again.')), timeoutMs);
