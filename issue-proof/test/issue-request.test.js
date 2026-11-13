@@ -16,6 +16,20 @@ test('returns a Jira issue and safely encodes its key', async () => {
   assert.match(path, /TEAM-1%2Fextra/);
 });
 
+test('returns the current key when Jira resolves an issue by stable ID', async () => {
+  let path;
+  const issue = { id: '10042', key: 'NEW-42', fields: {
+    summary: 'Check the release', status: { statusCategory: { key: 'done' } },
+    issuetype: { subtask: false }
+  } };
+  const result = await fetchIssue(async (requestedPath) => {
+    path = requestedPath;
+    return { ok: true, json: async () => issue };
+  }, '10042');
+  assert.match(path, /\/issue\/10042\?/);
+  assert.equal(result.key, 'NEW-42');
+});
+
 test('does not show incomplete Jira data as missing handoff evidence', async () => {
   for (const issue of [
     null, {}, { key: 'TEAM-1' }, { key: 'TEAM-1', fields: [] },

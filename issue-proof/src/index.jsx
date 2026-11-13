@@ -31,8 +31,10 @@ function App() {
     setError('');
     setReport(null);
     try {
-      const result = assessIssue(await fetchIssue(requestJira, issueKey));
-      if (requestGate.current.isCurrent(request)) setReport(result);
+      const result = assessIssue(await fetchIssue(requestJira, issueId || issueKey));
+      if (requestGate.current.isCurrent(request)) {
+        setReport({ ...result, contextIssueId: issueId, contextIssueKey: issueKey });
+      }
     } catch (cause) {
       if (requestGate.current.isCurrent(request)) {
         setError(cause.message || 'The issue could not be checked.');
@@ -45,7 +47,7 @@ function App() {
   useEffect(() => {
     refresh();
     return () => requestGate.current.invalidate();
-  }, [issueKey]);
+  }, [issueKey, issueId]);
 
   useEffect(() => {
     if (!issueKey || !issueId) return;
@@ -71,7 +73,7 @@ function App() {
     </SectionMessage>}
     {loading && <Spinner />}
     {error && <SectionMessage appearance="error"><Text>{error}</Text></SectionMessage>}
-    {report && report.issueKey === issueKey && <>
+    {report && report.contextIssueId === issueId && report.contextIssueKey === issueKey && <>
       <Heading size="medium">{report.passed} of {report.total} checks have evidence</Heading>
       <Text>{report.issueKey}: {report.summary}</Text>
       <SectionMessage appearance={report.passed === report.total ? 'success' : 'warning'}>

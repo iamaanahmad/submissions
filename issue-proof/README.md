@@ -34,6 +34,7 @@ The app uses the current viewer's Jira permissions and the `read:jira-work` scop
 If Jira returns an incomplete issue, the panel asks for a retry instead of treating absent fields as missing handoff evidence.
 
 The panel refreshes its checks after the current Jira issue changes. The **Check again** button remains available for changes that Jira does not send to an open panel.
+The panel requests the issue by its stable Jira ID when available. If Jira changes the issue key after a move, the panel shows the current key and its checks.
 
 ## Contest status
 
