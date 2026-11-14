@@ -3,6 +3,22 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { assessIssue } from '../src/checks.js';
 
+test('unfinished delivery does not count as acceptance proof', () => {
+  for (const result of [
+    'Buyer receipt generation is in progress.',
+    'Release upload is still underway.',
+    'Final delivery remains incomplete.',
+    'The receipt job was not started.'
+  ]) {
+    const report = assessIssue({ fields: { description: `Acceptance criteria: ${result}` } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, result);
+  }
+  const complete = assessIssue({ fields: {
+    description: 'Acceptance criteria: Buyer receipt was saved and reopened successfully.'
+  } });
+  assert.equal(complete.checks.find((check) => check.id === 'acceptance').passed, true);
+});
+
 test('test suite errors cannot count as acceptance proof', () => {
   for (const result of [
     'Checkout suite: 5 passed, 1 error.',
