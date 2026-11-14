@@ -471,6 +471,19 @@ test('an inactive account without an assignee ID does not count as an owner', ()
   assert.match(report.nextAction, /Assign someone/);
 });
 
+test('mixed pass and failure summaries cannot count as acceptance proof', () => {
+  for (const result of [
+    '5 checks passed, 1 failed.',
+    'Five tests passed; two failed.',
+    '1 failed, 5 checks passed.'
+  ]) {
+    const report = assessIssue({ key: 'DEMO-FAIL', fields: {
+      description: `Acceptance criteria: ${result}`
+    } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, result);
+  }
+});
+
 test('names the first vague result when every acceptance item is vague', () => {
   const report = assessIssue({ key: 'DEMO-40', fields: {
     description: 'Acceptance criteria:\n- TBD\n- Pending review',
