@@ -68,6 +68,23 @@ test('does not show incomplete Jira data as missing handoff evidence', async () 
   }
 });
 
+test('malformed Jira core fields require a retry instead of false missing evidence', async () => {
+  const fields = {
+    summary: 'Check the release', description: null, assignee: null, duedate: null,
+    status: { statusCategory: { key: 'done' } }, issuetype: { subtask: false },
+    subtasks: [], issuelinks: []
+  };
+  for (const changed of [
+    { description: [] }, { description: { type: 'doc' } },
+    { assignee: 'account-123' }, { assignee: {} }, { duedate: 20261114 }
+  ]) {
+    await assert.rejects(
+      fetchIssue(async () => ({ ok: true, json: async () => ({ key: 'TEAM-1', fields: { ...fields, ...changed } }) }), 'TEAM-1'),
+      /Jira returned an incomplete issue.*Check again/
+    );
+  }
+});
+
 test('missing or malformed relationship lists cannot imply no blockers', async () => {
   const fields = {
     summary: 'Check the release', description: null, assignee: null, duedate: null, status: { statusCategory: { key: 'done' } },

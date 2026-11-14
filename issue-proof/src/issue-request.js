@@ -16,8 +16,19 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000) {
           || !issue.fields || typeof issue.fields !== 'object' || Array.isArray(issue.fields)
           || typeof issue.fields.summary !== 'string'
           || !Object.hasOwn(issue.fields, 'description')
+          || (issue.fields.description !== null
+            && typeof issue.fields.description !== 'string'
+            && (typeof issue.fields.description !== 'object'
+              || Array.isArray(issue.fields.description)
+              || issue.fields.description.type !== 'doc'
+              || !Array.isArray(issue.fields.description.content)))
           || !Object.hasOwn(issue.fields, 'assignee')
+          || (issue.fields.assignee !== null
+            && (typeof issue.fields.assignee !== 'object'
+              || Array.isArray(issue.fields.assignee)
+              || typeof issue.fields.assignee.accountId !== 'string'))
           || !Object.hasOwn(issue.fields, 'duedate')
+          || (issue.fields.duedate !== null && typeof issue.fields.duedate !== 'string')
           || typeof issue.fields.status?.statusCategory?.key !== 'string'
           || typeof issue.fields.issuetype?.subtask !== 'boolean'
           || !Array.isArray(issue.fields.subtasks)
