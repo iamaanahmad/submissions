@@ -1069,6 +1069,17 @@ test('rejects numeric zero delivery while allowing a completed receipt', () => {
   assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, true);
 });
 
+test('zero successful checks cannot count as acceptance proof', () => {
+  for (const result of [
+    '0 checkout tests passed after release.',
+    'Zero buyer scenarios were verified after checkout.',
+    'No receipt records were saved in Jira.'
+  ]) {
+    const report = assessIssue({ fields: { description: `Acceptance criteria: ${result}` } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, result);
+  }
+});
+
 test('does not count partial test results as finished acceptance proof', () => {
   for (const result of [
     '2 of 5 checkout tests passed after the release.',
