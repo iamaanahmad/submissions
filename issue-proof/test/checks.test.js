@@ -2,6 +2,22 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { assessIssue } from '../src/checks.js';
 
+test('does not accept a failed Given When Then result', () => {
+  const failed = [
+    'Given a saved order, when payment is captured, then one receipt check fails.',
+    'Given a saved order, when payment is captured, then zero receipts were sent.',
+    'Given a saved order\nWhen payment is captured\nThen one receipt check fails.'
+  ];
+  for (const description of failed) {
+    const report = assessIssue({ fields: { description } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, description);
+  }
+  const complete = assessIssue({ fields: {
+    description: 'Given a saved order, when payment is captured, then buyer receives a receipt.'
+  } });
+  assert.equal(complete.checks.find((check) => check.id === 'acceptance').passed, true);
+});
+
 test('reports complete evidence without claiming release approval', () => {
   const report = assessIssue({ key: 'DEMO-7', fields: {
     summary: 'Ship the fix', status: { name: 'Done', statusCategory: { key: 'done' } }, assignee: { accountId: 'abc', displayName: 'Amaan' },

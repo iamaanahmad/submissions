@@ -16,6 +16,7 @@ Zero completed tests, scenarios, or receipts do not count as finished proof, eve
 Numbered failed tests, missing receipts, and failed scenarios also block acceptance, even when another count says checks passed. The check also rejects phrases such as "one test failed" and "1 failed test."
 Written counts such as "two tests failed" and "all receipt checks failed" block acceptance too.
 Present-tense failures such as "one test fails" and "checks fail: 1" block acceptance too.
+Failed or zero-result Given / When / Then scenarios cannot count as acceptance evidence.
 Mixed summaries such as "5 checks passed, 1 failed" also block acceptance.
 Failed result ratios, such as "2/5 checkout tests failed," also block acceptance.
 Implementation steps below an empty acceptance heading do not count as acceptance results.
