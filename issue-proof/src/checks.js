@@ -62,7 +62,14 @@ function descriptionWithoutCode(value) {
   return { ...value, content: descriptionWithoutCode(value.content) };
 }
 
-export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)) {
+export function localToday(now = new Date()) {
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+export function assessIssue(issue, today = localToday()) {
   const fields = issue?.fields || {};
   const checklistDescription = descriptionWithoutCode(fields.description);
   const description = withoutInlineCode(withoutFencedCode(adfText(checklistDescription)));

@@ -28,6 +28,7 @@ Given / When / Then examples inside implementation notes do not count as accepta
 ## Run locally
 
 Open issues with past target dates need a new date. Completed issues keep their original target date as evidence.
+The target-date check uses the viewer's local calendar day, so dates do not turn overdue early across time zones.
 
 ```sh
 npm install

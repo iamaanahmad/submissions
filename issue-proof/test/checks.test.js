@@ -1,6 +1,26 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { assessIssue } from '../src/checks.js';
+
+test('uses the viewer calendar day when judging a Jira due date', () => {
+  const script = `import { assessIssue } from './src/checks.js';
+    const RealDate = Date;
+    globalThis.Date = class extends RealDate {
+      constructor(...args) { super(...(args.length ? args : ['2026-11-14T00:30:00Z'])); }
+    };
+    const report = assessIssue({ fields: { duedate: '2026-11-13', status: { statusCategory: { key: 'indeterminate' } } } });
+    process.stdout.write(String(report.checks.find((check) => check.id === 'deadline').passed));`;
+  for (const [timezone, expected] of [['America/Los_Angeles', 'true'], ['Asia/Kolkata', 'false']]) {
+    const run = spawnSync(process.execPath, ['--input-type=module', '-e', script], {
+      cwd: new URL('..', import.meta.url).pathname,
+      env: { ...process.env, TZ: timezone },
+      encoding: 'utf8'
+    });
+    assert.equal(run.status, 0, run.stderr);
+    assert.equal(run.stdout, expected, timezone);
+  }
+});
 
 test('checks every acceptance section before reporting handoff evidence', () => {
   const description = 'Acceptance criteria: Buyer receives a saved receipt.\n\n## Definition of done\n- Receipt review is pending approval.';
