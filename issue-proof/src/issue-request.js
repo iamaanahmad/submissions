@@ -12,6 +12,7 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000) {
         const issue = await response.json();
         if (!issue || typeof issue.key !== 'string' || !issue.key
           || (/^\d+$/.test(String(issueKey)) && String(issue.id) !== String(issueKey))
+          || (!/^\d+$/.test(String(issueKey)) && issue.key !== String(issueKey))
           || !issue.fields || typeof issue.fields !== 'object' || Array.isArray(issue.fields)
           || typeof issue.fields.summary !== 'string'
           || !Object.hasOwn(issue.fields, 'description')

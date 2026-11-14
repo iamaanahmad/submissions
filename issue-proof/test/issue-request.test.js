@@ -4,7 +4,7 @@ import { fetchIssue } from '../src/issue-request.js';
 
 test('returns a Jira issue and safely encodes its key', async () => {
   let path;
-  const issue = { key: 'TEAM-1', fields: {
+  const issue = { key: 'TEAM-1/extra', fields: {
     summary: 'Check the release', description: null, assignee: null, duedate: null, status: { statusCategory: { key: 'indeterminate' } },
     issuetype: { subtask: false }, subtasks: [], issuelinks: []
   } };
@@ -14,6 +14,18 @@ test('returns a Jira issue and safely encodes its key', async () => {
   }, 'TEAM-1/extra');
   assert.equal(result, issue);
   assert.match(path, /TEAM-1%2Fextra/);
+});
+
+test('a key lookup cannot show evidence from another issue', async () => {
+  const issue = { key: 'OTHER-2', fields: {
+    summary: 'Other work', description: null, assignee: null, duedate: null,
+    status: { statusCategory: { key: 'done' } }, issuetype: { subtask: false },
+    subtasks: [], issuelinks: []
+  } };
+  await assert.rejects(
+    fetchIssue(async () => ({ ok: true, json: async () => issue }), 'TEAM-1'),
+    /Jira returned an incomplete issue.*Check again/
+  );
 });
 
 test('returns the current key when Jira resolves an issue by stable ID', async () => {
