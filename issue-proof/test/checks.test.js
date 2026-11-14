@@ -1346,3 +1346,23 @@ test('does not count impossible or empty totals as finished acceptance proof', (
   } });
   assert.equal(complete.checks.find((check) => check.id === 'acceptance').passed, true);
 });
+
+test('does not count unnumbered unrun or skipped checks as acceptance proof', () => {
+  for (const result of [
+    'Checkout tests were not run.',
+    'Buyer checks were skipped.',
+    'The checkout test was not executed.',
+    'Buyer checks remain untested.'
+  ]) {
+    const report = assessIssue({ fields: { description: `Acceptance criteria: ${result}` } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, result);
+  }
+  const complete = assessIssue({ fields: {
+    description: 'Acceptance criteria: Checkout tests passed and the buyer receipt was saved.'
+  } });
+  assert.equal(complete.checks.find((check) => check.id === 'acceptance').passed, true);
+  const zeroSkipped = assessIssue({ fields: {
+    description: 'Acceptance criteria: Checkout suite: 5 passed, 0 checks skipped.'
+  } });
+  assert.equal(zeroSkipped.checks.find((check) => check.id === 'acceptance').passed, true);
+});

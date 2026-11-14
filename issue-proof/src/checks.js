@@ -141,7 +141,8 @@ export function assessIssue(issue, today = localToday()) {
   const hasUnfinishedEvidence = (text) => /\b(?:[1-9]\d*|one|two|three|four|five|six|seven|eight|nine|ten|some|several)\s+(?:\w+\s+){0,2}?(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:(?:are|were|remain)\s+)?(?:pending|blocked|incomplete|unverified|awaiting\s+review)\b/i.test(text)
     || /\b(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:pending|blocked|incomplete|unverified)\s*[:=]\s*[1-9]\d*\b/i.test(text)
     || /\b(?:[1-9]\d*|one|two|three|four|five|six|seven|eight|nine|ten|some|several)\s+(?:\w+\s+){0,2}?(?:tests?|checks?|cases?|scenarios?)\s+(?:(?:were|are|remain)\s+)?(?:not run|not executed|untested)\b/i.test(text)
-    || /\b(?:tests?|checks?|cases?|scenarios?)\s+(?:not run|not executed|untested)\s*[:=]\s*[1-9]\d*\b/i.test(text);
+    || /\b(?:tests?|checks?|cases?|scenarios?)\s+(?:not run|not executed|untested)\s*[:=]\s*[1-9]\d*\b/i.test(text)
+    || /(?<!0 )(?<!zero )\b(?:tests?|checks?|cases?|scenarios?)\s+(?:(?:were|was|are|is|remain|remains)\s+)?(?:not run|not executed|untested|skipp?ed)\b/i.test(text);
   const hasZeroEvidence = (text) => /\b(?:0|zero|no)\s+(?:\w+\s+){0,2}?(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:(?:was|were|has been|have been)\s+)?(?:passed|completed|verified|succeeded|received|sent|delivered|created|saved|generated|recorded|produced)\b/i.test(text);
   const isSpecific = (text) => {
     const result = text.trim().replace(/^(?:\[[xX ]\]|[\u2610\u2611\u25a1])\s*/, '').trim();
