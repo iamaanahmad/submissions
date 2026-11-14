@@ -123,6 +123,7 @@ export function assessIssue(issue, today = localToday()) {
     return count && (Number(count[2]) === 0 || Number(count[1]) !== Number(count[2]));
   };
   const hasFailedEvidence = (text) => /\b(?:[1-9]\d*|one|two|three|four|five|six|seven|eight|nine|ten|some|several|all)\s+(?:\w+\s+){0,2}?(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:fails?|failed|failing|rejected|missing|undelivered|did not pass)\b/i.test(text)
+    || /\b(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:(?:has|have|had|was|were|is|are)\s+)?(?:failed|failing|rejected|missing|undelivered|did not pass)\b/i.test(text)
     || /\b(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:passed|completed|verified|succeeded|received|sent|delivered|created|saved)\s+(?:except|but not)\s+(?:for\s+)?(?:[1-9]\d*|one|two|three|four|five|six|seven|eight|nine|ten|some|several)\b/i.test(text)
     || /\b(?:[1-9]\d*|one|two|three|four|five|six|seven|eight|nine|ten|some|several|all)\s+(?:\w+\s+){0,2}?(?:tests?|checks?|cases?|scenarios?)\s+(?:(?:was|were)\s+)?skipp?ed\b/i.test(text)
     || /\b(?:[1-9]\d*|one|two|three|four|five|six|seven|eight|nine|ten|some|several|all)\s+skipp?ed\s+(?:\w+\s+){0,2}?(?:tests?|checks?|cases?|scenarios?)\b/i.test(text)

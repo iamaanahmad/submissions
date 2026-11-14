@@ -23,6 +23,7 @@ If an issue has several acceptance or definition-of-done sections, every section
 Mixed summaries such as "5 checks passed, 1 failed" also block acceptance.
 Summaries such as "all checks passed except one" also block acceptance.
 Failed result ratios, such as "2/5 checkout tests failed," also block acceptance.
+Unnumbered failures, such as "the buyer check failed," also block acceptance.
 Implementation steps below an empty acceptance heading do not count as acceptance results.
 Given / When / Then examples inside implementation notes do not count as acceptance results either.
 

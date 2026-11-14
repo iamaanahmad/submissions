@@ -1239,6 +1239,22 @@ test('does not count failed result ratios as finished acceptance proof', () => {
   assert.equal(complete.checks.find((check) => check.id === 'acceptance').passed, true);
 });
 
+test('does not count unnumbered failed evidence as finished acceptance proof', () => {
+  for (const result of [
+    'The buyer check failed after approval.',
+    'The confirmation was missing after capture.',
+    'The release scenarios did not pass in Jira.',
+    'The test is failing after the patch.'
+  ]) {
+    const report = assessIssue({ fields: { description: `Acceptance criteria: ${result}` } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, result);
+  }
+  const complete = assessIssue({ fields: {
+    description: 'Acceptance criteria: The buyer check passed after approval.'
+  } });
+  assert.equal(complete.checks.find((check) => check.id === 'acceptance').passed, true);
+});
+
 test('does not count partial delivery as finished acceptance proof', () => {
   for (const result of [
     '2 of 5 receipts delivered to buyers.',
