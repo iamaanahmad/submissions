@@ -115,10 +115,10 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
     const count = text.match(/\b(\d+)\s*(?:\/|(?:out )?of)\s*(\d+)\s+(?:\w+\s+){0,2}?(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:pass(?:ed)?|completed|verified|succeed(?:ed)?|received|sent|delivered|shown|displayed|created|saved|generated|recorded|produced)\b/i);
     return count && (Number(count[2]) === 0 || Number(count[1]) !== Number(count[2]));
   };
-  const hasFailedEvidence = (text) => /\b(?:[1-9]\d*|one|some|several)\s+(?:\w+\s+){0,2}?(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:failed|failing|rejected|missing|undelivered|did not pass)\b/i.test(text)
+  const hasFailedEvidence = (text) => /\b(?:[1-9]\d*|one|two|three|four|five|six|seven|eight|nine|ten|some|several|all)\s+(?:\w+\s+){0,2}?(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:failed|failing|rejected|missing|undelivered|did not pass)\b/i.test(text)
     || /\b[1-9]\d*\s*(?:\/|(?:out )?of)\s*[1-9]\d*\s+(?:\w+\s+){0,2}?(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:failed|failing|rejected|missing|undelivered)\b/i.test(text)
     || /\b(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:failed|failing|rejected|missing|undelivered)\s*:\s*[1-9]\d*\b/i.test(text)
-    || /\b(?:[1-9]\d*|one|some|several)\s+(?:failed|failing|rejected|missing|undelivered)\s+(?:\w+\s+){0,2}?(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\b/i.test(text);
+    || /\b(?:[1-9]\d*|one|two|three|four|five|six|seven|eight|nine|ten|some|several|all)\s+(?:failed|failing|rejected|missing|undelivered)\s+(?:\w+\s+){0,2}?(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\b/i.test(text);
   const hasZeroEvidence = (text) => /\b(?:0|zero|no)\s+(?:\w+\s+){0,2}?(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:(?:was|were|has been|have been)\s+)?(?:passed|completed|verified|succeeded|received|sent|delivered|created|saved|generated|recorded|produced)\b/i.test(text);
   const isSpecific = (text) => {
     const result = text.trim().replace(/^(?:\[[xX ]\]|[\u2610\u2611\u25a1])\s*/, '').trim();
