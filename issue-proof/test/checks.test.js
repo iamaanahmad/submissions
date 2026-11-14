@@ -111,6 +111,17 @@ test('does not count a failed product result as finished acceptance proof', () =
   assert.equal(complete.checks.find((check) => check.id === 'acceptance').passed, true);
 });
 
+test('does not count a mostly passing result as complete acceptance proof', () => {
+  for (const result of [
+    'All buyer checks passed except one.',
+    'Receipt tests passed except for 2.',
+    'Release scenarios completed but not three.'
+  ]) {
+    const report = assessIssue({ fields: { description: `Acceptance criteria: ${result}` } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, result);
+  }
+});
+
 test('does not count written failed counts as finished acceptance proof', () => {
   for (const result of [
     'Two checkout tests failed after payment.',

@@ -21,6 +21,7 @@ The check also rejects reversed counts such as "2 skipped checks" and "checks sk
 Failed or zero-result Given / When / Then scenarios cannot count as acceptance evidence.
 If an issue has several acceptance or definition-of-done sections, every section needs a specific result. An empty later section blocks handoff.
 Mixed summaries such as "5 checks passed, 1 failed" also block acceptance.
+Summaries such as "all checks passed except one" also block acceptance.
 Failed result ratios, such as "2/5 checkout tests failed," also block acceptance.
 Implementation steps below an empty acceptance heading do not count as acceptance results.
 Given / When / Then examples inside implementation notes do not count as acceptance results either.
