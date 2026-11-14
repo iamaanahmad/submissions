@@ -1177,6 +1177,21 @@ test('does not count numbered failed evidence as finished acceptance proof', () 
   }
 });
 
+test('does not count skipped checks as finished acceptance proof', () => {
+  for (const result of [
+    'Five checkout tests passed, but 1 buyer scenario was skipped.',
+    '2 payment checks skipped after the release.',
+    'Tests skipped: 1 after the buyer run.'
+  ]) {
+    const report = assessIssue({ fields: { description: `Acceptance criteria: ${result}` } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, result);
+  }
+  const complete = assessIssue({ fields: {
+    description: 'Acceptance criteria: Five checkout tests passed and a buyer receipt was saved.'
+  } });
+  assert.equal(complete.checks.find((check) => check.id === 'acceptance').passed, true);
+});
+
 test('does not count failed result ratios as finished acceptance proof', () => {
   for (const result of [
     '2/5 checkout tests failed after the release.',
