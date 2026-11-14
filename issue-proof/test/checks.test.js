@@ -1181,7 +1181,9 @@ test('does not count skipped checks as finished acceptance proof', () => {
   for (const result of [
     'Five checkout tests passed, but 1 buyer scenario was skipped.',
     '2 payment checks skipped after the release.',
-    'Tests skipped: 1 after the buyer run.'
+    'Tests skipped: 1 after the buyer run.',
+    'Five checkout tests passed, but 2 skipped buyer scenarios remain.',
+    'Five checkout tests passed; checks skipped, two after the buyer run.'
   ]) {
     const report = assessIssue({ fields: { description: `Acceptance criteria: ${result}` } });
     assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, result);
