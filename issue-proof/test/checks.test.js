@@ -68,6 +68,17 @@ test('does not count written failed counts as finished acceptance proof', () => 
   }
 });
 
+test('does not count present-tense failures as finished acceptance proof', () => {
+  for (const result of [
+    'One checkout test fails after payment.',
+    'Two buyer checks fail before release.',
+    'Receipt checks fail: 1 after checkout.'
+  ]) {
+    const report = assessIssue({ fields: { description: `Acceptance criteria: ${result}` } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, result);
+  }
+});
+
 test('does not count an incomplete check count as finished acceptance proof', () => {
   for (const result of [
     'Only 2 of 5 checks succeed after the release review.',
