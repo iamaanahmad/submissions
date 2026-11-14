@@ -3,6 +3,21 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { assessIssue } from '../src/checks.js';
 
+test('rejects failed acceptance tallies without a test noun', () => {
+  for (const result of [
+    'Checkout suite: 5 passed, 1 failed.',
+    'Checkout suite: pass 5, fail 1.',
+    'Checkout suite: 5 passed; failed: 1.'
+  ]) {
+    const report = assessIssue({ fields: { description: `Acceptance criteria: ${result}` } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, result);
+  }
+  const report = assessIssue({ fields: {
+    description: 'Acceptance criteria: Checkout suite: 5 passed, 0 failed.'
+  } });
+  assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, true);
+});
+
 test('uses the viewer calendar day when judging a Jira due date', () => {
   const script = `import { assessIssue } from './src/checks.js';
     const RealDate = Date;
