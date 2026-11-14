@@ -18,6 +18,22 @@ test('test suite errors cannot count as acceptance proof', () => {
   assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, true);
 });
 
+test('unrun checks cannot count as acceptance proof', () => {
+  for (const result of [
+    'Checkout suite: 5 passed, 1 test not run.',
+    'Checkout suite: 5 passed; checks not run: 2.',
+    'Checkout suite: five passed, one scenario not executed.',
+    'Checkout suite: 5 passed, two tests untested.'
+  ]) {
+    const report = assessIssue({ fields: { description: `Acceptance criteria: ${result}` } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, result);
+  }
+  const report = assessIssue({ fields: {
+    description: 'Acceptance criteria: Checkout suite: 5 tests passed, 0 checks not run.'
+  } });
+  assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, true);
+});
+
 test('rejects failed acceptance tallies without a test noun', () => {
   for (const result of [
     'Checkout suite: 5 passed, 1 failed.',
