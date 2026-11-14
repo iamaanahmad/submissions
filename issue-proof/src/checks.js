@@ -137,12 +137,15 @@ export function assessIssue(issue, today = localToday()) {
     || /\b[1-9]\d*\s*(?:\/|(?:out )?of)\s*[1-9]\d*\s+(?:\w+\s+){0,2}?(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:failed|failing|rejected|missing|undelivered)\b/i.test(text)
     || /\b(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:fails?|failed|failing|rejected|missing|undelivered)\s*:\s*[1-9]\d*\b/i.test(text)
     || /\b(?:[1-9]\d*|one|two|three|four|five|six|seven|eight|nine|ten|some|several|all)\s+(?:failed|failing|rejected|missing|undelivered)\s+(?:\w+\s+){0,2}?(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\b/i.test(text);
+  const hasUnfinishedEvidence = (text) => /\b(?:[1-9]\d*|one|two|three|four|five|six|seven|eight|nine|ten|some|several)\s+(?:\w+\s+){0,2}?(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:(?:are|were|remain)\s+)?(?:pending|blocked|incomplete|unverified|awaiting\s+review)\b/i.test(text)
+    || /\b(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:pending|blocked|incomplete|unverified)\s*[:=]\s*[1-9]\d*\b/i.test(text);
   const hasZeroEvidence = (text) => /\b(?:0|zero|no)\s+(?:\w+\s+){0,2}?(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:(?:was|were|has been|have been)\s+)?(?:passed|completed|verified|succeeded|received|sent|delivered|created|saved|generated|recorded|produced)\b/i.test(text);
   const isSpecific = (text) => {
     const result = text.trim().replace(/^(?:\[[xX ]\]|[\u2610\u2611\u25a1])\s*/, '').trim();
     return result.length >= 12 && !isPlaceholder(result)
       && !hasUnfinishedMarker(result) && !hasPartialVerification(result)
-      && !hasFailedEvidence(result) && !hasZeroEvidence(result) && !vagueResult.test(result);
+      && !hasFailedEvidence(result) && !hasUnfinishedEvidence(result)
+      && !hasZeroEvidence(result) && !vagueResult.test(result);
   };
   const acceptanceLines = [];
   const acceptanceBlocks = [];

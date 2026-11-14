@@ -1240,6 +1240,22 @@ test('does not count skipped checks as finished acceptance proof', () => {
   assert.equal(complete.checks.find((check) => check.id === 'acceptance').passed, true);
 });
 
+test('does not count pending or blocked results as finished acceptance proof', () => {
+  for (const result of [
+    'Five checkout tests passed, 1 buyer check pending.',
+    'Five checkout tests passed, 2 scenarios blocked.',
+    'Five checkout tests passed; receipts pending: 3.',
+    'Five checkout tests passed, one buyer result unverified.'
+  ]) {
+    const report = assessIssue({ fields: { description: `Acceptance criteria: ${result}` } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, result);
+  }
+  const complete = assessIssue({ fields: {
+    description: 'Acceptance criteria: Five checkout tests passed, 0 scenarios pending.'
+  } });
+  assert.equal(complete.checks.find((check) => check.id === 'acceptance').passed, true);
+});
+
 test('does not count failed result ratios as finished acceptance proof', () => {
   for (const result of [
     '2/5 checkout tests failed after the release.',
