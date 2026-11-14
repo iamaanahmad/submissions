@@ -2,6 +2,24 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { assessIssue } from '../src/checks.js';
 
+test('checks every acceptance section before reporting handoff evidence', () => {
+  const description = 'Acceptance criteria: Buyer receives a saved receipt.\n\n## Definition of done\n- Receipt review is pending approval.';
+  const report = assessIssue({ fields: { description } });
+  const acceptance = report.checks.find((check) => check.id === 'acceptance');
+  assert.equal(acceptance.passed, false);
+  assert.match(acceptance.detail, /pending approval/);
+
+  const empty = assessIssue({ fields: {
+    description: 'Acceptance criteria: Buyer receives a saved receipt.\n\n## Definition of done'
+  } });
+  assert.equal(empty.checks.find((check) => check.id === 'acceptance').passed, false);
+
+  const complete = assessIssue({ fields: {
+    description: 'Acceptance criteria: Buyer receives a saved receipt.\n\n## Definition of done\n- The owner confirms the receipt is visible.'
+  } });
+  assert.equal(complete.checks.find((check) => check.id === 'acceptance').passed, true);
+});
+
 test('does not accept a failed Given When Then result', () => {
   const failed = [
     'Given a saved order, when payment is captured, then one receipt check fails.',

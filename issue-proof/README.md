@@ -17,6 +17,7 @@ Numbered failed tests, missing receipts, and failed scenarios also block accepta
 Written counts such as "two tests failed" and "all receipt checks failed" block acceptance too.
 Present-tense failures such as "one test fails" and "checks fail: 1" block acceptance too.
 Failed or zero-result Given / When / Then scenarios cannot count as acceptance evidence.
+If an issue has several acceptance or definition-of-done sections, every section needs a specific result. An empty later section blocks handoff.
 Mixed summaries such as "5 checks passed, 1 failed" also block acceptance.
 Failed result ratios, such as "2/5 checkout tests failed," also block acceptance.
 Implementation steps below an empty acceptance heading do not count as acceptance results.

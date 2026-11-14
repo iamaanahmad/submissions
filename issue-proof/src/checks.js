@@ -101,8 +101,8 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
   const criteriaHeading = /^(?:acceptance criteria|definition of done|success criteria|done when)[ \t]*(?::|[\u2013\u2014-]|$)/i;
   const acceptanceIndex = descriptionBlocks.findIndex((block) =>
     block.node?.type !== 'codeBlock' && criteriaHeading.test(withoutMarkdownHeading(block.text)));
-  const inlineAcceptance = acceptanceIndex >= 0
-    ? withoutMarkdownHeading(descriptionBlocks[acceptanceIndex].text).replace(/^(?:acceptance criteria|definition of done|success criteria|done when)[ \t]*(?::|[\u2013\u2014-])?[ \t]*/i, '') : '';
+  const acceptanceHeadings = descriptionBlocks.flatMap((block, index) =>
+    criteriaHeading.test(withoutMarkdownHeading(block.text)) ? [index] : []);
   const isPlaceholder = (text) => /^(?:tbd|tbc|todo|wip|none|n\/a|not applicable|to be (?:determined|defined|added|confirmed)|coming soon|pending|see (?:later|ticket))\.?$/i.test(text.trim());
   const hasUnfinishedMarker = (text) => /\b(?:tbd|tbc|todo|wip|to be (?:determined|defined|added|confirmed)|coming soon|(?:pending|awaiting|needs?|requires?) (?:review|decision|confirmation|approval|verification|testing|qa|uat|sign-off)|(?:review|decision|confirmation|approval|verification|testing|tests?) (?:is |are )?(?:pending|required|needed|awaited|in progress|outstanding|failed|incomplete)|(?:approval|verification|testing|tests?) (?:was |were |has )?(?:denied|rejected|failed)|(?:approval|verification|testing|tests?) (?:has |have |was |were |is |are )?not (?:been )?(?:granted|completed|passed)|(?:not|never) (?:approved|verified|tested|passed)|not yet (?:reviewed|decided|confirmed|approved|verified|tested)|(?:could not|cannot|can't|unable to) (?:verify|approve|test|pass)|(?:approval|verification|testing|tests?) (?:remains? (?:open|pending|in progress|outstanding)|is blocked|are blocked|still needs?\b))\b|\.{3,}|\?{3,}/i.test(text)
     || /\b(?:review|sign-off|approval|verification|testing|tests?|qa|uat) (?:has|have|is|are|was|were) (?:not (?:yet )?started|underway|in progress)\b|\b(?:review|sign-off|approval|verification|testing|tests?|qa|uat) (?:never|not yet) (?:started|finished|completed)\b/i.test(text)
@@ -130,10 +130,18 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
   };
   const acceptanceLines = [];
   const acceptanceBlocks = [];
-  if (acceptanceIndex >= 0 && !isPlaceholder(inlineAcceptance)) {
-    if (inlineAcceptance) acceptanceLines.push(...inlineAcceptance.split('\n').map((line) =>
-      line.trim().replace(/^(?:[-*\u2022]|\d+[.)])\s*/, '').trim()));
-    for (const block of descriptionBlocks.slice(acceptanceIndex + 1)) {
+  const inlineAcceptance = [];
+  const sectionCounts = [];
+  for (const headingIndex of acceptanceHeadings) {
+    const initialCount = acceptanceLines.length;
+    const headingText = withoutMarkdownHeading(descriptionBlocks[headingIndex].text)
+      .replace(/^(?:acceptance criteria|definition of done|success criteria|done when)[ \t]*(?::|[\u2013\u2014-])?[ \t]*/i, '');
+    inlineAcceptance.push(headingText);
+    if (headingText && !isPlaceholder(headingText)) {
+      acceptanceLines.push(...headingText.split('\n').map((line) =>
+        line.trim().replace(/^(?:[-*\u2022]|\d+[.)])\s*/, '').trim()));
+    }
+    for (const block of descriptionBlocks.slice(headingIndex + 1)) {
       if (block.node?.type === 'codeBlock') continue;
       const nextSection = /^#{1,6}[ \t]+\S/.test(block.text)
         || /^(?:implementation(?: notes?)?|technical notes?|background|context|risks?|dependencies|test plan|design|out of scope|non-goals?|release notes?|deployment notes?)\s*(?::\s*.*)?$/i.test(block.text)
@@ -143,6 +151,7 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
       acceptanceLines.push(...block.text.split('\n').map((line) =>
         line.replace(/^(?:[-*\u2022]|\d+[.)])\s*/, '').trim()));
     }
+    sectionCounts.push(acceptanceLines.slice(initialCount).filter(Boolean).length);
   }
   let inImplementationSection = false;
   const standaloneScenario = acceptanceIndex < 0 && descriptionBlocks.some((block, index) => {
@@ -167,14 +176,17 @@ export function assessIssue(issue, today = new Date().toISOString().slice(0, 10)
   const firstUnclearCriterion = listedCriteria.find((line) => !isSpecific(line));
   const uncheckedCriteria = acceptanceIndex >= 0
     ? [
-      ...[...inlineAcceptance.split('\n'), ...acceptanceBlocks.flatMap((block) => block.text.split('\n'))]
+      ...[...inlineAcceptance.flatMap((text) => text.split('\n')), ...acceptanceBlocks.flatMap((block) => block.text.split('\n'))]
         .filter((line) => /^\s*(?:>\s*)*(?:(?:[-*\u2022]|\d+[.)])\s*)?(?:\[\s\]|[\u2610\u25a1])/.test(line))
         .map((line) => line.replace(/^\s*(?:>\s*)*(?:(?:[-*\u2022]|\d+[.)])\s*)?(?:\[\s\]|[\u2610\u25a1])\s*/, '').trim()),
       ...openTaskLabels(acceptanceBlocks.map((block) => block.node))
     ].filter(Boolean)
     : [];
   const hasAcceptance = acceptanceIndex >= 0
-    ? listedCriteria.length > 0 && listedCriteria.every(isSpecific)
+    ? sectionCounts.every((count) => count > 0) && acceptanceHeadings.every((_, index) => {
+      const text = inlineAcceptance[index];
+      return !text || !isPlaceholder(text);
+    }) && listedCriteria.length > 0 && listedCriteria.every(isSpecific)
       && uncheckedCriteria.length === 0
     : standaloneScenario;
   const checks = [
