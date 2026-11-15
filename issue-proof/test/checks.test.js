@@ -3,6 +3,21 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { assessIssue } from '../src/checks.js';
 
+test('zero failed results do not hide real failures or block completed evidence', () => {
+  for (const result of [
+    'Five tests passed and zero tests failed.',
+    'Five tests passed and no tests failed.',
+    'Five tests passed; tests failed: 0.'
+  ]) {
+    const report = assessIssue({ fields: { description: `Acceptance criteria: ${result}` } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, true, result);
+  }
+  const mixed = assessIssue({ fields: {
+    description: 'Acceptance criteria: Five tests passed; zero tests failed; one receipt missing.'
+  } });
+  assert.equal(mixed.checks.find((check) => check.id === 'acceptance').passed, false);
+});
+
 test('promised results cannot count as completed acceptance proof', () => {
   for (const result of [
     'Five tests passed, and the receipt will be saved.',

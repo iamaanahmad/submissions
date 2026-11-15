@@ -126,7 +126,11 @@ export function assessIssue(issue, today = localToday()) {
     const counts = text.matchAll(/\b(\d+)\s*(?:\/|(?:out )?of)\s*(\d+)\s+(?:\w+\s+){0,2}?(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:pass(?:ed)?|completed|verified|succeed(?:ed)?|received|sent|delivered|shown|displayed|created|saved|generated|recorded|produced)\b/gi);
     return [...counts].some((count) => Number(count[2]) === 0 || Number(count[1]) !== Number(count[2]));
   };
-  const hasFailedEvidence = (text) => /\b(?:[1-9]\d*|one|two|three|four|five|six|seven|eight|nine|ten|some|several|all)\s+(?:\w+\s+){0,2}?(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:fails?|failed|failing|errored|rejected|missing|undelivered|did not pass)\b/i.test(text)
+  const withoutZeroFailures = (text) => text
+    .replace(/\b(?:0|zero|no)\s+(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:fails?|failed|failing|errored|rejected|missing|undelivered)\b/gi, '')
+    .replace(/\b(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:fails?|failed|failing|errored|rejected|missing|undelivered)\s*[:=]\s*(?:0|zero)\b/gi, '');
+  const hasFailedEvidence = (text) => {
+    return /\b(?:[1-9]\d*|one|two|three|four|five|six|seven|eight|nine|ten|some|several|all)\s+(?:\w+\s+){0,2}?(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:fails?|failed|failing|errored|rejected|missing|undelivered|did not pass)\b/i.test(text)
     || /\b(?:[1-9]\d*|one|two|three|four|five|six|seven|eight|nine|ten)\s+(?:failed|failing|rejected|missing|undelivered)\b/i.test(text)
     || /\b(?:fail(?:ed|ing|ures?)?|errors?|errored|rejected|missing|undelivered)\s*[:=]\s*[1-9]\d*\b/i.test(text)
     || /\b(?:fail(?:ed|ing|ures?)?|rejected|missing|undelivered)\s+[1-9]\d*\b/i.test(text)
@@ -142,6 +146,7 @@ export function assessIssue(issue, today = localToday()) {
     || /\b(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:fails?|failed|failing|rejected|missing|undelivered)\s*:\s*[1-9]\d*\b/i.test(text)
     || /\b(?:[1-9]\d*|one|two|three|four|five|six|seven|eight|nine|ten|some|several|all)\s+(?:failed|failing|errored|rejected|missing|undelivered)\s+(?:\w+\s+){0,2}?(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\b/i.test(text)
     || /\b(?:[1-9]\d*|one|two|three|four|five|six|seven|eight|nine|ten|some|several)\s+errors?\b/i.test(text);
+  };
   const hasUnfinishedEvidence = (text) => /\b(?:[1-9]\d*|one|two|three|four|five|six|seven|eight|nine|ten|some|several)\s+(?:\w+\s+){0,2}?(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:(?:are|were|remain)\s+)?(?:pending|blocked|incomplete|unverified|awaiting\s+review)\b/i.test(text)
     || /\b(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:pending|blocked|incomplete|unverified)\s*[:=]\s*[1-9]\d*\b/i.test(text)
     || /\b(?:[1-9]\d*|one|two|three|four|five|six|seven|eight|nine|ten|some|several)\s+(?:\w+\s+){0,2}?(?:tests?|checks?|cases?|scenarios?)\s+(?:(?:were|are|remain)\s+)?(?:not run|not executed|untested)\b/i.test(text)
@@ -151,9 +156,10 @@ export function assessIssue(issue, today = localToday()) {
     || /\b(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:passed|completed|verified|succeeded|received|sent|delivered|created|saved|generated|recorded|produced)\s*[:=]\s*(?:0|zero)\b/i.test(text);
   const isSpecific = (text) => {
     const result = text.trim().replace(/^(?:\[[xX ]\]|[\u2610\u2611\u25a1])\s*/, '').trim();
+    const assessment = withoutZeroFailures(result);
     return result.length >= 12 && !isPlaceholder(result)
-      && !hasUnfinishedMarker(result) && !hasPartialVerification(result)
-      && !hasFailedEvidence(result) && !hasUnfinishedEvidence(result)
+      && !hasUnfinishedMarker(assessment) && !hasPartialVerification(assessment)
+      && !hasFailedEvidence(assessment) && !hasUnfinishedEvidence(assessment)
       && !hasZeroEvidence(result) && !promisedResult.test(result)
       && !vagueResult.test(result);
   };
