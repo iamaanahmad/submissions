@@ -128,7 +128,7 @@ export function assessIssue(issue, today = localToday()) {
     || /\b(?:fail(?:ed|ing|ures?)?|errors?|errored|rejected|missing|undelivered)\s*[:=]\s*[1-9]\d*\b/i.test(text)
     || /\b(?:fail(?:ed|ing|ures?)?|rejected|missing|undelivered)\s+[1-9]\d*\b/i.test(text)
     || /\b(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:(?:has|have|had|was|were|is|are)\s+)?(?:failed|failing|rejected|missing|undelivered|did not pass)\b/i.test(text)
-    || /\b(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:passed|completed|verified|succeeded|received|sent|delivered|created|saved)\s+(?:except|but not)\s+(?:for\s+)?(?:[1-9]\d*|one|two|three|four|five|six|seven|eight|nine|ten|some|several)\b/i.test(text)
+    || /\b(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:pass|passes|passed|complete|completes|completed|verify|verifies|verified|succeed|succeeds|succeeded|receive|receives|received|send|sends|sent|deliver|delivers|delivered|create|creates|created|save|saves|saved)\s+(?:except|but not)\s+(?:for\s+)?(?:[1-9]\d*|one|two|three|four|five|six|seven|eight|nine|ten|some|several)\b/i.test(text)
     || /\b(?:[1-9]\d*|one|two|three|four|five|six|seven|eight|nine|ten|some|several|all)\s+(?:\w+\s+){0,2}?(?:tests?|checks?|cases?|scenarios?)\s+(?:(?:was|were)\s+)?skipp?ed\b/i.test(text)
     || /\b(?:[1-9]\d*|one|two|three|four|five|six|seven|eight|nine|ten|some|several|all)\s+skipp?ed\s+(?:\w+\s+){0,2}?(?:tests?|checks?|cases?|scenarios?)\b/i.test(text)
     || /\b(?:tests?|checks?|cases?|scenarios?)\s+skipp?ed\s*:\s*[1-9]\d*\b/i.test(text)

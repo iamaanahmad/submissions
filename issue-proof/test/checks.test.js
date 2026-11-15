@@ -176,6 +176,9 @@ test('does not count a failed product result as finished acceptance proof', () =
 test('does not count a mostly passing result as complete acceptance proof', () => {
   for (const result of [
     'All buyer checks passed except one.',
+    'All buyer checks pass except one.',
+    'The receipt tests pass except for 2.',
+    'Release scenarios complete but not three.',
     'Receipt tests passed except for 2.',
     'Release scenarios completed but not three.'
   ]) {

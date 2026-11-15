@@ -25,7 +25,7 @@ Mixed summaries such as "5 checks passed, 1 failed" also block acceptance.
 Test suite errors such as "5 passed, 1 error" also block acceptance.
 Checks marked not run, not executed, untested, or skipped also block acceptance, even without a count.
 Delivery results still in progress, underway, incomplete, or not started also block acceptance.
-Summaries such as "all checks passed except one" also block acceptance.
+Summaries such as "all checks passed except one" or "all checks pass except one" also block acceptance.
 Failed result ratios, such as "2/5 checkout tests failed," also block acceptance.
 Unnumbered failures, such as "the buyer check failed," also block acceptance.
 Implementation steps below an empty acceptance heading do not count as acceptance results.
