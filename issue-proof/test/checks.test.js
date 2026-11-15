@@ -1405,7 +1405,9 @@ test('zero successful checks cannot count as acceptance proof', () => {
 test('does not count partial test results as finished acceptance proof', () => {
   for (const result of [
     '2 of 5 checkout tests passed after the release.',
-    '3/4 buyer scenarios verified before handoff.'
+    '3/4 buyer scenarios verified before handoff.',
+    'Checkout tests passed: 2/5 after the release.',
+    'Buyer receipts delivered: 3 of 4 before handoff.'
   ]) {
     const report = assessIssue({ fields: { description: `Acceptance criteria: ${result}` } });
     assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, result);
@@ -1414,6 +1416,10 @@ test('does not count partial test results as finished acceptance proof', () => {
     description: 'Acceptance criteria: 5 of 5 checkout tests passed after the release.'
   } });
   assert.equal(complete.checks.find((check) => check.id === 'acceptance').passed, true);
+  const completeReversed = assessIssue({ fields: {
+    description: 'Acceptance criteria: Checkout tests passed: 5/5 after the release.'
+  } });
+  assert.equal(completeReversed.checks.find((check) => check.id === 'acceptance').passed, true);
 });
 
 test('does not count numbered failed evidence as finished acceptance proof', () => {

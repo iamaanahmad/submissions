@@ -19,6 +19,7 @@ An action reported as not done, such as a demo not uploaded or release not publi
 The same rule covers actions marked never done or still not done.
 Planned results such as "the receipt will be saved" or "checks should pass" do not count as completed proof.
 Partial test results, such as two of five checks passing, do not count as finished acceptance proof.
+The same applies when Jira notes put the result label first, such as "tests passed: 2/5."
 When a line lists several result ratios, every ratio must be complete. A complete test count cannot hide missing receipts later on the same line.
 Zero completed tests, scenarios, or receipts do not count as finished proof, even when the line says they passed or were saved.
 Zero tallies after a label, such as "tests passed: 0" or "receipts saved: 0", also block handoff.

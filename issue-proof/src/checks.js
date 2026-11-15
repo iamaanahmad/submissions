@@ -127,7 +127,8 @@ export function assessIssue(issue, today = localToday()) {
   const vagueResult = /^(?:(?:it|this|the (?:feature|app|issue))\s+)?(?:works? (?:as expected|correctly|properly|well)|looks? good|is (?:done|ready|complete)|has no bugs)(?:\.|!)?$/i;
   const hasPartialVerification = (text) => {
     const counts = text.matchAll(/\b(\d+)\s*(?:\/|(?:out )?of)\s*(\d+)\s+(?:\w+\s+){0,2}?(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:pass(?:ed)?|completed|verified|succeed(?:ed)?|received|sent|delivered|shown|displayed|created|saved|generated|recorded|produced)\b/gi);
-    return [...counts].some((count) => Number(count[2]) === 0 || Number(count[1]) !== Number(count[2]));
+    const reversedCounts = text.matchAll(/\b(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:pass(?:ed)?|completed|verified|succeed(?:ed)?|received|sent|delivered|shown|displayed|created|saved|generated|recorded|produced)\s*:?\s*(\d+)\s*(?:\/|(?:out )?of)\s*(\d+)\b/gi);
+    return [...counts, ...reversedCounts].some((count) => Number(count[2]) === 0 || Number(count[1]) !== Number(count[2]));
   };
   const withoutZeroFailures = (text) => text
     .replace(/\b(?:0|zero|no)\s+(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:fails?|failed|failing|errored|rejected|missing|undelivered)\b/gi, '')
