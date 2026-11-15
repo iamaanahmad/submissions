@@ -7,6 +7,9 @@ test('missing demo and release actions cannot count as completed evidence', () =
   for (const result of [
     'Five tests passed, but the demo was not uploaded.',
     'Five tests passed, but the release was not published.',
+    'Five tests passed, but the demo was never uploaded.',
+    'Five tests passed, but the release is still not published.',
+    'Five tests passed, but the handoff has never been delivered.',
     "Five tests passed, but the build wasn't deployed.",
     "Five tests passed, but the handoff hasn't been delivered."
   ]) {
