@@ -22,6 +22,17 @@ test('missing demo and release actions cannot count as completed evidence', () =
   assert.equal(complete.checks.find((check) => check.id === 'acceptance').passed, true);
 });
 
+test('missing judge media cannot pass acceptance', () => {
+  for (const result of [
+    'Five tests passed, but the video was not recorded.',
+    "Five tests passed, but the video wasn't uploaded.",
+    "Five tests passed, but the screenshot hasn't been attached."
+  ]) {
+    const report = assessIssue({ fields: { description: `Acceptance criteria: ${result}` } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, result);
+  }
+});
+
 test('failed delivery cannot hide behind passing checks', () => {
   for (const result of [
     'Five tests passed, but demo upload failed.',
