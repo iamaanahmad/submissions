@@ -13,6 +13,7 @@ function App() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [contextTimedOut, setContextTimedOut] = useState(false);
+  const [autoRefreshUnavailable, setAutoRefreshUnavailable] = useState(false);
   const requestGate = useRef(createRequestGate());
 
   useEffect(() => {
@@ -50,14 +51,22 @@ function App() {
   }, [issueKey, issueId]);
 
   useEffect(() => {
-    if (!issueKey || !issueId) return;
+    if (!issueKey) return;
+    if (!issueId) {
+      setAutoRefreshUnavailable(true);
+      return;
+    }
     let active = true;
+    setAutoRefreshUnavailable(false);
     const subscription = events.on('JIRA_ISSUE_CHANGED', (event) => {
       if (active && String(event?.issueId) === String(issueId)
         && event.changes?.some((change) => change.changeType === 'updated')) {
         refresh();
       }
-    }).catch(() => null);
+    }).catch(() => {
+      if (active) setAutoRefreshUnavailable(true);
+      return null;
+    });
     return () => {
       active = false;
       subscription.then((listener) => listener?.unsubscribe());
@@ -73,6 +82,9 @@ function App() {
     </SectionMessage>}
     {loading && <Spinner />}
     {error && <SectionMessage appearance="error"><Text>{error}</Text></SectionMessage>}
+    {autoRefreshUnavailable && <SectionMessage appearance="warning">
+      <Text>Jira changes may not update this report automatically. Select Check again before handoff.</Text>
+    </SectionMessage>}
     {report && report.contextIssueId === issueId && report.contextIssueKey === issueKey && <>
       <Heading size="medium">{report.passed} of {report.total} checks have evidence</Heading>
       <Text>{report.issueKey}: {report.summary}</Text>
