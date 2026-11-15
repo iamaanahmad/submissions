@@ -57,6 +57,7 @@ Use Node.js 22.23.4 or newer in the supported 22.x line, or another version in `
 Use an Atlassian developer account and a Jira Cloud development site. Run `forge login`, then `forge register`, `forge deploy`, and `forge install`. Forge registration adds the app ID to `manifest.yml`; no account ID or secret belongs in this repository. Open any Jira issue and select **Issue Proof** in its issue panel.
 
 The app uses the current viewer's Jira permissions and the `read:jira-work` scope. A viewer without access sees an error, not another user's issue data. No external API or paid service is required.
+If Jira sign-in expires, the panel asks the viewer to sign in again before checking the issue.
 If Jira returns an incomplete issue, the panel asks for a retry instead of treating absent fields as missing handoff evidence.
 Jira may leave owner, target date, or description empty. Those fields must still appear in the reply, so missing data triggers a retry instead of a false missing-evidence result.
 Malformed owner, target date, or description data also triggers a retry instead of a false missing-evidence result.
