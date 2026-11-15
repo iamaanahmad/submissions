@@ -12,6 +12,7 @@ For written results, the panel accepts Acceptance criteria, Definition of done, 
 It accepts a colon or dash before a result on the same line.
 Unfinished results such as TBC, WIP, pending review, missing receipts, and to be confirmed do not count as evidence.
 An explicit "receipt was not saved" or "report not generated" also blocks handoff, even when tests passed.
+Contracted failures such as "receipt wasn't saved" and "report hasn't been generated" also block handoff.
 Partial test results, such as two of five checks passing, do not count as finished acceptance proof.
 When a line lists several result ratios, every ratio must be complete. A complete test count cannot hide missing receipts later on the same line.
 Zero completed tests, scenarios, or receipts do not count as finished proof, even when the line says they passed or were saved.

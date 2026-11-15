@@ -49,6 +49,22 @@ test('missing deliverables cannot hide behind passing tests', () => {
   assert.equal(complete.checks.find((check) => check.id === 'acceptance').passed, true);
 });
 
+test('contracted missing deliverables cannot count as handoff proof', () => {
+  for (const result of [
+    "Five tests passed, but the receipt wasn't saved.",
+    "Five tests passed; the report hasn't been generated.",
+    "Five tests passed; receipts aren't delivered.",
+    'Five tests passed; the receipt wasn’t recorded.'
+  ]) {
+    const report = assessIssue({ fields: { description: `Acceptance criteria: ${result}` } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, result);
+  }
+  const complete = assessIssue({ fields: {
+    description: 'Acceptance criteria: Five tests passed and the receipt was saved.'
+  } });
+  assert.equal(complete.checks.find((check) => check.id === 'acceptance').passed, true);
+});
+
 test('test suite errors cannot count as acceptance proof', () => {
   for (const result of [
     'Checkout suite: 5 passed, 1 error.',
