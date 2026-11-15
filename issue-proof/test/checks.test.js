@@ -3,6 +3,21 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { assessIssue } from '../src/checks.js';
 
+test('failed delivery cannot hide behind passing checks', () => {
+  for (const result of [
+    'Five tests passed, but demo upload failed.',
+    'Five tests passed; the deployment was unsuccessful.',
+    'Five tests passed; release build is incomplete.'
+  ]) {
+    const report = assessIssue({ fields: { description: `Acceptance criteria: ${result}` } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, result);
+  }
+  const complete = assessIssue({ fields: {
+    description: 'Acceptance criteria: Five tests passed; demo upload completed and was checked.'
+  } });
+  assert.equal(complete.checks.find((check) => check.id === 'acceptance').passed, true);
+});
+
 test('zero failed results do not hide real failures or block completed evidence', () => {
   for (const result of [
     'Five tests passed and zero tests failed.',
