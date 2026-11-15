@@ -3,6 +3,21 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { assessIssue } from '../src/checks.js';
 
+test('every result ratio must be complete before acceptance passes', () => {
+  for (const result of [
+    '3 of 3 tests passed; 1 of 2 receipts saved.',
+    '2/2 checks completed; 0/0 reports delivered.',
+    '5 of 5 cases passed; 2 of 3 results verified.'
+  ]) {
+    const report = assessIssue({ fields: { description: `Acceptance criteria: ${result}` } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, result);
+  }
+  const complete = assessIssue({ fields: {
+    description: 'Acceptance criteria: 3 of 3 tests passed; 2 of 2 receipts saved.'
+  } });
+  assert.equal(complete.checks.find((check) => check.id === 'acceptance').passed, true);
+});
+
 test('unfinished delivery does not count as acceptance proof', () => {
   for (const result of [
     'Buyer receipt generation is in progress.',

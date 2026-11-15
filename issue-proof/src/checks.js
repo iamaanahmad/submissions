@@ -120,8 +120,8 @@ export function assessIssue(issue, today = localToday()) {
     || /\b(?:receipt|report|result|confirmation|output|record)s?\s+(?:(?:is|are|was|were|remains?)\s+)?(?:still\s+)?(?:pending|failed|missing|absent|unavailable|incomplete)\b/i.test(text);
   const vagueResult = /^(?:(?:it|this|the (?:feature|app|issue))\s+)?(?:works? (?:as expected|correctly|properly|well)|looks? good|is (?:done|ready|complete)|has no bugs)(?:\.|!)?$/i;
   const hasPartialVerification = (text) => {
-    const count = text.match(/\b(\d+)\s*(?:\/|(?:out )?of)\s*(\d+)\s+(?:\w+\s+){0,2}?(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:pass(?:ed)?|completed|verified|succeed(?:ed)?|received|sent|delivered|shown|displayed|created|saved|generated|recorded|produced)\b/i);
-    return count && (Number(count[2]) === 0 || Number(count[1]) !== Number(count[2]));
+    const counts = text.matchAll(/\b(\d+)\s*(?:\/|(?:out )?of)\s*(\d+)\s+(?:\w+\s+){0,2}?(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:pass(?:ed)?|completed|verified|succeed(?:ed)?|received|sent|delivered|shown|displayed|created|saved|generated|recorded|produced)\b/gi);
+    return [...counts].some((count) => Number(count[2]) === 0 || Number(count[1]) !== Number(count[2]));
   };
   const hasFailedEvidence = (text) => /\b(?:[1-9]\d*|one|two|three|four|five|six|seven|eight|nine|ten|some|several|all)\s+(?:\w+\s+){0,2}?(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:fails?|failed|failing|errored|rejected|missing|undelivered|did not pass)\b/i.test(text)
     || /\b(?:[1-9]\d*|one|two|three|four|five|six|seven|eight|nine|ten)\s+(?:failed|failing|rejected|missing|undelivered)\b/i.test(text)
