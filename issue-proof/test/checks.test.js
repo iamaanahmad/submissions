@@ -3,6 +3,22 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { assessIssue } from '../src/checks.js';
 
+test('missing demo and release actions cannot count as completed evidence', () => {
+  for (const result of [
+    'Five tests passed, but the demo was not uploaded.',
+    'Five tests passed, but the release was not published.',
+    "Five tests passed, but the build wasn't deployed.",
+    "Five tests passed, but the handoff hasn't been delivered."
+  ]) {
+    const report = assessIssue({ fields: { description: `Acceptance criteria: ${result}` } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, result);
+  }
+  const complete = assessIssue({ fields: {
+    description: 'Acceptance criteria: Five tests passed; the demo was uploaded and checked.'
+  } });
+  assert.equal(complete.checks.find((check) => check.id === 'acceptance').passed, true);
+});
+
 test('failed delivery cannot hide behind passing checks', () => {
   for (const result of [
     'Five tests passed, but demo upload failed.',

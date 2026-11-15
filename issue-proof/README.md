@@ -15,6 +15,7 @@ An explicit "receipt was not saved" or "report not generated" also blocks handof
 Contracted failures such as "receipt wasn't saved" and "report hasn't been generated" also block handoff.
 Zero failed results, such as "zero tests failed," do not block a completed check. A missing receipt on the same line still blocks handoff.
 A failed demo upload, deployment, build, release, or handoff blocks acceptance even when local tests passed.
+An action reported as not done, such as a demo not uploaded or release not published, also blocks acceptance.
 Planned results such as "the receipt will be saved" or "checks should pass" do not count as completed proof.
 Partial test results, such as two of five checks passing, do not count as finished acceptance proof.
 When a line lists several result ratios, every ratio must be complete. A complete test count cannot hide missing receipts later on the same line.
