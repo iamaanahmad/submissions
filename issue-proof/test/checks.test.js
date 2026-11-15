@@ -37,6 +37,23 @@ test('failed delivery cannot hide behind passing checks', () => {
   assert.equal(complete.checks.find((check) => check.id === 'acceptance').passed, true);
 });
 
+test('missing judge proof cannot hide behind passing checks', () => {
+  for (const result of [
+    'Five tests passed; video not uploaded.',
+    'Five tests passed; screenshot not attached.',
+    'Five tests passed; demo link is broken.',
+    'Five tests passed; the published build is unavailable.',
+    'Five tests passed; no judge installation link exists.'
+  ]) {
+    const report = assessIssue({ fields: { description: `Acceptance criteria: ${result}` } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, result);
+  }
+  const complete = assessIssue({ fields: {
+    description: 'Acceptance criteria: Five tests passed; the demo link was checked.'
+  } });
+  assert.equal(complete.checks.find((check) => check.id === 'acceptance').passed, true);
+});
+
 test('zero failed results do not hide real failures or block completed evidence', () => {
   for (const result of [
     'Five tests passed and zero tests failed.',

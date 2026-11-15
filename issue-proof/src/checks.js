@@ -121,6 +121,7 @@ export function assessIssue(issue, today = localToday()) {
     || /\b(?:0|no|zero)\s+(?:\w+\s+){0,3}(?:receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:was\s+|were\s+|has\s+been\s+)?(?:received|sent|delivered|shown|displayed|created|saved|generated|recorded|produced)\b/i.test(text)
     || /\b(?:receipt|report|result|confirmation|output|record)s?\s+(?:(?:is|are|was|were|remains?)\s+)?(?:still\s+)?(?:pending|failed|missing|absent|unavailable|incomplete)\b/i.test(text);
   const failedDelivery = /\b(?:demo|artifact|build|deployment|release|upload|handoff|delivery)\s+(?:(?:is|was|has been|had been)\s+)?(?:failed|blocked|missing|incomplete|unsuccessful)\b|\b(?:failed|blocked|incomplete)\s+(?:demo|artifact|build|deployment|release|upload|handoff|delivery)\b/i;
+  const unavailableProof = /\b(?:video|screenshot|demo link|installation link|judge link|published build)\s+(?:(?:is|was|remains|has been)\s+)?(?:not\s+(?:uploaded|attached|available|working)|missing|broken|unavailable|failed)\b|\bno\s+(?:judge\s+)?(?:installation|demo)\s+link\s+(?:exists|was provided)\b/i;
   const missingDeliveryAction = /\b(?:demo|artifact|build|deployment|release|upload|handoff|delivery)\s+(?:(?:(?:was|were|is|are|has|have|had)\s+)?(?:still\s+)?(?:not|never)\s+(?:been\s+)?|(?:wasn['’]t|weren['’]t|isn['’]t|aren['’]t)\s+|(?:hasn['’]t|haven['’]t|hadn['’]t)\s+been\s+)(?:uploaded|deployed|published|released|built|delivered|completed|saved|created)\b/i;
   const promisedResult = /\b(?:will|shall|should|must|needs? to|plans? to|is going to|are going to)\s+(?:(?:be|get)\s+)?(?:pass(?:ed)?|complet(?:e|ed)|verif(?:y|ied)|approv(?:e|ed)|deliver(?:ed)?|creat(?:e|ed)|sav(?:e|ed)|generat(?:e|ed)|record(?:ed)?|produc(?:e|ed)|receiv(?:e|ed)|send|sent|ship(?:ped)?)\b/i;
   const vagueResult = /^(?:(?:it|this|the (?:feature|app|issue))\s+)?(?:works? (?:as expected|correctly|properly|well)|looks? good|is (?:done|ready|complete)|has no bugs)(?:\.|!)?$/i;
@@ -163,6 +164,7 @@ export function assessIssue(issue, today = localToday()) {
       && !hasUnfinishedMarker(assessment) && !hasPartialVerification(assessment)
       && !hasFailedEvidence(assessment) && !hasUnfinishedEvidence(assessment)
       && !hasZeroEvidence(result) && !failedDelivery.test(assessment)
+      && !unavailableProof.test(assessment)
       && !missingDeliveryAction.test(assessment) && !promisedResult.test(result)
       && !vagueResult.test(result);
   };

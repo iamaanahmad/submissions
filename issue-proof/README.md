@@ -29,6 +29,7 @@ Skipped tests, checks, cases, or scenarios also block acceptance until they run.
 Nonzero pending, blocked, incomplete, or unverified result counts also block acceptance.
 The check also rejects reversed counts such as "2 skipped checks" and "checks skipped, two."
 Failed or zero-result Given / When / Then scenarios cannot count as acceptance evidence.
+Missing judge proof also blocks acceptance. A missing video, screenshot, demo link, installation link, or unavailable published build cannot hide behind passing tests.
 If an issue has several acceptance or definition-of-done sections, every section needs a specific result. An empty later section blocks handoff.
 Mixed summaries such as "5 checks passed, 1 failed" also block acceptance.
 Test suite errors such as "5 passed, 1 error" also block acceptance.
