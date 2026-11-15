@@ -120,6 +120,7 @@ export function assessIssue(issue, today = localToday()) {
     || /\b(?:receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:(?:wasn['’]t|isn['’]t|weren['’]t|aren['’]t)\s+|(?:hasn['’]t|haven['’]t)\s+been\s+)(?:received|sent|delivered|shown|displayed|created|saved|generated|recorded|produced)\b/i.test(text)
     || /\b(?:0|no|zero)\s+(?:\w+\s+){0,3}(?:receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:was\s+|were\s+|has\s+been\s+)?(?:received|sent|delivered|shown|displayed|created|saved|generated|recorded|produced)\b/i.test(text)
     || /\b(?:receipt|report|result|confirmation|output|record)s?\s+(?:(?:is|are|was|were|remains?)\s+)?(?:still\s+)?(?:pending|failed|missing|absent|unavailable|incomplete)\b/i.test(text);
+  const promisedResult = /\b(?:will|shall|should|must|needs? to|plans? to|is going to|are going to)\s+(?:(?:be|get)\s+)?(?:pass(?:ed)?|complet(?:e|ed)|verif(?:y|ied)|approv(?:e|ed)|deliver(?:ed)?|creat(?:e|ed)|sav(?:e|ed)|generat(?:e|ed)|record(?:ed)?|produc(?:e|ed)|receiv(?:e|ed)|send|sent|ship(?:ped)?)\b/i;
   const vagueResult = /^(?:(?:it|this|the (?:feature|app|issue))\s+)?(?:works? (?:as expected|correctly|properly|well)|looks? good|is (?:done|ready|complete)|has no bugs)(?:\.|!)?$/i;
   const hasPartialVerification = (text) => {
     const counts = text.matchAll(/\b(\d+)\s*(?:\/|(?:out )?of)\s*(\d+)\s+(?:\w+\s+){0,2}?(?:tests?|checks?|cases?|scenarios?|receipts?|reports?|results?|confirmations?|outputs?|records?)\s+(?:pass(?:ed)?|completed|verified|succeed(?:ed)?|received|sent|delivered|shown|displayed|created|saved|generated|recorded|produced)\b/gi);
@@ -153,7 +154,8 @@ export function assessIssue(issue, today = localToday()) {
     return result.length >= 12 && !isPlaceholder(result)
       && !hasUnfinishedMarker(result) && !hasPartialVerification(result)
       && !hasFailedEvidence(result) && !hasUnfinishedEvidence(result)
-      && !hasZeroEvidence(result) && !vagueResult.test(result);
+      && !hasZeroEvidence(result) && !promisedResult.test(result)
+      && !vagueResult.test(result);
   };
   const acceptanceLines = [];
   const acceptanceBlocks = [];
