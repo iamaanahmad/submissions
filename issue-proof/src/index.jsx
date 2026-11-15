@@ -34,7 +34,7 @@ function App() {
     try {
       const result = assessIssue(await fetchIssue(requestJira, issueId || issueKey));
       if (requestGate.current.isCurrent(request)) {
-        setReport({ ...result, contextIssueId: issueId, contextIssueKey: issueKey });
+        setReport({ ...result, checkedAt: new Date().toLocaleString(), contextIssueId: issueId, contextIssueKey: issueKey });
       }
     } catch (cause) {
       if (requestGate.current.isCurrent(request)) {
@@ -88,6 +88,7 @@ function App() {
     {report && report.contextIssueId === issueId && report.contextIssueKey === issueKey && <>
       <Heading size="medium">{report.passed} of {report.total} checks have evidence</Heading>
       <Text>{report.issueKey}: {report.summary}</Text>
+      <Text>Checked at {report.checkedAt}. Select Check again before handoff if linked work changed.</Text>
       <SectionMessage appearance={report.passed === report.total ? 'success' : 'warning'}>
         <Text>Next action: {report.nextAction}</Text>
       </SectionMessage>
