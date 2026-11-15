@@ -13,6 +13,7 @@ It accepts a colon or dash before a result on the same line.
 Unfinished results such as TBC, WIP, pending review, missing receipts, and to be confirmed do not count as evidence.
 Partial test results, such as two of five checks passing, do not count as finished acceptance proof.
 Zero completed tests, scenarios, or receipts do not count as finished proof, even when the line says they passed or were saved.
+Zero tallies after a label, such as "tests passed: 0" or "receipts saved: 0", also block handoff.
 Numbered failed tests, missing receipts, and failed scenarios also block acceptance, even when another count says checks passed. The check also rejects phrases such as "one test failed" and "1 failed test."
 Written counts such as "two tests failed" and "all receipt checks failed" block acceptance too.
 Present-tense failures such as "one test fails" and "checks fail: 1" block acceptance too.

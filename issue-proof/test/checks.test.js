@@ -34,6 +34,21 @@ test('test suite errors cannot count as acceptance proof', () => {
   assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, true);
 });
 
+test('zero result tallies cannot count as acceptance proof', () => {
+  for (const result of [
+    'Checkout tests passed: 0.',
+    'Buyer checks completed = zero.',
+    'Buyer receipts saved: 0.'
+  ]) {
+    const report = assessIssue({ fields: { description: `Acceptance criteria: ${result}` } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, result);
+  }
+  const report = assessIssue({ fields: {
+    description: 'Acceptance criteria: Checkout tests passed: 5 and buyer receipts saved: 1.'
+  } });
+  assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, true);
+});
+
 test('a single excepted check cannot count as complete acceptance proof', () => {
   for (const result of [
     'All buyer checks pass except a single checkout case.',
