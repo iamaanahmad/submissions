@@ -6,6 +6,7 @@ import { createRequestGate } from './request-gate.js';
 import { fetchIssue } from './issue-request.js';
 import { subscribeToIssueChanges } from './issue-events.js';
 import { refreshWhenVisible } from './visibility-refresh.js';
+import { refreshWhileVisible } from './periodic-refresh.js';
 
 function App() {
   const context = useProductContext();
@@ -65,6 +66,12 @@ function App() {
   useEffect(() => {
     if (!issueKey) return;
     return refreshWhenVisible(document, refresh);
+  }, [issueKey, issueId]);
+
+  useEffect(() => {
+    if (!issueKey) return;
+    // Jira does not emit an event for this panel when a linked issue changes.
+    return refreshWhileVisible(document, refresh);
   }, [issueKey, issueId]);
 
   useEffect(() => {
