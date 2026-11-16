@@ -4,6 +4,7 @@ import { events, requestJira } from '@forge/bridge';
 import { assessIssue, localToday } from './checks.js';
 import { createRequestGate } from './request-gate.js';
 import { fetchIssue } from './issue-request.js';
+import { subscribeToIssueChanges } from './issue-events.js';
 
 function App() {
   const context = useProductContext();
@@ -68,14 +69,13 @@ function App() {
     }
     let active = true;
     setAutoRefreshUnavailable(false);
-    const subscription = events.on('JIRA_ISSUE_CHANGED', (event) => {
+    const subscription = subscribeToIssueChanges(events, (event) => {
       if (active && String(event?.issueId) === String(issueId)
         && event.changes?.some((change) => change.changeType === 'updated')) {
         refresh();
       }
-    }).catch(() => {
+    }, () => {
       if (active) setAutoRefreshUnavailable(true);
-      return null;
     });
     return () => {
       active = false;
