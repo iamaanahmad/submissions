@@ -9,7 +9,12 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000) {
       (async () => {
         const response = await requestJira(path);
         if (!response.ok) throw new Error(issueFetchError(response.status));
-        const issue = await response.json();
+        let issue;
+        try {
+          issue = await response.json();
+        } catch {
+          throw new Error('Jira returned an unreadable issue. Check again, or ask a project admin to check issue access.');
+        }
         if (!issue || typeof issue.key !== 'string' || !issue.key
           || (/^\d+$/.test(String(issueKey)) && String(issue.id) !== String(issueKey))
           || (!/^\d+$/.test(String(issueKey)) && issue.key !== String(issueKey))

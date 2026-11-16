@@ -68,6 +68,13 @@ test('does not show incomplete Jira data as missing handoff evidence', async () 
   }
 });
 
+test('unreadable Jira replies show a retry action instead of a parser error', async () => {
+  await assert.rejects(
+    fetchIssue(async () => ({ ok: true, json: async () => { throw new SyntaxError('Unexpected token'); } }), 'TEAM-1'),
+    /Jira returned an unreadable issue.*Check again/
+  );
+});
+
 test('malformed Jira core fields require a retry instead of false missing evidence', async () => {
   const fields = {
     summary: 'Check the release', description: null, assignee: null, duedate: null,
