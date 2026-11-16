@@ -18,6 +18,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [contextTimedOut, setContextTimedOut] = useState(false);
   const [autoRefreshUnavailable, setAutoRefreshUnavailable] = useState(false);
+  const [offline, setOffline] = useState(false);
   const requestGate = useRef(createRequestGate());
 
   useEffect(() => {
@@ -77,7 +78,11 @@ function App() {
 
   useEffect(() => {
     if (!issueKey) return;
-    return refreshWhenOnline(window, refresh);
+    setOffline(window.navigator.onLine === false);
+    return refreshWhenOnline(window, () => {
+      setOffline(false);
+      refresh();
+    }, () => setOffline(true));
   }, [issueKey, issueId]);
 
   useEffect(() => {
@@ -110,6 +115,9 @@ function App() {
     </SectionMessage>}
     {loading && <Spinner />}
     {error && <SectionMessage appearance="error"><Text>{error}</Text></SectionMessage>}
+    {offline && <SectionMessage appearance="warning">
+      <Text>You are offline. The report may be out of date. Issue Proof will check again when you reconnect.</Text>
+    </SectionMessage>}
     {autoRefreshUnavailable && <SectionMessage appearance="warning">
       <Text>Jira changes may not update this report automatically. Select Check again before handoff.</Text>
     </SectionMessage>}
