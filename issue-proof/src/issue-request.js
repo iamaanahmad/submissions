@@ -7,7 +7,16 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000) {
     const path = `/rest/api/3/issue/${encodeURIComponent(issueKey)}?fields=${fields}`;
     return await Promise.race([
       (async () => {
-        const response = await requestJira(path);
+        let response;
+        try {
+          response = await requestJira(path);
+        } catch {
+          throw new Error('Jira could not load this issue. Check your connection, then try again.');
+        }
+        if (!response || typeof response.ok !== 'boolean'
+          || (!response.ok && typeof response.status !== 'number')) {
+          throw new Error('Jira returned an invalid response. Check again, or ask a project admin to check issue access.');
+        }
         if (!response.ok) throw new Error(issueFetchError(response.status));
         let issue;
         try {

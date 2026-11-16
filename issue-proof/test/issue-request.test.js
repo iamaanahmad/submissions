@@ -75,6 +75,20 @@ test('unreadable Jira replies show a retry action instead of a parser error', as
   );
 });
 
+test('failed Jira transport shows a retry action instead of an internal error', async () => {
+  await assert.rejects(
+    fetchIssue(async () => { throw new Error('Bridge connection failed with internal details'); }, 'TEAM-1'),
+    /Jira could not load this issue.*try again/
+  );
+});
+
+test('missing Jira response shows a retry action instead of an undefined status', async () => {
+  await assert.rejects(
+    fetchIssue(async () => undefined, 'TEAM-1'),
+    /Jira returned an invalid response.*Check again/
+  );
+});
+
 test('malformed Jira core fields require a retry instead of false missing evidence', async () => {
   const fields = {
     summary: 'Check the release', description: null, assignee: null, duedate: null,
