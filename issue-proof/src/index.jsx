@@ -76,9 +76,9 @@ function App() {
   }, [issueKey, issueId]);
 
   useEffect(() => {
-    if (!issueKey || !error) return;
+    if (!issueKey) return;
     return refreshWhenOnline(window, refresh);
-  }, [issueKey, issueId, error]);
+  }, [issueKey, issueId]);
 
   useEffect(() => {
     if (!issueKey) return;
