@@ -96,6 +96,20 @@ test('promised results cannot count as completed acceptance proof', () => {
   assert.equal(complete.checks.find((check) => check.id === 'acceptance').passed, true);
 });
 
+test('standalone scenarios cannot turn promised results into completed evidence', () => {
+  for (const description of [
+    'Given a saved order, when payment is captured, then the receipt will be saved.',
+    'Given a saved order\nWhen payment is captured\nThen the receipt should be generated.'
+  ]) {
+    const report = assessIssue({ fields: { description } });
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, description);
+  }
+  const complete = assessIssue({ fields: {
+    description: 'Given a saved order, when payment is captured, then the receipt was saved.'
+  } });
+  assert.equal(complete.checks.find((check) => check.id === 'acceptance').passed, true);
+});
+
 test('every result ratio must be complete before acceptance passes', () => {
   for (const result of [
     '3 of 3 tests passed; 1 of 2 receipts saved.',

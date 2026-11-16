@@ -18,6 +18,7 @@ A failed demo upload, deployment, build, release, or handoff blocks acceptance e
 An action reported as not done, such as a demo not uploaded or release not published, also blocks acceptance.
 The same rule covers actions marked never done or still not done.
 Planned results such as "the receipt will be saved" or "checks should pass" do not count as completed proof.
+The same rule applies to standalone Given / When / Then scenarios.
 Partial test results, such as two of five checks passing, do not count as finished acceptance proof.
 The same applies when Jira notes put the result label first, such as "tests passed: 2/5."
 When a line lists several result ratios, every ratio must be complete. A complete test count cannot hide missing receipts later on the same line.

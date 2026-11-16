@@ -208,9 +208,11 @@ export function assessIssue(issue, today = localToday()) {
         && !/^(?:implementation(?: notes?)?|technical notes?|deployment notes?|test plan)\s*:/i.test(line.text)
         && new RegExp(`^${['given', 'when', 'then'][offset]}\\s+\\S`, 'i').test(line.text)
         && line.text.length >= 12 && !hasUnfinishedMarker(line.text)
+        && !promisedResult.test(line.text)
         && !hasFailedEvidence(line.text) && !hasZeroEvidence(line.text)
     );
     return (singleLine && !hasUnfinishedMarker(block.text)
+      && !promisedResult.test(block.text)
       && !hasFailedEvidence(block.text) && !hasZeroEvidence(block.text)) || separateLines;
   });
   const listedCriteria = acceptanceLines.filter(Boolean);
