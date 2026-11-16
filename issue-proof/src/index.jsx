@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import ForgeReconciler, { Button, Heading, Lozenge, SectionMessage, Spinner, Stack, Text, useProductContext } from '@forge/react';
 import { events, requestJira } from '@forge/bridge';
-import { assessIssue } from './checks.js';
+import { assessIssue, localToday } from './checks.js';
 import { createRequestGate } from './request-gate.js';
 import { fetchIssue } from './issue-request.js';
 
@@ -34,7 +34,7 @@ function App() {
     try {
       const result = assessIssue(await fetchIssue(requestJira, issueId || issueKey));
       if (requestGate.current.isCurrent(request)) {
-        setReport({ ...result, checkedAt: new Date().toLocaleString(), contextIssueId: issueId, contextIssueKey: issueKey });
+        setReport({ ...result, checkedAt: new Date().toLocaleString(), checkedDay: localToday(), contextIssueId: issueId, contextIssueKey: issueKey });
       }
     } catch (cause) {
       if (requestGate.current.isCurrent(request)) {
@@ -49,6 +49,16 @@ function App() {
     refresh();
     return () => requestGate.current.invalidate();
   }, [issueKey, issueId]);
+
+  useEffect(() => {
+    if (!report || !issueKey) return;
+    const now = new Date();
+    const nextDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+    const timeout = setTimeout(() => {
+      if (localToday() !== report.checkedDay) refresh();
+    }, nextDay.getTime() - now.getTime() + 100);
+    return () => clearTimeout(timeout);
+  }, [report, issueKey, issueId]);
 
   useEffect(() => {
     if (!issueKey) return;
