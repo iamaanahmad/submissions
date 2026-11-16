@@ -7,6 +7,7 @@ import { fetchIssue } from './issue-request.js';
 import { subscribeToIssueChanges } from './issue-events.js';
 import { refreshWhenVisible } from './visibility-refresh.js';
 import { refreshWhileVisible } from './periodic-refresh.js';
+import { refreshWhenOnline } from './online-refresh.js';
 
 function App() {
   const context = useProductContext();
@@ -73,6 +74,11 @@ function App() {
     // Jira does not emit an event for this panel when a linked issue changes.
     return refreshWhileVisible(document, refresh);
   }, [issueKey, issueId]);
+
+  useEffect(() => {
+    if (!issueKey || !error) return;
+    return refreshWhenOnline(window, refresh);
+  }, [issueKey, issueId, error]);
 
   useEffect(() => {
     if (!issueKey) return;
