@@ -5,6 +5,7 @@ import { assessIssue, localToday } from './checks.js';
 import { createRequestGate } from './request-gate.js';
 import { fetchIssue } from './issue-request.js';
 import { subscribeToIssueChanges } from './issue-events.js';
+import { refreshWhenVisible } from './visibility-refresh.js';
 
 function App() {
   const context = useProductContext();
@@ -60,6 +61,11 @@ function App() {
     }, nextDay.getTime() - now.getTime() + 100);
     return () => clearTimeout(timeout);
   }, [report, issueKey, issueId]);
+
+  useEffect(() => {
+    if (!issueKey) return;
+    return refreshWhenVisible(document, refresh);
+  }, [issueKey, issueId]);
 
   useEffect(() => {
     if (!issueKey) return;
