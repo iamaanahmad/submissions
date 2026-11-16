@@ -1,6 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { subscribeToIssueChanges } from '../src/issue-events.js';
+import { isCurrentIssueUpdate, subscribeToIssueChanges } from '../src/issue-events.js';
+
+test('ignores incomplete Jira change notices without breaking later updates', () => {
+  assert.equal(isCurrentIssueUpdate(null, '1001'), false);
+  assert.equal(isCurrentIssueUpdate({ issueId: '1001', changes: {} }, '1001'), false);
+  assert.equal(isCurrentIssueUpdate({ issueId: '1001', changes: [null] }, '1001'), false);
+  assert.equal(isCurrentIssueUpdate({ issueId: '1002', changes: [{ changeType: 'updated' }] }, '1001'), false);
+  assert.equal(isCurrentIssueUpdate({ issueId: '1001', changes: [{ changeType: 'updated' }] }, '1001'), true);
+});
 
 test('registers Jira change events and returns the subscription', async () => {
   const subscription = { unsubscribe() {} };

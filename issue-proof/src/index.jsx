@@ -4,7 +4,7 @@ import { events, requestJira } from '@forge/bridge';
 import { assessIssue, localToday } from './checks.js';
 import { createRequestGate } from './request-gate.js';
 import { fetchIssue } from './issue-request.js';
-import { subscribeToIssueChanges } from './issue-events.js';
+import { isCurrentIssueUpdate, subscribeToIssueChanges } from './issue-events.js';
 import { refreshWhenVisible } from './visibility-refresh.js';
 import { refreshWhileVisible } from './periodic-refresh.js';
 import { refreshWhenOnline } from './online-refresh.js';
@@ -89,8 +89,7 @@ function App() {
     let active = true;
     setAutoRefreshUnavailable(false);
     const subscription = subscribeToIssueChanges(events, (event) => {
-      if (active && String(event?.issueId) === String(issueId)
-        && event.changes?.some((change) => change.changeType === 'updated')) {
+      if (active && isCurrentIssueUpdate(event, issueId)) {
         refresh();
       }
     }, () => {

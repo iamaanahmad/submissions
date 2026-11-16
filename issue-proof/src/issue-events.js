@@ -6,3 +6,10 @@ export async function subscribeToIssueChanges(events, onChange, onUnavailable) {
     return null;
   }
 }
+
+export function isCurrentIssueUpdate(event, issueId) {
+  return issueId != null
+    && String(event?.issueId) === String(issueId)
+    && Array.isArray(event?.changes)
+    && event.changes.some((change) => change?.changeType === 'updated');
+}
