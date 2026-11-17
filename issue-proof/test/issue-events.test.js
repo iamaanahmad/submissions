@@ -49,3 +49,19 @@ test('asynchronous Jira listener failure leaves manual checking available', asyn
   assert.equal(result, null);
   assert.equal(unavailable, 1);
 });
+
+test('missing Jira listener leaves manual checking available', async () => {
+  let unavailable = 0;
+  const result = await subscribeToIssueChanges({ on: async () => null },
+    () => {}, () => { unavailable += 1; });
+  assert.equal(result, null);
+  assert.equal(unavailable, 1);
+});
+
+test('invalid Jira listener leaves manual checking available', async () => {
+  let unavailable = 0;
+  const result = await subscribeToIssueChanges({ on: async () => ({}) },
+    () => {}, () => { unavailable += 1; });
+  assert.equal(result, null);
+  assert.equal(unavailable, 1);
+});

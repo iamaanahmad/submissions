@@ -1,6 +1,11 @@
 export async function subscribeToIssueChanges(events, onChange, onUnavailable) {
   try {
-    return await events.on('JIRA_ISSUE_CHANGED', onChange);
+    const listener = await events.on('JIRA_ISSUE_CHANGED', onChange);
+    if (!listener || typeof listener.unsubscribe !== 'function') {
+      onUnavailable();
+      return null;
+    }
+    return listener;
   } catch {
     onUnavailable();
     return null;
