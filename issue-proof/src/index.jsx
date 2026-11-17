@@ -8,6 +8,7 @@ import { isCurrentIssueUpdate, subscribeToIssueChanges } from './issue-events.js
 import { refreshWhenVisible } from './visibility-refresh.js';
 import { refreshWhileVisible } from './periodic-refresh.js';
 import { refreshWhenOnline } from './online-refresh.js';
+import { handoffStatus } from './handoff-status.js';
 
 function App() {
   const context = useProductContext();
@@ -20,6 +21,7 @@ function App() {
   const [autoRefreshUnavailable, setAutoRefreshUnavailable] = useState(false);
   const [offline, setOffline] = useState(false);
   const requestGate = useRef(createRequestGate());
+  const handoff = handoffStatus(report, { offline, autoRefreshUnavailable });
 
   useEffect(() => {
     if (issueKey) {
@@ -30,7 +32,7 @@ function App() {
     return () => clearTimeout(timeout);
   }, [issueKey]);
 
-  async function refresh() {
+  async function refresh({ manual = false } = {}) {
     if (!issueKey) return;
     const request = requestGate.current.start();
     setLoading(true);
@@ -39,7 +41,7 @@ function App() {
     try {
       const result = assessIssue(await fetchIssue(requestJira, issueId || issueKey));
       if (requestGate.current.isCurrent(request)) {
-        setReport({ ...result, checkedAt: new Date().toLocaleString(), checkedDay: localToday(), contextIssueId: issueId, contextIssueKey: issueKey });
+        setReport({ ...result, checkedAt: new Date().toLocaleString(), checkedDay: localToday(), checkedManually: manual, contextIssueId: issueId, contextIssueKey: issueKey });
       }
     } catch (cause) {
       if (requestGate.current.isCurrent(request)) {
@@ -89,6 +91,7 @@ function App() {
     if (!issueKey) return;
     if (!issueId) {
       setAutoRefreshUnavailable(true);
+      setReport((current) => current ? { ...current, checkedManually: false } : current);
       return;
     }
     let active = true;
@@ -98,7 +101,10 @@ function App() {
         refresh();
       }
     }, () => {
-      if (active) setAutoRefreshUnavailable(true);
+      if (active) {
+        setAutoRefreshUnavailable(true);
+        setReport((current) => current ? { ...current, checkedManually: false } : current);
+      }
     });
     return () => {
       active = false;
@@ -119,14 +125,14 @@ function App() {
       <Text>You are offline. The report may be out of date. Issue Proof will check again when you reconnect.</Text>
     </SectionMessage>}
     {autoRefreshUnavailable && <SectionMessage appearance="warning">
-      <Text>Jira changes may not update this report automatically. Select Check again before handoff.</Text>
+      <Text>Jira changes may not update this report automatically. {report?.checkedManually ? 'Check again if linked work changes.' : 'Select Check again before handoff.'}</Text>
     </SectionMessage>}
     {report && report.contextIssueId === issueId && report.contextIssueKey === issueKey && <>
       <Heading size="medium">{report.passed} of {report.total} checks have evidence</Heading>
       <Text>{report.issueKey}: {report.summary}</Text>
       <Text>Checked at {report.checkedAt}. Select Check again before handoff if linked work changed.</Text>
-      <SectionMessage appearance={report.passed === report.total ? 'success' : 'warning'}>
-        <Text>Next action: {report.nextAction}</Text>
+      <SectionMessage appearance={handoff.ready ? 'success' : 'warning'}>
+        <Text>Next action: {handoff.nextAction}</Text>
       </SectionMessage>
       {report.checks.map((check) => <Stack key={check.id} space="space.050">
         <Lozenge appearance={check.passed ? 'success' : 'moved'}>{check.passed ? 'Found' : 'Missing'}</Lozenge>
@@ -134,7 +140,7 @@ function App() {
       </Stack>)}
       <SectionMessage appearance="information"><Text>{report.note}</Text></SectionMessage>
     </>}
-    <Button appearance="primary" onClick={refresh} isDisabled={!issueKey || loading}>
+    <Button appearance="primary" onClick={() => refresh({ manual: true })} isDisabled={!issueKey || loading}>
       {loading ? 'Checking...' : 'Check again'}
     </Button>
   </Stack>;
