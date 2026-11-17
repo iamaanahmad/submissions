@@ -7,6 +7,9 @@ export function handoffStatus(report, { offline = false, autoRefreshUnavailable 
   if (offline) return { ready: false, nextAction: 'Reconnect, then check the Jira issue before handoff.' };
   if (!Number.isInteger(report.total) || report.total < 1
     || !Number.isInteger(report.passed) || report.passed < 0 || report.passed > report.total
+    || !Array.isArray(report.checks) || report.checks.length !== report.total
+    || report.checks.some((check) => typeof check?.passed !== 'boolean')
+    || report.checks.filter((check) => check.passed).length !== report.passed
     || !Number.isSafeInteger(report.checkedAtMs) || report.checkedAtMs <= 0) {
     return { ready: false, nextAction: 'Check again before handoff. The report is incomplete.' };
   }

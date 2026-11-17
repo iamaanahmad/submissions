@@ -2,7 +2,11 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { handoffStatus, manualCheckIsCurrent } from '../src/handoff-status.js';
 
-const passedReport = { passed: 6, total: 6, checkedAtMs: Date.now(), nextAction: 'Hand off the issue.' };
+const passedReport = {
+  passed: 6, total: 6,
+  checks: Array.from({ length: 6 }, (_, index) => ({ id: `check-${index}`, passed: true })),
+  checkedAtMs: Date.now(), nextAction: 'Hand off the issue.'
+};
 
 test('a manual check cannot clear an unclear notice that arrived while Jira replied', () => {
   assert.equal(manualCheckIsCurrent(true, 3, 3), true);
@@ -23,7 +27,7 @@ test('a passing report is ready only while Jira checks can stay current', () => 
 });
 
 test('a failing or missing report never becomes ready', () => {
-  assert.equal(handoffStatus({ passed: 5, total: 6, nextAction: 'Add proof.' }).ready, false);
+  assert.equal(handoffStatus({ ...passedReport, passed: 5, checks: passedReport.checks.map((check, index) => ({ ...check, passed: index !== 0 })), nextAction: 'Add proof.' }).ready, false);
   assert.equal(handoffStatus(null).ready, false);
 });
 
@@ -37,7 +41,20 @@ test('an empty or inconsistent report cannot authorize handoff', () => {
     { passed: 6, total: 6, checkedAtMs: NaN },
     { passed: 6, total: 6, checkedAtMs: 0 },
   ]) {
-    const verdict = handoffStatus({ ...counts, nextAction: 'Hand off the issue.' });
+    const verdict = handoffStatus({ ...passedReport, ...counts, nextAction: 'Hand off the issue.' });
+    assert.equal(verdict.ready, false);
+    assert.match(verdict.nextAction, /report is incomplete/);
+  }
+});
+
+test('a report cannot claim handoff when its individual checks disagree with its totals', () => {
+  for (const checks of [
+    undefined,
+    passedReport.checks.slice(1),
+    passedReport.checks.map((check, index) => index === 0 ? { ...check, passed: false } : check),
+    passedReport.checks.map((check, index) => index === 0 ? { ...check, passed: 'true' } : check),
+  ]) {
+    const verdict = handoffStatus({ ...passedReport, checks });
     assert.equal(verdict.ready, false);
     assert.match(verdict.nextAction, /report is incomplete/);
   }
