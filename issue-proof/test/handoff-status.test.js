@@ -43,3 +43,11 @@ test('a passing report expires after five minutes without a Jira refresh', () =>
   assert.equal(stale.ready, false);
   assert.match(stale.nextAction, /more than five minutes old/);
 });
+
+test('a report checked in the future cannot stay ready after a clock change', () => {
+  const checkedAtMs = Date.parse('2026-11-17T04:45:00Z');
+  const report = { ...passedReport, checkedAtMs, checkedDay: '2026-11-17' };
+  const verdict = handoffStatus(report, { now: checkedAtMs - 60 * 1000, today: '2026-11-17' });
+  assert.equal(verdict.ready, false);
+  assert.match(verdict.nextAction, /device clock changed/);
+});
