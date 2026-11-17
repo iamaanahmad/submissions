@@ -773,7 +773,7 @@ test('ignores a pasted fence spread across Jira paragraphs', () => {
   assert.match(acceptance.detail, /1 written result/);
 });
 
-test('accepts an inactive Jira assignee as the recorded owner', () => {
+test('blocks handoff when the recorded Jira owner is inactive', () => {
   const report = assessIssue({ key: 'DEMO-14', fields: {
     assignee: { accountId: 'former-user', displayName: 'Former owner', active: false },
     duedate: '2026-12-01',
@@ -781,9 +781,9 @@ test('accepts an inactive Jira assignee as the recorded owner', () => {
     status: { name: 'Done', statusCategory: { key: 'done' } },
     subtasks: [{ fields: { status: { statusCategory: { key: 'done' } } } }]
   } }, '2026-11-08');
-  assert.equal(report.passed, 5);
-  assert.match(report.nextAction, /Review the actual work/);
-  assert.match(report.checks.find((check) => check.id === 'owner').detail, /inactive account/);
+  assert.equal(report.passed, 4);
+  assert.match(report.nextAction, /Assign an active owner/);
+  assert.equal(report.checks.find((check) => check.id === 'owner').passed, false);
 });
 
 test('an inactive account without an assignee ID does not count as an owner', () => {
