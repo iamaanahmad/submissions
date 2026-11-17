@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { isCurrentIssueUpdate, subscribeToIssueChanges } from '../src/issue-events.js';
+import { hasUnclearCurrentIssueChange, isCurrentIssueUpdate, subscribeToIssueChanges } from '../src/issue-events.js';
 
 test('ignores incomplete Jira change notices without breaking later updates', () => {
   assert.equal(isCurrentIssueUpdate(null, '1001'), false);
@@ -8,6 +8,15 @@ test('ignores incomplete Jira change notices without breaking later updates', ()
   assert.equal(isCurrentIssueUpdate({ issueId: '1001', changes: [null] }, '1001'), false);
   assert.equal(isCurrentIssueUpdate({ issueId: '1002', changes: [{ changeType: 'updated' }] }, '1001'), false);
   assert.equal(isCurrentIssueUpdate({ issueId: '1001', changes: [{ changeType: 'updated' }] }, '1001'), true);
+});
+
+test('flags unclear notices for the current issue without treating comments as updates', () => {
+  assert.equal(hasUnclearCurrentIssueChange({ issueId: '1001', changes: {} }, '1001'), true);
+  assert.equal(hasUnclearCurrentIssueChange({ issueId: '1001', changes: [] }, '1001'), true);
+  assert.equal(hasUnclearCurrentIssueChange({ issueId: '1001', changes: [null] }, '1001'), true);
+  assert.equal(hasUnclearCurrentIssueChange({ issueId: '1001', changes: [{ changeType: 'commented' }] }, '1001'), false);
+  assert.equal(hasUnclearCurrentIssueChange({ issueId: '1001', changes: [{ changeType: 'updated' }] }, '1001'), false);
+  assert.equal(hasUnclearCurrentIssueChange({ issueId: '1002', changes: [] }, '1001'), false);
 });
 
 test('registers Jira change events and returns the subscription', async () => {

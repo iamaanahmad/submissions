@@ -13,3 +13,12 @@ export function isCurrentIssueUpdate(event, issueId) {
     && Array.isArray(event?.changes)
     && event.changes.some((change) => change?.changeType === 'updated');
 }
+
+export function hasUnclearCurrentIssueChange(event, issueId) {
+  return issueId != null
+    && event?.issueId != null
+    && String(event.issueId) === String(issueId)
+    && (!Array.isArray(event.changes)
+      || !event.changes.length
+      || event.changes.some((change) => !['updated', 'commented'].includes(change?.changeType)));
+}
