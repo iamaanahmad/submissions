@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { handoffStatus, manualCheckIsCurrent } from '../src/handoff-status.js';
 
-const passedReport = { passed: 6, total: 6, nextAction: 'Hand off the issue.' };
+const passedReport = { passed: 6, total: 6, checkedAtMs: Date.now(), nextAction: 'Hand off the issue.' };
 
 test('a manual check cannot clear an unclear notice that arrived while Jira replied', () => {
   assert.equal(manualCheckIsCurrent(true, 3, 3), true);
@@ -33,6 +33,9 @@ test('an empty or inconsistent report cannot authorize handoff', () => {
     { passed: 7, total: 6 },
     { passed: -1, total: 6 },
     { passed: 6, total: undefined },
+    { passed: 6, total: 6, checkedAtMs: undefined },
+    { passed: 6, total: 6, checkedAtMs: NaN },
+    { passed: 6, total: 6, checkedAtMs: 0 },
   ]) {
     const verdict = handoffStatus({ ...counts, nextAction: 'Hand off the issue.' });
     assert.equal(verdict.ready, false);
