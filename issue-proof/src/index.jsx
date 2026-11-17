@@ -21,7 +21,7 @@ function App() {
   const [autoRefreshUnavailable, setAutoRefreshUnavailable] = useState(false);
   const [offline, setOffline] = useState(false);
   const requestGate = useRef(createRequestGate());
-  const handoff = handoffStatus(report, { offline, autoRefreshUnavailable });
+  const handoff = handoffStatus(report, { offline, autoRefreshUnavailable, today: localToday() });
 
   useEffect(() => {
     if (issueKey) {

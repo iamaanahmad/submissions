@@ -18,3 +18,11 @@ test('a failing or missing report never becomes ready', () => {
   assert.equal(handoffStatus({ passed: 5, total: 6, nextAction: 'Add proof.' }).ready, false);
   assert.equal(handoffStatus(null).ready, false);
 });
+
+test('a passing report expires when the local day changes', () => {
+  const report = { ...passedReport, checkedDay: '2026-11-16' };
+  assert.equal(handoffStatus(report, { today: '2026-11-16' }).ready, true);
+  const stale = handoffStatus(report, { today: '2026-11-17' });
+  assert.equal(stale.ready, false);
+  assert.match(stale.nextAction, /previous day/);
+});
