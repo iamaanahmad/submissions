@@ -55,7 +55,10 @@ The target-date check uses the viewer's local calendar day, so dates do not turn
 ```sh
 npm install
 npm run check
+npm run demo:local
 ```
+
+The local walkthrough prints one ready issue and one blocked issue from synthetic Jira data. It does not test Forge installation or live Jira access.
 
 Use Node.js 22.23.4 or newer in the supported 22.x line, or another version in `package.json`'s engine range. `npm run check` runs local tests. After the app owner registers the app, `npm run lint:forge` checks the Forge manifest. Forge registration and installation require the app owner's Atlassian account.
 
