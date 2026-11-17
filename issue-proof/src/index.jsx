@@ -5,7 +5,7 @@ import { assessIssue, localToday } from './checks.js';
 import { createRequestGate } from './request-gate.js';
 import { fetchIssue } from './issue-request.js';
 import { hasUnclearCurrentIssueChange, isCurrentIssueUpdate, subscribeToIssueChanges } from './issue-events.js';
-import { refreshWhenVisible } from './visibility-refresh.js';
+import { refreshWhenFocused, refreshWhenVisible } from './visibility-refresh.js';
 import { refreshWhileVisible } from './periodic-refresh.js';
 import { refreshWhenOnline } from './online-refresh.js';
 import { handoffStatus, manualCheckIsCurrent } from './handoff-status.js';
@@ -83,6 +83,12 @@ function App() {
     if (!issueKey) return;
     return refreshWhenVisible(document, refresh);
   }, [issueKey, issueId]);
+
+  useEffect(() => {
+    if (!issueKey) return;
+    return refreshWhenFocused(window, document, refresh,
+      () => !loading && (!report?.checkedAtMs || Date.now() - report.checkedAtMs > 30 * 1000));
+  }, [issueKey, issueId, loading, report?.checkedAtMs]);
 
   useEffect(() => {
     if (!issueKey) return;

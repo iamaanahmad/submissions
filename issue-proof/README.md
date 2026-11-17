@@ -78,6 +78,7 @@ Subtasks and linked issues must include their Jira status. Missing status data t
 
 The panel refreshes its checks after the current Jira issue changes. The **Check again** button remains available for changes that Jira does not send to an open panel.
 The panel also checks again when a hidden Jira tab becomes visible, so a handoff report does not rely on background events that the browser may have missed.
+When you return to the Jira window, the panel checks again if its report is over 30 seconds old. This catches changes made while another window covered Jira.
 While the tab stays open, it checks every five minutes. This catches completed subtasks and linked blockers that do not send a change event for the current issue.
 If Jira's change listener cannot start, the panel warns that the report may be stale and asks the viewer to check again before handoff.
 If Jira sends an incomplete change notice for the current issue, the panel also withholds a passing handoff state until a manual recheck.
