@@ -26,3 +26,12 @@ test('a passing report expires when the local day changes', () => {
   assert.equal(stale.ready, false);
   assert.match(stale.nextAction, /previous day/);
 });
+
+test('a passing report expires after five minutes without a Jira refresh', () => {
+  const checkedAtMs = Date.parse('2026-11-17T04:45:00Z');
+  const report = { ...passedReport, checkedAtMs, checkedDay: '2026-11-17' };
+  assert.equal(handoffStatus(report, { now: checkedAtMs + 5 * 60 * 1000 }).ready, true);
+  const stale = handoffStatus(report, { now: checkedAtMs + 5 * 60 * 1000 + 1 });
+  assert.equal(stale.ready, false);
+  assert.match(stale.nextAction, /more than five minutes old/);
+});

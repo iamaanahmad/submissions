@@ -20,8 +20,9 @@ function App() {
   const [contextTimedOut, setContextTimedOut] = useState(false);
   const [autoRefreshUnavailable, setAutoRefreshUnavailable] = useState(false);
   const [offline, setOffline] = useState(false);
+  const [now, setNow] = useState(Date.now());
   const requestGate = useRef(createRequestGate());
-  const handoff = handoffStatus(report, { offline, autoRefreshUnavailable, today: localToday() });
+  const handoff = handoffStatus(report, { offline, autoRefreshUnavailable, today: localToday(), now });
 
   useEffect(() => {
     if (issueKey) {
@@ -41,7 +42,9 @@ function App() {
     try {
       const result = assessIssue(await fetchIssue(requestJira, issueId || issueKey));
       if (requestGate.current.isCurrent(request)) {
-        setReport({ ...result, checkedAt: new Date().toLocaleString(), checkedDay: localToday(), checkedManually: manual, contextIssueId: issueId, contextIssueKey: issueKey });
+        const checkedAtMs = Date.now();
+        setNow(checkedAtMs);
+        setReport({ ...result, checkedAt: new Date(checkedAtMs).toLocaleString(), checkedAtMs, checkedDay: localToday(), checkedManually: manual, contextIssueId: issueId, contextIssueKey: issueKey });
       }
     } catch (cause) {
       if (requestGate.current.isCurrent(request)) {
@@ -66,6 +69,13 @@ function App() {
     }, nextDay.getTime() - now.getTime() + 100);
     return () => clearTimeout(timeout);
   }, [report, issueKey, issueId]);
+
+  useEffect(() => {
+    if (!report?.checkedAtMs) return;
+    const remaining = Math.max(0, report.checkedAtMs + 5 * 60 * 1000 - Date.now() + 1);
+    const timeout = setTimeout(() => setNow(Date.now()), remaining);
+    return () => clearTimeout(timeout);
+  }, [report]);
 
   useEffect(() => {
     if (!issueKey) return;
