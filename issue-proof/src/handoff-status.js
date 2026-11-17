@@ -1,3 +1,7 @@
+export function manualCheckIsCurrent(manual, changeVersionAtStart, currentChangeVersion) {
+  return manual && changeVersionAtStart === currentChangeVersion;
+}
+
 export function handoffStatus(report, { offline = false, autoRefreshUnavailable = false, today, now = Date.now() } = {}) {
   if (!report) return { ready: false, nextAction: 'Check the Jira issue before handoff.' };
   if (offline) return { ready: false, nextAction: 'Reconnect, then check the Jira issue before handoff.' };

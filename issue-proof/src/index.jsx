@@ -8,7 +8,7 @@ import { hasUnclearCurrentIssueChange, isCurrentIssueUpdate, subscribeToIssueCha
 import { refreshWhenVisible } from './visibility-refresh.js';
 import { refreshWhileVisible } from './periodic-refresh.js';
 import { refreshWhenOnline } from './online-refresh.js';
-import { handoffStatus } from './handoff-status.js';
+import { handoffStatus, manualCheckIsCurrent } from './handoff-status.js';
 
 function App() {
   const context = useProductContext();
@@ -22,6 +22,7 @@ function App() {
   const [offline, setOffline] = useState(false);
   const [now, setNow] = useState(Date.now());
   const requestGate = useRef(createRequestGate());
+  const unclearChangeVersion = useRef(0);
   const handoff = handoffStatus(report, { offline, autoRefreshUnavailable, today: localToday(), now });
 
   useEffect(() => {
@@ -36,6 +37,7 @@ function App() {
   async function refresh({ manual = false } = {}) {
     if (!issueKey) return;
     const request = requestGate.current.start();
+    const changeVersionAtStart = unclearChangeVersion.current;
     setLoading(true);
     setError('');
     setReport(null);
@@ -44,7 +46,7 @@ function App() {
       if (requestGate.current.isCurrent(request)) {
         const checkedAtMs = Date.now();
         setNow(checkedAtMs);
-        setReport({ ...result, checkedAt: new Date(checkedAtMs).toLocaleString(), checkedAtMs, checkedDay: localToday(), checkedManually: manual, contextIssueId: issueId, contextIssueKey: issueKey });
+        setReport({ ...result, checkedAt: new Date(checkedAtMs).toLocaleString(), checkedAtMs, checkedDay: localToday(), checkedManually: manualCheckIsCurrent(manual, changeVersionAtStart, unclearChangeVersion.current), contextIssueId: issueId, contextIssueKey: issueKey });
       }
     } catch (cause) {
       if (requestGate.current.isCurrent(request)) {
@@ -100,6 +102,7 @@ function App() {
   useEffect(() => {
     if (!issueKey) return;
     if (!issueId) {
+      unclearChangeVersion.current += 1;
       setAutoRefreshUnavailable(true);
       setReport((current) => current ? { ...current, checkedManually: false } : current);
       return;
@@ -108,6 +111,7 @@ function App() {
     setAutoRefreshUnavailable(false);
     const subscription = subscribeToIssueChanges(events, (event) => {
       if (active && hasUnclearCurrentIssueChange(event, issueId)) {
+        unclearChangeVersion.current += 1;
         setAutoRefreshUnavailable(true);
         setReport((current) => current ? { ...current, checkedManually: false } : current);
       } else if (active && isCurrentIssueUpdate(event, issueId)) {
@@ -115,6 +119,7 @@ function App() {
       }
     }, () => {
       if (active) {
+        unclearChangeVersion.current += 1;
         setAutoRefreshUnavailable(true);
         setReport((current) => current ? { ...current, checkedManually: false } : current);
       }
