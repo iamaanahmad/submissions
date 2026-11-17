@@ -11,11 +11,14 @@ test('ignores incomplete Jira change notices without breaking later updates', ()
 });
 
 test('flags unclear notices for the current issue without treating comments as updates', () => {
+  assert.equal(hasUnclearCurrentIssueChange(null, '1001'), true);
+  assert.equal(hasUnclearCurrentIssueChange({ changes: [{ changeType: 'updated' }] }, '1001'), true);
   assert.equal(hasUnclearCurrentIssueChange({ issueId: '1001', changes: {} }, '1001'), true);
   assert.equal(hasUnclearCurrentIssueChange({ issueId: '1001', changes: [] }, '1001'), true);
   assert.equal(hasUnclearCurrentIssueChange({ issueId: '1001', changes: [null] }, '1001'), true);
   assert.equal(hasUnclearCurrentIssueChange({ issueId: '1001', changes: [{ changeType: 'commented' }] }, '1001'), false);
   assert.equal(hasUnclearCurrentIssueChange({ issueId: '1001', changes: [{ changeType: 'updated' }] }, '1001'), false);
+  assert.equal(hasUnclearCurrentIssueChange({ issueId: '1001', changes: [{ changeType: 'updated' }, { changeType: 'unknown' }] }, '1001'), true);
   assert.equal(hasUnclearCurrentIssueChange({ issueId: '1002', changes: [] }, '1001'), false);
 });
 

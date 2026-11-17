@@ -107,11 +107,11 @@ function App() {
     let active = true;
     setAutoRefreshUnavailable(false);
     const subscription = subscribeToIssueChanges(events, (event) => {
-      if (active && isCurrentIssueUpdate(event, issueId)) {
-        refresh();
-      } else if (active && hasUnclearCurrentIssueChange(event, issueId)) {
+      if (active && hasUnclearCurrentIssueChange(event, issueId)) {
         setAutoRefreshUnavailable(true);
         setReport((current) => current ? { ...current, checkedManually: false } : current);
+      } else if (active && isCurrentIssueUpdate(event, issueId)) {
+        refresh();
       }
     }, () => {
       if (active) {

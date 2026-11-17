@@ -16,9 +16,8 @@ export function isCurrentIssueUpdate(event, issueId) {
 
 export function hasUnclearCurrentIssueChange(event, issueId) {
   return issueId != null
-    && event?.issueId != null
-    && String(event.issueId) === String(issueId)
-    && (!Array.isArray(event.changes)
+    && (event?.issueId == null || String(event.issueId) === String(issueId))
+    && (event?.issueId == null || !Array.isArray(event.changes)
       || !event.changes.length
       || event.changes.some((change) => !['updated', 'commented'].includes(change?.changeType)));
 }
