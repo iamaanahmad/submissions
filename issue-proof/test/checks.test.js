@@ -840,6 +840,21 @@ test('an inactive account without an assignee ID does not count as an owner', ()
   assert.match(report.nextAction, /Assign someone/);
 });
 
+test('closed work outside scope cannot pass handoff or unblock a parent', () => {
+  const done = { name: 'Done', statusCategory: { key: 'done' } };
+  for (const resolution of ['Out of Scope', 'Obsolete', 'Abandoned']) {
+    const report = assessIssue({ key: 'DEMO-60', fields: {
+      assignee: { accountId: 'owner', active: true }, duedate: '2026-12-01',
+      description: 'Acceptance criteria: Buyer can download the receipt after checkout.',
+      status: done, resolution: { name: resolution },
+      subtasks: [{ key: 'DEMO-61', fields: { status: done, resolution: { name: resolution } } }]
+    } }, '2026-11-18');
+    assert.equal(report.checks.find((check) => check.id === 'status').passed, false, resolution);
+    assert.equal(report.checks.find((check) => check.id === 'subtasks').passed, false, resolution);
+    assert.match(report.nextAction, /Finish DEMO-61/);
+  }
+});
+
 test('mixed pass and failure summaries cannot count as acceptance proof', () => {
   for (const result of [
     '5 checks passed, 1 failed.',

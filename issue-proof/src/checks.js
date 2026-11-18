@@ -83,7 +83,7 @@ export function assessIssue(issue, today = localToday()) {
     })).filter((block) => block.text)
     : description.split('\n').map((text) => ({ node: null, text: text.trim(), heading: false })).filter((block) => block.text);
   const subtasks = fields.subtasks || [];
-  const stoppedResolution = /^(?:won['’]?t (?:do|fix)|will not do|cancelled|canceled|duplicate|rejected|declined|can['’]?t reproduce|cannot reproduce)$/i;
+  const stoppedResolution = /^(?:won['’]?t (?:do|fix)|will not do|cancelled|canceled|duplicate|rejected|declined|can['’]?t reproduce|cannot reproduce|out of scope|obsolete|abandoned)$/i;
   const isStopped = (fields) => [fields?.status?.name, fields?.resolution?.name]
     .some((name) => typeof name === 'string' && stoppedResolution.test(name.trim()));
   const isCompleted = (fields) => fields?.status?.statusCategory?.key === 'done' && !isStopped(fields);

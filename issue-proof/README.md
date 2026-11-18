@@ -7,7 +7,7 @@ The panel also withholds handoff success when a check is more than five minutes 
 Issue Proof is a Forge Jira issue panel for software teams. It reads the current issue and shows evidence checks for owner, target date, written acceptance criteria, and done status. Parent issues check their subtasks when they have any. Jira subtasks skip that child-work check. Open Jira checklist items and pasted unchecked boxes in the description block handoff, even outside acceptance criteria. When a linked issue blocks the current issue, the panel names it until its status is done. The panel highlights the first missing item as the next action. It does not change Jira data or claim release approval.
 
 An inactive assigned Jira account cannot take the next step. Issue Proof blocks handoff until an active owner is assigned. An issue with no assignee account ID also needs an owner.
-An issue closed as Won't Do, Duplicate, or Cannot Reproduce is not completed work, so it cannot pass handoff.
+An issue closed as Won't Do, Duplicate, Cannot Reproduce, Out of Scope, Obsolete, or Abandoned is not completed work, so it cannot pass handoff.
 
 Unchecked examples inside Jira code blocks are ignored. Actual open Jira tasks and pasted checklists still block handoff.
 Pasted Markdown code fences are also ignored, so examples cannot create false missing-work results.
