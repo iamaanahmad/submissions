@@ -3,6 +3,29 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { assessIssue } from '../src/checks.js';
 
+test('a closed issue without completed work cannot pass handoff', () => {
+  const fields = {
+    summary: 'Release checkout',
+    assignee: { accountId: 'owner-1', active: true },
+    duedate: '2026-12-01',
+    description: 'Acceptance criteria: Five checkout tests passed and the receipt was saved.',
+    status: { name: 'Done', statusCategory: { key: 'done' } },
+    resolution: { name: 'Fixed' },
+    issuetype: { subtask: false }, subtasks: [], issuelinks: []
+  };
+  const complete = assessIssue({ key: 'TEAM-1', fields }, '2026-11-18');
+  assert.equal(complete.checks.find((check) => check.id === 'status').passed, true);
+  for (const resolution of ['Won\'t Do', 'Won\'t Fix', 'Duplicate', 'Can\'t Reproduce', 'Canceled']) {
+    const report = assessIssue({ key: 'TEAM-1', fields: { ...fields, resolution: { name: resolution } } }, '2026-11-18');
+    assert.equal(report.checks.find((check) => check.id === 'status').passed, false, resolution);
+    assert.match(report.nextAction, /closed as/);
+  }
+  const canceledStatus = assessIssue({ key: 'TEAM-1', fields: {
+    ...fields, status: { name: 'Canceled', statusCategory: { key: 'done' } }, resolution: null
+  } }, '2026-11-18');
+  assert.equal(canceledStatus.checks.find((check) => check.id === 'status').passed, false);
+});
+
 test('missing demo and release actions cannot count as completed evidence', () => {
   for (const result of [
     'Five tests passed, but the demo was not uploaded.',

@@ -103,7 +103,10 @@ export function assessIssue(issue, today = localToday()) {
   const dueDate = parsedDate && !Number.isNaN(parsedDate.valueOf())
     && parsedDate.toISOString().slice(0, 10) === fields.duedate ? fields.duedate : '';
   const overdue = Boolean(dueDate && dueDate < today);
-  const done = fields.status?.statusCategory?.key === 'done';
+  const stoppedResolution = /^(?:won['’]?t (?:do|fix)|will not do|cancelled|canceled|duplicate|rejected|declined|can['’]?t reproduce|cannot reproduce)$/i;
+  const stopped = [fields.status?.name, fields.resolution?.name]
+    .some((name) => typeof name === 'string' && stoppedResolution.test(name.trim()));
+  const done = fields.status?.statusCategory?.key === 'done' && !stopped;
   const withoutMarkdownHeading = (text) => text.replace(/^#{1,6}[ \t]+/, '').trim();
   const criteriaHeading = /^(?:acceptance criteria|definition of done|success criteria|done when)[ \t]*(?::|[\u2013\u2014-]|$)/i;
   const acceptanceIndex = descriptionBlocks.findIndex((block) =>
@@ -293,8 +296,10 @@ export function assessIssue(issue, today = localToday()) {
   checks.push({
     id: 'status',
     label: 'Issue is marked done',
-    passed: fields.status?.statusCategory?.key === 'done',
-    detail: fields.status?.statusCategory?.key === 'done'
+    passed: done,
+    detail: stopped
+      ? `This issue was closed as ${fields.resolution?.name || fields.status?.name}. Complete the work before handoff.`
+      : done
       ? `${fields.status?.name || 'Done'} is the current status.`
       : `Move the issue to a done status after the work is verified. Current status: ${fields.status?.name || 'unknown'}.`
   });

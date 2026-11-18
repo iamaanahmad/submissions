@@ -14,6 +14,7 @@ test('returns a Jira issue and safely encodes its key', async () => {
   }, 'TEAM-1/extra');
   assert.equal(result, issue);
   assert.match(path, /TEAM-1%2Fextra/);
+  assert.match(path, /resolution/);
 });
 
 test('a key lookup cannot show evidence from another issue', async () => {
