@@ -41,8 +41,7 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000) {
             && (typeof issue.fields.assignee !== 'object'
               || Array.isArray(issue.fields.assignee)
               || typeof issue.fields.assignee.accountId !== 'string'
-              || (Object.hasOwn(issue.fields.assignee, 'active')
-                && typeof issue.fields.assignee.active !== 'boolean')))
+              || typeof issue.fields.assignee.active !== 'boolean'))
           || !Object.hasOwn(issue.fields, 'duedate')
           || (issue.fields.duedate !== null && typeof issue.fields.duedate !== 'string')
           || typeof issue.fields.status?.statusCategory?.key !== 'string'

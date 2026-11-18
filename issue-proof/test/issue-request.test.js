@@ -99,6 +99,7 @@ test('malformed Jira core fields require a retry instead of false missing eviden
   for (const changed of [
     { description: [] }, { description: { type: 'doc' } },
     { assignee: 'account-123' }, { assignee: {} },
+    { assignee: { accountId: 'account-123' } },
     { assignee: { accountId: 'account-123', active: 'false' } },
     { duedate: 20261114 }
   ]) {
@@ -107,6 +108,26 @@ test('malformed Jira core fields require a retry instead of false missing eviden
       /Jira returned an incomplete issue.*Check again/
     );
   }
+});
+
+test('a Jira owner must have a verified activity state', async () => {
+  const fields = {
+    summary: 'Check the release', description: null, duedate: null,
+    status: { statusCategory: { key: 'done' } }, issuetype: { subtask: false },
+    subtasks: [], issuelinks: []
+  };
+  for (const active of [true, false]) {
+    const issue = { key: 'TEAM-1', fields: {
+      ...fields, assignee: { accountId: 'owner-123', active }
+    } };
+    assert.equal(await fetchIssue(async () => ({ ok: true, json: async () => issue }), 'TEAM-1'), issue);
+  }
+  await assert.rejects(
+    fetchIssue(async () => ({ ok: true, json: async () => ({ key: 'TEAM-1', fields: {
+      ...fields, assignee: { accountId: 'owner-123' }
+    } }) }), 'TEAM-1'),
+    /Jira returned an incomplete issue.*Check again/
+  );
 });
 
 test('missing or malformed relationship lists cannot imply no blockers', async () => {

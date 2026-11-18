@@ -73,7 +73,7 @@ If Jira returns an incomplete issue, the panel asks for a retry instead of treat
 If Jira returns an unreadable reply, the panel gives a retry action instead of exposing a parser error.
 If the Jira request fails or returns no response, the panel gives a retry action instead of exposing an internal error.
 Jira may leave owner, target date, or description empty. Those fields must still appear in the reply, so missing data triggers a retry instead of a false missing-evidence result.
-Malformed owner, target date, or description data also triggers a retry instead of a false missing-evidence result.
+Malformed owner, target date, or description data also triggers a retry instead of a false missing-evidence result. Jira must confirm whether an assigned owner is active before handoff can pass.
 Missing subtask or issue-link lists also trigger a retry. The panel does not treat an incomplete Jira reply as proof that no work is blocked.
 Subtasks and linked issues must include their Jira status. Missing status data triggers a retry instead of a misleading blocker result.
 
