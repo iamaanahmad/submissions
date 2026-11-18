@@ -26,6 +26,13 @@ function App() {
   const handoff = handoffStatus(report, { offline, autoRefreshUnavailable, today: localToday(), now });
 
   useEffect(() => {
+    if (!report?.checkedAtMs) return;
+    // A clock change does not fire a Jira event or the report-expiry timeout.
+    const interval = setInterval(() => setNow(Date.now()), 15 * 1000);
+    return () => clearInterval(interval);
+  }, [report?.checkedAtMs]);
+
+  useEffect(() => {
     if (issueKey) {
       setContextTimedOut(false);
       return;

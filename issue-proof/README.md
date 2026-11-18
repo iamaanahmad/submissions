@@ -2,11 +2,11 @@
 
 When the browser reconnects, the panel checks the current Jira issue again. This also catches changes made while a prior report was visible and the connection was down. Manual Check again remains available.
 While the browser is offline, the panel warns that a visible report may be out of date and withholds its success state. If Jira updates fail, a manual check restores the success state until another listener failure.
-The panel also withholds handoff success when a check is more than five minutes old. Select **Check again** if a browser timer or Jira update was delayed.
+The panel also withholds handoff success when a check is more than five minutes old. It checks the clock every 15 seconds, so a clock change cannot leave an old passing result visible. Select **Check again** if a browser timer or Jira update was delayed.
 
 Issue Proof is a Forge Jira issue panel for software teams. It reads the current issue and shows evidence checks for owner, target date, written acceptance criteria, and done status. Parent issues check their subtasks when they have any. Jira subtasks skip that child-work check. Open Jira checklist items and pasted unchecked boxes in the description block handoff, even outside acceptance criteria. When a linked issue blocks the current issue, the panel names it until its status is done. The panel highlights the first missing item as the next action. It does not change Jira data or claim release approval.
 
-An assigned Jira account remains the recorded owner after deactivation. Issue Proof shows that state without failing the owner check. An issue with no assignee account ID still needs an owner.
+An inactive assigned Jira account cannot take the next step. Issue Proof blocks handoff until an active owner is assigned. An issue with no assignee account ID also needs an owner.
 
 Unchecked examples inside Jira code blocks are ignored. Actual open Jira tasks and pasted checklists still block handoff.
 Pasted Markdown code fences are also ignored, so examples cannot create false missing-work results.
