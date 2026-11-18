@@ -8,6 +8,7 @@ Issue Proof is a Forge Jira issue panel for software teams. It reads the current
 
 An inactive assigned Jira account cannot take the next step. Issue Proof blocks handoff until an active owner is assigned. An issue with no assignee account ID also needs an owner.
 An issue closed as Won't Do, Duplicate, Cannot Reproduce, Out of Scope, Obsolete, or Abandoned is not completed work, so it cannot pass handoff.
+If Jira omits or corrupts the issue resolution, Issue Proof asks for a retry instead of showing a passing handoff.
 
 Unchecked examples inside Jira code blocks are ignored. Actual open Jira tasks and pasted checklists still block handoff.
 Pasted Markdown code fences are also ignored, so examples cannot create false missing-work results.

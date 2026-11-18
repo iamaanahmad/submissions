@@ -45,6 +45,11 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000) {
           || !Object.hasOwn(issue.fields, 'duedate')
           || (issue.fields.duedate !== null && typeof issue.fields.duedate !== 'string')
           || typeof issue.fields.status?.statusCategory?.key !== 'string'
+          || !Object.hasOwn(issue.fields, 'resolution')
+          || (issue.fields.resolution !== null
+            && (typeof issue.fields.resolution !== 'object'
+              || Array.isArray(issue.fields.resolution)
+              || typeof issue.fields.resolution.name !== 'string'))
           || typeof issue.fields.issuetype?.subtask !== 'boolean'
           || !Array.isArray(issue.fields.subtasks)
           || !Array.isArray(issue.fields.issuelinks)
