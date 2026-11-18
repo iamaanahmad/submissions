@@ -94,8 +94,8 @@ function App() {
   useEffect(() => {
     if (!issueKey) return;
     return refreshWhenFocused(window, document, refresh,
-      () => !loading && (!report?.checkedAtMs || Date.now() - report.checkedAtMs > 30 * 1000));
-  }, [issueKey, issueId, loading, report?.checkedAtMs]);
+      () => !loading);
+  }, [issueKey, issueId, loading]);
 
   useEffect(() => {
     if (!issueKey) return;
