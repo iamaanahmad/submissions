@@ -84,3 +84,14 @@ test('a report checked in the future cannot stay ready after a clock change', ()
   assert.equal(verdict.ready, false);
   assert.match(verdict.nextAction, /device clock changed/);
 });
+
+test('a clock rollback cannot keep an old report ready when wall time still looks current', () => {
+  const checkedAtMs = Date.parse('2026-11-17T04:45:00Z');
+  const report = { ...passedReport, checkedAtMs, checkedAtMonotonicMs: 1000 };
+  const verdict = handoffStatus(report, {
+    now: checkedAtMs + 60 * 1000,
+    monotonicNow: 1000 + 6 * 60 * 1000
+  });
+  assert.equal(verdict.ready, false);
+  assert.match(verdict.nextAction, /device clock changed/);
+});

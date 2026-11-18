@@ -20,10 +20,10 @@ function App() {
   const [contextTimedOut, setContextTimedOut] = useState(false);
   const [autoRefreshUnavailable, setAutoRefreshUnavailable] = useState(false);
   const [offline, setOffline] = useState(false);
-  const [now, setNow] = useState(Date.now());
+  const [, setNow] = useState(Date.now());
   const requestGate = useRef(createRequestGate());
   const unclearChangeVersion = useRef(0);
-  const handoff = handoffStatus(report, { offline, autoRefreshUnavailable, today: localToday(), now });
+  const handoff = handoffStatus(report, { offline, autoRefreshUnavailable, today: localToday(), now: Date.now(), monotonicNow: performance.now() });
 
   useEffect(() => {
     if (!report?.checkedAtMs) return;
@@ -53,7 +53,7 @@ function App() {
       if (requestGate.current.isCurrent(request)) {
         const checkedAtMs = Date.now();
         setNow(checkedAtMs);
-        setReport({ ...result, checkedAt: new Date(checkedAtMs).toLocaleString(), checkedAtMs, checkedDay: localToday(), checkedManually: manualCheckIsCurrent(manual, changeVersionAtStart, unclearChangeVersion.current), contextIssueId: issueId, contextIssueKey: issueKey });
+        setReport({ ...result, checkedAt: new Date(checkedAtMs).toLocaleString(), checkedAtMs, checkedAtMonotonicMs: performance.now(), checkedDay: localToday(), checkedManually: manualCheckIsCurrent(manual, changeVersionAtStart, unclearChangeVersion.current), contextIssueId: issueId, contextIssueKey: issueKey });
       }
     } catch (cause) {
       if (requestGate.current.isCurrent(request)) {
