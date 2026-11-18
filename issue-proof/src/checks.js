@@ -220,6 +220,17 @@ export function assessIssue(issue, today = localToday()) {
       && !promisedResult.test(block.text)
       && !hasFailedEvidence(block.text) && !hasZeroEvidence(block.text)) || separateLines;
   });
+  let inTechnicalSection = false;
+  const failedStandaloneScenario = acceptanceIndex < 0 && descriptionBlocks.some((block) => {
+    if (block.node?.type === 'codeBlock') return false;
+    const technicalHeading = /^(?:implementation(?: notes?)?|technical notes?|deployment notes?|test plan)\s*(?::\s*.*)?$/i.test(withoutMarkdownHeading(block.text));
+    if (technicalHeading) inTechnicalSection = true;
+    else if (block.heading || /^#{1,6}[ \t]+\S/.test(block.text)) inTechnicalSection = false;
+    if (inTechnicalSection) return false;
+    if (!/\bgiven\b.{1,100}\bwhen\b.{1,100}\bthen\b.{1,100}\S/i.test(block.text)) return false;
+    return hasUnfinishedMarker(block.text) || promisedResult.test(block.text)
+      || hasFailedEvidence(block.text) || hasZeroEvidence(block.text);
+  });
   const listedCriteria = acceptanceLines.filter(Boolean);
   const firstUnclearCriterion = listedCriteria.find((line) => !isSpecific(line));
   const uncheckedCriteria = acceptanceIndex >= 0
@@ -236,7 +247,7 @@ export function assessIssue(issue, today = localToday()) {
       return !text || !isPlaceholder(text);
     }) && listedCriteria.length > 0 && listedCriteria.every(isSpecific)
       && uncheckedCriteria.length === 0
-    : standaloneScenario;
+    : standaloneScenario && !failedStandaloneScenario;
   const checks = [
     {
       id: 'owner',

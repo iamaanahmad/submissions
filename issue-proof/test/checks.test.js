@@ -1110,6 +1110,20 @@ test('accepts a standalone specific Given When Then scenario', () => {
   assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, true);
 });
 
+test('a completed scenario cannot hide a failed standalone scenario', () => {
+  const report = assessIssue({ fields: {
+    description: 'Given a buyer has paid when they open orders then they can download their receipt.\nGiven a buyer has paid when they open billing then one receipt check fails.'
+  } });
+  assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false);
+});
+
+test('a failed technical example does not block completed acceptance', () => {
+  const report = assessIssue({ fields: {
+    description: 'Given a buyer has paid when they open orders then they can download their receipt.\nImplementation notes:\nGiven a mock buyer when the stub runs then one receipt check fails.'
+  } });
+  assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, true);
+});
+
 test('does not count an implementation example as acceptance evidence', () => {
   for (const description of [
     'Implementation notes: Given a mock buyer when a stub runs then a fake receipt appears.',
