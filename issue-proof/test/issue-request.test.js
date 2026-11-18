@@ -97,7 +97,9 @@ test('malformed Jira core fields require a retry instead of false missing eviden
   };
   for (const changed of [
     { description: [] }, { description: { type: 'doc' } },
-    { assignee: 'account-123' }, { assignee: {} }, { duedate: 20261114 }
+    { assignee: 'account-123' }, { assignee: {} },
+    { assignee: { accountId: 'account-123', active: 'false' } },
+    { duedate: 20261114 }
   ]) {
     await assert.rejects(
       fetchIssue(async () => ({ ok: true, json: async () => ({ key: 'TEAM-1', fields: { ...fields, ...changed } }) }), 'TEAM-1'),
