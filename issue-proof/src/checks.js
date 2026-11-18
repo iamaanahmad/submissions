@@ -83,7 +83,11 @@ export function assessIssue(issue, today = localToday()) {
     })).filter((block) => block.text)
     : description.split('\n').map((text) => ({ node: null, text: text.trim(), heading: false })).filter((block) => block.text);
   const subtasks = fields.subtasks || [];
-  const unfinished = subtasks.filter((item) => item.fields?.status?.statusCategory?.key !== 'done');
+  const stoppedResolution = /^(?:won['’]?t (?:do|fix)|will not do|cancelled|canceled|duplicate|rejected|declined|can['’]?t reproduce|cannot reproduce)$/i;
+  const isStopped = (fields) => [fields?.status?.name, fields?.resolution?.name]
+    .some((name) => typeof name === 'string' && stoppedResolution.test(name.trim()));
+  const isCompleted = (fields) => fields?.status?.statusCategory?.key === 'done' && !isStopped(fields);
+  const unfinished = subtasks.filter((item) => !isCompleted(item.fields));
   const unfinishedNames = unfinished.map((item) => item.key || item.fields?.summary || 'Unnamed subtask');
   const openChecklistItems = [
     ...openTaskLabels(checklistDescription),
@@ -97,16 +101,14 @@ export function assessIssue(issue, today = localToday()) {
       : isOutwardBlocker ? link.outwardIssue : null;
     return linkedIssue ? [linkedIssue] : [];
   });
-  const blockers = blockingIssues.filter((item) => item.fields?.status?.statusCategory?.key !== 'done');
+  const blockers = blockingIssues.filter((item) => !isCompleted(item.fields));
   const parsedDate = typeof fields.duedate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(fields.duedate)
     ? new Date(`${fields.duedate}T00:00:00Z`) : null;
   const dueDate = parsedDate && !Number.isNaN(parsedDate.valueOf())
     && parsedDate.toISOString().slice(0, 10) === fields.duedate ? fields.duedate : '';
   const overdue = Boolean(dueDate && dueDate < today);
-  const stoppedResolution = /^(?:won['’]?t (?:do|fix)|will not do|cancelled|canceled|duplicate|rejected|declined|can['’]?t reproduce|cannot reproduce)$/i;
-  const stopped = [fields.status?.name, fields.resolution?.name]
-    .some((name) => typeof name === 'string' && stoppedResolution.test(name.trim()));
-  const done = fields.status?.statusCategory?.key === 'done' && !stopped;
+  const stopped = isStopped(fields);
+  const done = isCompleted(fields);
   const withoutMarkdownHeading = (text) => text.replace(/^#{1,6}[ \t]+/, '').trim();
   const criteriaHeading = /^(?:acceptance criteria|definition of done|success criteria|done when)[ \t]*(?::|[\u2013\u2014-]|$)/i;
   const acceptanceIndex = descriptionBlocks.findIndex((block) =>

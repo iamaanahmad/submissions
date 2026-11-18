@@ -26,6 +26,29 @@ test('a closed issue without completed work cannot pass handoff', () => {
   assert.equal(canceledStatus.checks.find((check) => check.id === 'status').passed, false);
 });
 
+test('cancelled child work and duplicate blockers do not count as complete', () => {
+  const fields = {
+    summary: 'Release checkout',
+    assignee: { accountId: 'owner-1', active: true },
+    duedate: '2026-12-01',
+    description: 'Acceptance criteria: Five checkout tests passed and the receipt was saved.',
+    status: { name: 'Done', statusCategory: { key: 'done' } },
+    issuetype: { subtask: false },
+    subtasks: [{ key: 'TEAM-2', fields: {
+      status: { name: 'Done', statusCategory: { key: 'done' } }, resolution: { name: "Won't Do" }
+    } }],
+    issuelinks: [{ type: { inward: 'is blocked by', outward: 'blocks' }, inwardIssue: {
+      key: 'TEAM-3', fields: { status: { name: 'Done', statusCategory: { key: 'done' } }, resolution: { name: 'Duplicate' } }
+    } }]
+  };
+  const report = assessIssue({ key: 'TEAM-1', fields }, '2026-11-18');
+  assert.equal(report.checks.find((check) => check.id === 'subtasks').passed, false);
+  assert.equal(report.checks.find((check) => check.id === 'blockers').passed, false);
+  assert.match(report.checks.find((check) => check.id === 'subtasks').detail, /TEAM-2/);
+  assert.match(report.checks.find((check) => check.id === 'blockers').detail, /TEAM-3/);
+  assert.equal(report.passed < report.total, true);
+});
+
 test('missing demo and release actions cannot count as completed evidence', () => {
   for (const result of [
     'Five tests passed, but the demo was not uploaded.',
