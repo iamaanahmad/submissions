@@ -2,8 +2,12 @@ export function manualCheckIsCurrent(manual, changeVersionAtStart, currentChange
   return manual && changeVersionAtStart === currentChangeVersion;
 }
 
-export function handoffStatus(report, { offline = false, autoRefreshUnavailable = false, refreshPending = false, requestError = false, today, now = Date.now(), monotonicNow } = {}) {
+export function handoffStatus(report, { offline = false, autoRefreshUnavailable = false, refreshPending = false, requestError = false, currentIssueId, currentIssueKey, today, now = Date.now(), monotonicNow } = {}) {
   if (!report) return { ready: false, nextAction: 'Check the Jira issue before handoff.' };
+  if (currentIssueKey !== undefined && (report.contextIssueKey !== currentIssueKey
+    || report.contextIssueId !== currentIssueId)) {
+    return { ready: false, nextAction: 'Check this Jira issue before handoff. The visible report belongs to another issue.' };
+  }
   if (offline) return { ready: false, nextAction: 'Reconnect, then check the Jira issue before handoff.' };
   if (refreshPending) return { ready: false, nextAction: 'Wait for the current Jira check before handoff.' };
   if (requestError) return { ready: false, nextAction: 'Check again before handoff. The latest Jira check failed.' };

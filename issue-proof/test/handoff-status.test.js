@@ -26,6 +26,20 @@ test('a passing report is ready only while Jira checks can stay current', () => 
   assert.equal(handoffStatus({ ...passedReport, checkedManually: true }, { autoRefreshUnavailable: true, offline: true }).ready, false);
 });
 
+test('a prior issue report cannot authorize handoff after Jira changes the open issue', () => {
+  const report = { ...passedReport, contextIssueId: '10001', contextIssueKey: 'DEMO-1' };
+  assert.equal(handoffStatus(report, { currentIssueId: '10001', currentIssueKey: 'DEMO-1' }).ready, true);
+  for (const context of [
+    { currentIssueId: '10002', currentIssueKey: 'DEMO-2' },
+    { currentIssueId: '10001', currentIssueKey: 'DEMO-2' },
+    { currentIssueId: undefined, currentIssueKey: 'DEMO-1' }
+  ]) {
+    const verdict = handoffStatus(report, context);
+    assert.equal(verdict.ready, false);
+    assert.match(verdict.nextAction, /another issue/);
+  }
+});
+
 test('a visible prior report cannot authorize handoff while a newer Jira check runs or fails', () => {
   const pending = handoffStatus(passedReport, { refreshPending: true });
   assert.equal(pending.ready, false);

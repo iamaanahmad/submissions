@@ -23,7 +23,7 @@ function App() {
   const [, setNow] = useState(Date.now());
   const requestGate = useRef(createRequestGate());
   const unclearChangeVersion = useRef(0);
-  const handoff = handoffStatus(report, { offline, autoRefreshUnavailable, refreshPending: loading, requestError: Boolean(error), today: localToday(), now: Date.now(), monotonicNow: performance.now() });
+  const handoff = handoffStatus(report, { offline, autoRefreshUnavailable, refreshPending: loading, requestError: Boolean(error), currentIssueId: issueId, currentIssueKey: issueKey, today: localToday(), now: Date.now(), monotonicNow: performance.now() });
 
   useEffect(() => {
     if (!report?.checkedAtMs) return;
