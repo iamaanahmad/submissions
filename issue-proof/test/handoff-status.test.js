@@ -26,6 +26,15 @@ test('a passing report is ready only while Jira checks can stay current', () => 
   assert.equal(handoffStatus({ ...passedReport, checkedManually: true }, { autoRefreshUnavailable: true, offline: true }).ready, false);
 });
 
+test('a visible prior report cannot authorize handoff while a newer Jira check runs or fails', () => {
+  const pending = handoffStatus(passedReport, { refreshPending: true });
+  assert.equal(pending.ready, false);
+  assert.match(pending.nextAction, /Wait for the current Jira check/);
+  const failed = handoffStatus(passedReport, { requestError: true });
+  assert.equal(failed.ready, false);
+  assert.match(failed.nextAction, /latest Jira check failed/);
+});
+
 test('a failing or missing report never becomes ready', () => {
   assert.equal(handoffStatus({ ...passedReport, passed: 5, checks: passedReport.checks.map((check, index) => ({ ...check, passed: index !== 0 })), nextAction: 'Add proof.' }).ready, false);
   assert.equal(handoffStatus(null).ready, false);

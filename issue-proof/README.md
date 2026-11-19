@@ -1,6 +1,7 @@
 # Issue Proof
 
 When the browser reconnects, the panel checks the current Jira issue again. This also catches changes made while a prior report was visible and the connection was down. Manual Check again remains available.
+The prior report stays visible during a new check or after a Jira request failure, but handoff stays blocked until a fresh check succeeds.
 While the browser is offline, the panel warns that a visible report may be out of date and withholds its success state. If Jira updates fail, a manual check restores the success state until another listener failure.
 The panel also withholds handoff success when a check is more than five minutes old. It checks the clock every 15 seconds, so a clock change cannot leave an old passing result visible. Select **Check again** if a browser timer or Jira update was delayed.
 

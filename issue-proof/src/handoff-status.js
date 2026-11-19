@@ -2,9 +2,11 @@ export function manualCheckIsCurrent(manual, changeVersionAtStart, currentChange
   return manual && changeVersionAtStart === currentChangeVersion;
 }
 
-export function handoffStatus(report, { offline = false, autoRefreshUnavailable = false, today, now = Date.now(), monotonicNow } = {}) {
+export function handoffStatus(report, { offline = false, autoRefreshUnavailable = false, refreshPending = false, requestError = false, today, now = Date.now(), monotonicNow } = {}) {
   if (!report) return { ready: false, nextAction: 'Check the Jira issue before handoff.' };
   if (offline) return { ready: false, nextAction: 'Reconnect, then check the Jira issue before handoff.' };
+  if (refreshPending) return { ready: false, nextAction: 'Wait for the current Jira check before handoff.' };
+  if (requestError) return { ready: false, nextAction: 'Check again before handoff. The latest Jira check failed.' };
   if (!Number.isInteger(report.total) || report.total < 1
     || !Number.isInteger(report.passed) || report.passed < 0 || report.passed > report.total
     || !Array.isArray(report.checks) || report.checks.length !== report.total

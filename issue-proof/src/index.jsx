@@ -23,7 +23,7 @@ function App() {
   const [, setNow] = useState(Date.now());
   const requestGate = useRef(createRequestGate());
   const unclearChangeVersion = useRef(0);
-  const handoff = handoffStatus(report, { offline, autoRefreshUnavailable, today: localToday(), now: Date.now(), monotonicNow: performance.now() });
+  const handoff = handoffStatus(report, { offline, autoRefreshUnavailable, refreshPending: loading, requestError: Boolean(error), today: localToday(), now: Date.now(), monotonicNow: performance.now() });
 
   useEffect(() => {
     if (!report?.checkedAtMs) return;
@@ -51,7 +51,6 @@ function App() {
     const changeVersionAtStart = unclearChangeVersion.current;
     setLoading(true);
     setError('');
-    setReport(null);
     try {
       const result = assessIssue(await fetchIssue(requestJira, issueId || issueKey));
       if (requestGate.current.isCurrent(request)) {
