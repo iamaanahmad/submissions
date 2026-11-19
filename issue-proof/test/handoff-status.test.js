@@ -40,8 +40,10 @@ test('an empty or inconsistent report cannot authorize handoff', () => {
     { passed: 6, total: 6, checkedAtMs: undefined },
     { passed: 6, total: 6, checkedAtMs: NaN },
     { passed: 6, total: 6, checkedAtMs: 0 },
+    { passed: 6, total: 6, nextAction: '' },
+    { passed: 6, total: 6, nextAction: undefined },
   ]) {
-    const verdict = handoffStatus({ ...passedReport, ...counts, nextAction: 'Hand off the issue.' });
+    const verdict = handoffStatus({ ...passedReport, ...counts });
     assert.equal(verdict.ready, false);
     assert.match(verdict.nextAction, /report is incomplete/);
   }
