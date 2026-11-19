@@ -43,6 +43,10 @@ function App() {
 
   async function refresh({ manual = false } = {}) {
     if (!issueKey) return;
+    if (window.navigator.onLine === false) {
+      setOffline(true);
+      return;
+    }
     const request = requestGate.current.start();
     const changeVersionAtStart = unclearChangeVersion.current;
     setLoading(true);
