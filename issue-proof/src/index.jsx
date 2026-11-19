@@ -4,7 +4,7 @@ import { events, requestJira } from '@forge/bridge';
 import { assessIssue, localToday } from './checks.js';
 import { createRequestGate } from './request-gate.js';
 import { fetchIssue } from './issue-request.js';
-import { hasUnclearCurrentIssueChange, isCurrentIssueUpdate, subscribeToIssueChanges } from './issue-events.js';
+import { hasUnclearCurrentIssueChange, isCurrentIssueChange, subscribeToIssueChanges } from './issue-events.js';
 import { refreshWhenFocused, refreshWhenVisible } from './visibility-refresh.js';
 import { refreshWhileVisible } from './periodic-refresh.js';
 import { refreshWhenOnline } from './online-refresh.js';
@@ -130,7 +130,7 @@ function App() {
         unclearChangeVersion.current += 1;
         setAutoRefreshUnavailable(true);
         setReport((current) => current ? { ...current, checkedManually: false } : current);
-      } else if (active && isCurrentIssueUpdate(event, issueId)) {
+      } else if (active && isCurrentIssueChange(event, issueId)) {
         refresh();
       }
     }, () => {

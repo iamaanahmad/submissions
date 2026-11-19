@@ -12,11 +12,11 @@ export async function subscribeToIssueChanges(events, onChange, onUnavailable) {
   }
 }
 
-export function isCurrentIssueUpdate(event, issueId) {
+export function isCurrentIssueChange(event, issueId) {
   return issueId != null
     && String(event?.issueId) === String(issueId)
     && Array.isArray(event?.changes)
-    && event.changes.some((change) => change?.changeType === 'updated');
+    && event.changes.some((change) => ['updated', 'commented'].includes(change?.changeType));
 }
 
 export function hasUnclearCurrentIssueChange(event, issueId) {
