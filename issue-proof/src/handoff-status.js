@@ -15,6 +15,8 @@ export function handoffStatus(report, { offline = false, autoRefreshUnavailable 
     || !Number.isInteger(report.passed) || report.passed < 0 || report.passed > report.total
     || !Array.isArray(report.checks) || report.checks.length !== report.total
     || report.checks.some((check) => typeof check?.passed !== 'boolean')
+    || !['owner', 'deadline', 'acceptance', 'status'].every((id) => report.checks.some((check) => check.id === id))
+    || new Set(report.checks.map((check) => check.id)).size !== report.checks.length
     || report.checks.filter((check) => check.passed).length !== report.passed
     || typeof report.nextAction !== 'string' || !report.nextAction.trim()
     || !Number.isSafeInteger(report.checkedAtMs) || report.checkedAtMs <= 0) {

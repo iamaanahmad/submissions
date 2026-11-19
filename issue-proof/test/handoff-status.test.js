@@ -4,7 +4,8 @@ import { handoffStatus, manualCheckIsCurrent } from '../src/handoff-status.js';
 
 const passedReport = {
   passed: 6, total: 6,
-  checks: Array.from({ length: 6 }, (_, index) => ({ id: `check-${index}`, passed: true })),
+  checks: ['owner', 'deadline', 'acceptance', 'status', 'subtasks', 'blockers']
+    .map((id) => ({ id, passed: true })),
   checkedAtMs: Date.now(), nextAction: 'Hand off the issue.'
 };
 
@@ -78,6 +79,17 @@ test('a report cannot claim handoff when its individual checks disagree with its
     passedReport.checks.slice(1),
     passedReport.checks.map((check, index) => index === 0 ? { ...check, passed: false } : check),
     passedReport.checks.map((check, index) => index === 0 ? { ...check, passed: 'true' } : check),
+  ]) {
+    const verdict = handoffStatus({ ...passedReport, checks });
+    assert.equal(verdict.ready, false);
+    assert.match(verdict.nextAction, /report is incomplete/);
+  }
+});
+
+test('a report cannot claim handoff when a core check is missing or a check is repeated', () => {
+  for (const checks of [
+    passedReport.checks.map((check) => check.id === 'owner' ? { ...check, id: 'other' } : check),
+    passedReport.checks.map((check) => check.id === 'blockers' ? { ...check, id: 'subtasks' } : check)
   ]) {
     const verdict = handoffStatus({ ...passedReport, checks });
     assert.equal(verdict.ready, false);
