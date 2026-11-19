@@ -15,7 +15,7 @@ test('a closed issue without completed work cannot pass handoff', () => {
   };
   const complete = assessIssue({ key: 'TEAM-1', fields }, '2026-11-18');
   assert.equal(complete.checks.find((check) => check.id === 'status').passed, true);
-  for (const resolution of ['Won\'t Do', 'Won\'t Fix', 'Won\'t Complete', 'Not Done', 'Incomplete', 'Deferred', 'Unresolved', 'Duplicate', 'Can\'t Reproduce', 'Canceled']) {
+  for (const resolution of ['Won\'t Do', 'Won\'t Fix', 'Won\'t Complete', 'Not Done', 'Not Planned', 'Cannot Complete', 'Incomplete', 'Deferred', 'Unresolved', 'Duplicate', 'Can\'t Reproduce', 'Canceled']) {
     const report = assessIssue({ key: 'TEAM-1', fields: { ...fields, resolution: { name: resolution } } }, '2026-11-18');
     assert.equal(report.checks.find((check) => check.id === 'status').passed, false, resolution);
     assert.match(report.nextAction, /closed as/);
@@ -842,7 +842,7 @@ test('an inactive account without an assignee ID does not count as an owner', ()
 
 test('closed work outside scope cannot pass handoff or unblock a parent', () => {
   const done = { name: 'Done', statusCategory: { key: 'done' } };
-  for (const resolution of ['Out of Scope', 'Obsolete', 'Abandoned']) {
+  for (const resolution of ['Out of Scope', 'Obsolete', 'Abandoned', 'Not Planned', 'Cannot Complete']) {
     const report = assessIssue({ key: 'DEMO-60', fields: {
       assignee: { accountId: 'owner', active: true }, duedate: '2026-12-01',
       description: 'Acceptance criteria: Buyer can download the receipt after checkout.',
