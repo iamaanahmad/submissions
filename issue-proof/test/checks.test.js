@@ -15,7 +15,7 @@ test('a closed issue without completed work cannot pass handoff', () => {
   };
   const complete = assessIssue({ key: 'TEAM-1', fields }, '2026-11-18');
   assert.equal(complete.checks.find((check) => check.id === 'status').passed, true);
-  for (const resolution of ['Won\'t Do', 'Won\'t Fix', 'Duplicate', 'Can\'t Reproduce', 'Canceled']) {
+  for (const resolution of ['Won\'t Do', 'Won\'t Fix', 'Won\'t Complete', 'Not Done', 'Incomplete', 'Deferred', 'Unresolved', 'Duplicate', 'Can\'t Reproduce', 'Canceled']) {
     const report = assessIssue({ key: 'TEAM-1', fields: { ...fields, resolution: { name: resolution } } }, '2026-11-18');
     assert.equal(report.checks.find((check) => check.id === 'status').passed, false, resolution);
     assert.match(report.nextAction, /closed as/);
