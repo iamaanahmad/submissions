@@ -216,7 +216,7 @@ test('complete child and linked issue statuses remain readable', async () => {
     } };
   }, 'TEAM-1');
   assert.equal(result, issue);
-  assert.equal(requested.length, 4);
+  assert.equal(requested.length, 6);
   assert.equal(result.fields.subtasks[0].fields.resolution.name, 'Fixed');
   assert.equal(result.fields.issuelinks[0].inwardIssue.fields.resolution.name, 'Fixed');
 });
@@ -259,7 +259,7 @@ test('embedded related resolution cannot hide a later unresolved Jira issue', as
       }
     } };
   }, 'TEAM-1');
-  assert.equal(requested.length, 3);
+  assert.equal(requested.length, 4);
   assert.equal(result.fields.subtasks[0].fields.resolution, null);
   assert.equal(assessIssue(result, '2026-11-20').checks.find((check) => check.id === 'subtasks').passed, false);
 });
@@ -283,7 +283,7 @@ test('fresh related status can clear an embedded stale blocker', async () => {
       }
     } : issue };
   }, 'TEAM-1');
-  assert.equal(requests.length, 3);
+  assert.equal(requests.length, 4);
   const blocker = assessIssue(result, '2026-11-20').checks.find((check) => check.id === 'blockers');
   assert.equal(blocker.passed, true);
   assert.match(blocker.detail, /TEAM-2/);
@@ -305,6 +305,24 @@ test('a changed main issue during related reads requires a fresh handoff check',
     return parentReads === 1 ? issue : { ...issue, fields: { ...issue.fields, duedate: null } };
   } }), 'TEAM-1'), /main Jira issue changed during this check/);
   assert.equal(parentReads, 2);
+});
+
+test('a linked issue changed during the main issue recheck cannot pass handoff', async () => {
+  const issue = { key: 'TEAM-1', fields: {
+    summary: 'Release checkout', description: null, assignee: null, duedate: null,
+    status: { name: 'Done', statusCategory: { key: 'done' } }, resolution: { name: 'Fixed' },
+    issuetype: { subtask: false }, issuelinks: [],
+    subtasks: [{ key: 'TEAM-2', fields: { status: { name: 'Done', statusCategory: { key: 'done' } } } }]
+  } };
+  let relatedReads = 0;
+  await assert.rejects(fetchIssue(async (path) => ({ ok: true, json: async () => {
+    if (!path.includes('TEAM-2')) return issue;
+    relatedReads += 1;
+    return { key: 'TEAM-2', fields: relatedReads === 1
+      ? { status: { name: 'Done', statusCategory: { key: 'done' } }, resolution: { name: 'Fixed' } }
+      : { status: { name: 'In Progress', statusCategory: { key: 'indeterminate' } }, resolution: null } };
+  } }), 'TEAM-1'), /Related Jira work changed during this check/);
+  assert.equal(relatedReads, 2);
 });
 
 test('missing Jira status names cannot hide cancelled child or linked work', async () => {

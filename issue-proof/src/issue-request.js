@@ -86,7 +86,7 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
         }
         // Keep a snapshot before enriching embedded related issues below.
         const parentSnapshot = JSON.stringify(issue);
-        const details = await Promise.all(keys.map(async (key) => {
+        const readRelated = async (key) => {
           let response;
           try {
             response = await requestJira(`/rest/api/3/issue/${encodeURIComponent(key)}?fields=status,resolution`);
@@ -107,7 +107,8 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
             throw new Error('Jira returned incomplete related work. Check issue access, then try again.');
           }
           return [key, detail.fields];
-        }));
+        };
+        const details = await Promise.all(keys.map(readRelated));
         if (keys.length) {
           let latest;
           try {
@@ -119,6 +120,13 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
           }
           if (JSON.stringify(latest) !== parentSnapshot) {
             throw new Error('The main Jira issue changed during this check. Check again before handoff.');
+          }
+          // A linked issue can change while the main issue stays unchanged.
+          // Recheck its live status before using the earlier related-work snapshot.
+          const confirmed = await Promise.all(keys.map(readRelated));
+          const firstRead = new Map(details);
+          if (confirmed.some(([key, fields]) => JSON.stringify(fields) !== JSON.stringify(firstRead.get(key)))) {
+            throw new Error('Related Jira work changed during this check. Check again before handoff.');
           }
         }
         const byKey = new Map(details);
