@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { fetchIssue } from '../src/issue-request.js';
+import { assessIssue } from '../src/checks.js';
 
 test('returns a Jira issue and safely encodes its key', async () => {
   let path;
@@ -206,7 +207,38 @@ test('complete child and linked issue statuses remain readable', async () => {
     issuelinks: [{ type: { inward: 'is blocked by', outward: 'blocks' },
       inwardIssue: { key: 'TEAM-3', fields: { status: { name: 'Done', statusCategory: { key: 'done' } } } } }], resolution: null
   } };
-  assert.equal(await fetchIssue(async () => ({ ok: true, json: async () => issue }), 'TEAM-1'), issue);
+  const requested = [];
+  const result = await fetchIssue(async (path) => {
+    requested.push(path);
+    const key = path.match(/\/issue\/([^?]+)/)[1];
+    return { ok: true, json: async () => key === 'TEAM-1' ? issue : {
+      key, fields: { status: { name: 'Done', statusCategory: { key: 'done' } }, resolution: { name: 'Fixed' } }
+    } };
+  }, 'TEAM-1');
+  assert.equal(result, issue);
+  assert.equal(requested.length, 3);
+  assert.equal(result.fields.subtasks[0].fields.resolution.name, 'Fixed');
+  assert.equal(result.fields.issuelinks[0].inwardIssue.fields.resolution.name, 'Fixed');
+});
+
+test('a green related status cannot hide unresolved or mismatched work', async () => {
+  const issue = { key: 'TEAM-1', fields: {
+    summary: 'Release checkout', description: null, assignee: null, duedate: null,
+    status: { name: 'Done', statusCategory: { key: 'done' } }, resolution: { name: 'Fixed' },
+    issuetype: { subtask: false }, issuelinks: [],
+    subtasks: [{ key: 'TEAM-2', fields: { status: { name: 'Done', statusCategory: { key: 'done' } } } }]
+  } };
+  const request = async (path) => ({ ok: true, json: async () => path.includes('TEAM-1') ? issue : {
+    key: 'TEAM-2', fields: { status: { name: 'Done', statusCategory: { key: 'done' } }, resolution: null }
+  } });
+  const result = await fetchIssue(request, 'TEAM-1');
+  assert.equal(result.fields.subtasks[0].fields.resolution, null);
+  const report = assessIssue(result, '2026-11-20');
+  assert.equal(report.checks.find((check) => check.id === 'subtasks').passed, false);
+  delete issue.fields.subtasks[0].fields.resolution;
+  await assert.rejects(fetchIssue(async (path) => ({ ok: true, json: async () => path.includes('TEAM-1') ? issue : {
+    key: 'OTHER-2', fields: { status: { name: 'Done', statusCategory: { key: 'done' } }, resolution: { name: 'Fixed' } }
+  } }), 'TEAM-1'), /incomplete related work/);
 });
 
 test('missing Jira status names cannot hide cancelled child or linked work', async () => {

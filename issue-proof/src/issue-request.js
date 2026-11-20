@@ -71,6 +71,45 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
               || typeof link.outwardIssue.fields?.status?.statusCategory?.key !== 'string')))) {
           throw new Error('Jira returned an incomplete issue. Check again, or ask a project admin to check issue access.');
         }
+        // Jira's embedded subtask and issue-link summaries can omit resolution.
+        // Read completed related issues directly before treating them as proof.
+        const isBlockingLabel = (label) => /^(?:(?:is )?blocked by|(?:is )?depend(?:s|ent) (?:on|upon)|requires?)$/i.test(label?.trim() || '');
+        const blockingIssues = issue.fields.issuelinks.flatMap((link) => {
+          const item = isBlockingLabel(link.type.inward) ? link.inwardIssue
+            : isBlockingLabel(link.type.outward) ? link.outwardIssue : null;
+          return item ? [item] : [];
+        });
+        const related = [...issue.fields.subtasks, ...blockingIssues]
+          .filter((item) => ['done', 'completed'].includes(item.fields.status.statusCategory.key)
+          && !Object.hasOwn(item.fields, 'resolution'));
+        const keys = [...new Set(related.map((item) => item.key))];
+        if (keys.length > 20) {
+          throw new Error('This issue has too many completed related issues to check safely. Review the links in Jira.');
+        }
+        const details = await Promise.all(keys.map(async (key) => {
+          let response;
+          try {
+            response = await requestJira(`/rest/api/3/issue/${encodeURIComponent(key)}?fields=status,resolution`);
+          } catch {
+            throw new Error('Jira could not check related work. Check your connection, then try again.');
+          }
+          if (!response?.ok) throw new Error('Jira could not check related work. Check issue access, then try again.');
+          let detail;
+          try {
+            detail = await response.json();
+          } catch {
+            throw new Error('Jira returned unreadable related work. Try again.');
+          }
+          if (detail?.key !== key || typeof detail.fields?.status?.name !== 'string'
+            || typeof detail.fields?.status?.statusCategory?.key !== 'string'
+            || !Object.hasOwn(detail.fields, 'resolution')
+            || (detail.fields.resolution !== null && typeof detail.fields.resolution?.name !== 'string')) {
+            throw new Error('Jira returned incomplete related work. Check issue access, then try again.');
+          }
+          return [key, detail.fields];
+        }));
+        const byKey = new Map(details);
+        for (const item of related) item.fields = { ...item.fields, ...byKey.get(item.key) };
         return issue;
       })(),
       new Promise((_, reject) => {
