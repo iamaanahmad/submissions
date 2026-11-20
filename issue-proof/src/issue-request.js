@@ -1,5 +1,7 @@
 import { issueFetchError } from './issue-error.js';
 
+const hasText = (value) => typeof value === 'string' && value.trim().length > 0;
+
 export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expectedIssueId) {
   let timer;
   try {
@@ -45,30 +47,30 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
               || typeof issue.fields.assignee.active !== 'boolean'))
           || !Object.hasOwn(issue.fields, 'duedate')
           || (issue.fields.duedate !== null && typeof issue.fields.duedate !== 'string')
-          || typeof issue.fields.status?.name !== 'string'
-          || typeof issue.fields.status?.statusCategory?.key !== 'string'
+          || !hasText(issue.fields.status?.name)
+          || !hasText(issue.fields.status?.statusCategory?.key)
           || !Object.hasOwn(issue.fields, 'resolution')
           || (issue.fields.resolution !== null
             && (typeof issue.fields.resolution !== 'object'
               || Array.isArray(issue.fields.resolution)
-              || typeof issue.fields.resolution.name !== 'string'))
+              || !hasText(issue.fields.resolution.name)))
           || typeof issue.fields.issuetype?.subtask !== 'boolean'
           || !Array.isArray(issue.fields.subtasks)
           || !Array.isArray(issue.fields.issuelinks)
           || issue.fields.subtasks.some((item) =>
             !item || typeof item.key !== 'string'
-            || typeof item.fields?.status?.name !== 'string'
-            || typeof item.fields?.status?.statusCategory?.key !== 'string')
+            || !hasText(item.fields?.status?.name)
+            || !hasText(item.fields?.status?.statusCategory?.key))
           || issue.fields.issuelinks.some((link) =>
             !link || typeof link.type?.inward !== 'string'
             || typeof link.type?.outward !== 'string'
             || Boolean(link.inwardIssue) === Boolean(link.outwardIssue)
             || (link.inwardIssue && (typeof link.inwardIssue.key !== 'string'
-              || typeof link.inwardIssue.fields?.status?.name !== 'string'
-              || typeof link.inwardIssue.fields?.status?.statusCategory?.key !== 'string'))
+              || !hasText(link.inwardIssue.fields?.status?.name)
+              || !hasText(link.inwardIssue.fields?.status?.statusCategory?.key)))
             || (link.outwardIssue && (typeof link.outwardIssue.key !== 'string'
-              || typeof link.outwardIssue.fields?.status?.name !== 'string'
-              || typeof link.outwardIssue.fields?.status?.statusCategory?.key !== 'string')))) {
+              || !hasText(link.outwardIssue.fields?.status?.name)
+              || !hasText(link.outwardIssue.fields?.status?.statusCategory?.key))))) {
           throw new Error('Jira returned an incomplete issue. Check again, or ask a project admin to check issue access.');
         }
         // Embedded subtask and issue-link summaries can be stale in either direction.
@@ -104,10 +106,10 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
           } catch {
             throw new Error('Jira returned unreadable related work. Try again.');
           }
-          if (detail?.key !== key || typeof detail.fields?.status?.name !== 'string'
-            || typeof detail.fields?.status?.statusCategory?.key !== 'string'
+          if (detail?.key !== key || !hasText(detail.fields?.status?.name)
+            || !hasText(detail.fields?.status?.statusCategory?.key)
             || !Object.hasOwn(detail.fields, 'resolution')
-            || (detail.fields.resolution !== null && typeof detail.fields.resolution?.name !== 'string')) {
+            || (detail.fields.resolution !== null && !hasText(detail.fields.resolution?.name))) {
             throw new Error('Jira returned incomplete related work. Check issue access, then try again.');
           }
           return [key, detail.fields];

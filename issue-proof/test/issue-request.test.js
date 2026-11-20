@@ -348,6 +348,35 @@ test('missing Jira status names cannot hide cancelled child or linked work', asy
   }
 });
 
+test('blank Jira status and resolution values cannot appear as completed evidence', async () => {
+  const status = { name: 'Done', statusCategory: { key: 'done' } };
+  const fields = {
+    summary: 'Check the release', description: null, assignee: null, duedate: null,
+    status, issuetype: { subtask: false }, resolution: { name: 'Fixed' },
+    subtasks: [], issuelinks: []
+  };
+  for (const changed of [
+    { ...fields, status: { ...status, name: '  ' } },
+    { ...fields, status: { ...status, statusCategory: { key: ' ' } } },
+    { ...fields, resolution: { name: ' ' } }
+  ]) {
+    await assert.rejects(fetchIssue(async () => ({ ok: true, json: async () => ({
+      key: 'TEAM-1', fields: changed
+    }) }), 'TEAM-1'), /Jira returned an incomplete issue/);
+  }
+  const parent = { key: 'TEAM-1', fields: { ...fields,
+    subtasks: [{ key: 'TEAM-2', fields: { status } }]
+  } };
+  for (const relatedFields of [
+    { status: { ...status, name: ' ' }, resolution: { name: 'Fixed' } },
+    { status, resolution: { name: ' ' } }
+  ]) {
+    await assert.rejects(fetchIssue(async (path) => ({ ok: true, json: async () =>
+      path.includes('TEAM-2') ? { key: 'TEAM-2', fields: relatedFields } : parent
+    }), 'TEAM-1'), /Jira returned incomplete related work/);
+  }
+});
+
 test('stalled Jira requests give a retry action instead of spinning forever', async () => {
   await assert.rejects(
     fetchIssue(() => new Promise(() => {}), 'TEAM-1', 5),
