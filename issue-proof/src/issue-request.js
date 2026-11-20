@@ -85,6 +85,8 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
         if (keys.length > 20) {
           throw new Error('This issue has too many completed related issues to check safely. Review the links in Jira.');
         }
+        // Keep a snapshot before enriching embedded related issues below.
+        const parentSnapshot = JSON.stringify(issue);
         const details = await Promise.all(keys.map(async (key) => {
           let response;
           try {
@@ -107,6 +109,19 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
           }
           return [key, detail.fields];
         }));
+        if (keys.length) {
+          let latest;
+          try {
+            const response = await requestJira(path);
+            if (!response?.ok) throw new Error('Jira changed or could not be checked. Check again before handoff.');
+            latest = await response.json();
+          } catch {
+            throw new Error('Jira could not recheck the main issue. Check your connection, then try again.');
+          }
+          if (JSON.stringify(latest) !== parentSnapshot) {
+            throw new Error('The main Jira issue changed during this check. Check again before handoff.');
+          }
+        }
         const byKey = new Map(details);
         for (const item of related) item.fields = { ...item.fields, ...byKey.get(item.key) };
         return issue;
