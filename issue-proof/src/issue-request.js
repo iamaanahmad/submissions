@@ -128,7 +128,7 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
               throw new Error('Jira returned an unreadable main issue. Check again.');
             }
           } catch (cause) {
-            if (cause.message?.startsWith('Jira ')) throw cause;
+            if (cause?.message?.startsWith('Jira ')) throw cause;
             throw new Error('Jira could not recheck the main issue. Check your connection, then try again.');
           }
           if (JSON.stringify(latest) !== parentSnapshot) {
