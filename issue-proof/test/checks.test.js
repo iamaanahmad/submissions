@@ -26,6 +26,36 @@ test('a closed issue without completed work cannot pass handoff', () => {
   assert.equal(canceledStatus.checks.find((check) => check.id === 'status').passed, false);
 });
 
+test('Jira completed category accepts finished work but still rejects abandoned work', () => {
+  const fields = {
+    summary: 'Release checkout',
+    assignee: { accountId: 'owner-1', active: true },
+    duedate: '2026-12-01',
+    description: 'Acceptance criteria: Five checkout tests passed and the receipt was saved.',
+    status: { name: 'Closed', statusCategory: { key: 'completed' } },
+    resolution: { name: 'Fixed' },
+    issuetype: { subtask: false },
+    subtasks: [{ key: 'TEAM-2', fields: {
+      status: { name: 'Closed', statusCategory: { key: 'completed' } }, resolution: { name: 'Fixed' }
+    } }],
+    issuelinks: [{ type: { inward: 'is blocked by', outward: 'blocks' }, inwardIssue: {
+      key: 'TEAM-3', fields: {
+        status: { name: 'Closed', statusCategory: { key: 'completed' } }, resolution: { name: 'Fixed' }
+      }
+    } }]
+  };
+  const complete = assessIssue({ key: 'TEAM-1', fields }, '2026-11-18');
+  assert.equal(complete.passed, complete.total);
+  const abandoned = assessIssue({ key: 'TEAM-1', fields: {
+    ...fields,
+    issuelinks: [{ ...fields.issuelinks[0], inwardIssue: {
+      ...fields.issuelinks[0].inwardIssue,
+      fields: { ...fields.issuelinks[0].inwardIssue.fields, resolution: { name: 'Abandoned' } }
+    } }]
+  } }, '2026-11-18');
+  assert.equal(abandoned.checks.find((check) => check.id === 'blockers').passed, false);
+});
+
 test('cancelled child work and duplicate blockers do not count as complete', () => {
   const fields = {
     summary: 'Release checkout',

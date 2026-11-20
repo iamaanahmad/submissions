@@ -86,7 +86,9 @@ export function assessIssue(issue, today = localToday()) {
   const stoppedResolution = /^(?:won['’]?t (?:do|fix|complete)|will not do|not (?:done|planned)|cannot complete|incomplete|deferred|unresolved|cancelled|canceled|duplicate|rejected|declined|can['’]?t reproduce|cannot reproduce|out of scope|obsolete|abandoned)$/i;
   const isStopped = (fields) => [fields?.status?.name, fields?.resolution?.name]
     .some((name) => typeof name === 'string' && stoppedResolution.test(name.trim()));
-  const isCompleted = (fields) => fields?.status?.statusCategory?.key === 'done' && !isStopped(fields);
+  // Jira Cloud examples use both "done" and "completed" for the green status category.
+  const isCompleted = (fields) => ['done', 'completed'].includes(fields?.status?.statusCategory?.key)
+    && !isStopped(fields);
   const unfinished = subtasks.filter((item) => !isCompleted(item.fields));
   const unfinishedNames = unfinished.map((item) => item.key || item.fields?.summary || 'Unnamed subtask');
   const openChecklistItems = [
