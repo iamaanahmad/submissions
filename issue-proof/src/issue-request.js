@@ -116,6 +116,13 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
         };
         const details = await Promise.all(keys.map(readRelated));
         if (keys.length) {
+          // Complete both related-work reads before checking the parent again.
+          // Otherwise a parent edit during the final related read can pass.
+          const confirmed = await Promise.all(keys.map(readRelated));
+          const firstRead = new Map(details);
+          if (confirmed.some(([key, fields]) => JSON.stringify(fields) !== JSON.stringify(firstRead.get(key)))) {
+            throw new Error('Related Jira work changed during this check. Check again before handoff.');
+          }
           let latest;
           try {
             const response = await requestJira(path);
@@ -135,13 +142,6 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
           }
           if (JSON.stringify(latest) !== parentSnapshot) {
             throw new Error('The main Jira issue changed during this check. Check again before handoff.');
-          }
-          // A linked issue can change while the main issue stays unchanged.
-          // Recheck its live status before using the earlier related-work snapshot.
-          const confirmed = await Promise.all(keys.map(readRelated));
-          const firstRead = new Map(details);
-          if (confirmed.some(([key, fields]) => JSON.stringify(fields) !== JSON.stringify(firstRead.get(key)))) {
-            throw new Error('Related Jira work changed during this check. Check again before handoff.');
           }
         }
         const byKey = new Map(details);

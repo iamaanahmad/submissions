@@ -307,6 +307,26 @@ test('a changed main issue during related reads requires a fresh handoff check',
   assert.equal(parentReads, 2);
 });
 
+test('a parent edit during the second related read blocks handoff', async () => {
+  const issue = { key: 'TEAM-1', fields: {
+    summary: 'Release checkout', description: null, assignee: null, duedate: '2026-11-20',
+    status: { name: 'Done', statusCategory: { key: 'done' } }, resolution: { name: 'Fixed' },
+    issuetype: { subtask: false }, issuelinks: [],
+    subtasks: [{ key: 'TEAM-2', fields: { status: { name: 'Done', statusCategory: { key: 'done' } } } }]
+  } };
+  let relatedReads = 0;
+  await assert.rejects(fetchIssue(async (path) => ({ ok: true, json: async () => {
+    if (path.includes('TEAM-2')) {
+      relatedReads += 1;
+      return { key: 'TEAM-2', fields: {
+        status: { name: 'Done', statusCategory: { key: 'done' } }, resolution: { name: 'Fixed' }
+      } };
+    }
+    return relatedReads < 2 ? issue : { ...issue, fields: { ...issue.fields, duedate: null } };
+  } }), 'TEAM-1'), /main Jira issue changed during this check/);
+  assert.equal(relatedReads, 2);
+});
+
 test('a linked issue changed during the main issue recheck cannot pass handoff', async () => {
   const issue = { key: 'TEAM-1', fields: {
     summary: 'Release checkout', description: null, assignee: null, duedate: null,
