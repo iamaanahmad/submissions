@@ -52,7 +52,7 @@ function App() {
     setLoading(true);
     setError('');
     try {
-      const result = assessIssue(await fetchIssue(requestJira, issueId || issueKey));
+      const result = assessIssue(await fetchIssue(requestJira, issueId || issueKey, 15000, issueId));
       if (requestGate.current.isCurrent(request)) {
         const checkedAtMs = Date.now();
         setNow(checkedAtMs);

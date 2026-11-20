@@ -1,6 +1,6 @@
 import { issueFetchError } from './issue-error.js';
 
-export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000) {
+export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expectedIssueId) {
   let timer;
   try {
     const fields = 'summary,description,assignee,duedate,subtasks,issuetype,issuelinks,status,resolution';
@@ -25,6 +25,7 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000) {
           throw new Error('Jira returned an unreadable issue. Check again, or ask a project admin to check issue access.');
         }
         if (!issue || typeof issue.key !== 'string' || !issue.key
+          || (expectedIssueId != null && String(issue.id) !== String(expectedIssueId))
           || (/^\d+$/.test(String(issueKey)) && String(issue.id) !== String(issueKey))
           || (!/^\d+$/.test(String(issueKey)) && issue.key !== String(issueKey))
           || !issue.fields || typeof issue.fields !== 'object' || Array.isArray(issue.fields)

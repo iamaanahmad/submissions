@@ -55,6 +55,20 @@ test('does not show another issue when Jira resolves the wrong stable ID', async
   );
 });
 
+test('a key lookup must match the open Jira issue ID', async () => {
+  const fields = {
+    summary: 'Check the release', description: null, assignee: null, duedate: null,
+    status: { statusCategory: { key: 'done' } }, issuetype: { subtask: false },
+    subtasks: [], issuelinks: [], resolution: null
+  };
+  const issue = { id: '10043', key: 'TEAM-1', fields };
+  await assert.rejects(
+    fetchIssue(async () => ({ ok: true, json: async () => issue }), 'TEAM-1', 15000, '10042'),
+    /Jira returned an incomplete issue.*Check again/
+  );
+  assert.equal(await fetchIssue(async () => ({ ok: true, json: async () => issue }), 'TEAM-1', 15000, '10043'), issue);
+});
+
 test('does not show incomplete Jira data as missing handoff evidence', async () => {
   for (const issue of [
     null, {}, { key: 'TEAM-1' }, { key: 'TEAM-1', fields: [] },
