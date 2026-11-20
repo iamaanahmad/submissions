@@ -221,6 +221,33 @@ test('complete child and linked issue statuses remain readable', async () => {
   assert.equal(result.fields.issuelinks[0].inwardIssue.fields.resolution.name, 'Fixed');
 });
 
+test('related Jira reads stay within a four-request burst', async () => {
+  const status = { name: 'Done', statusCategory: { key: 'done' } };
+  const issue = { key: 'TEAM-1', fields: {
+    summary: 'Release checkout', description: null, assignee: null, duedate: null,
+    status, resolution: { name: 'Fixed' }, issuetype: { subtask: false }, issuelinks: [],
+    subtasks: Array.from({ length: 9 }, (_, index) => ({
+      key: `TEAM-${index + 2}`, fields: { status }
+    }))
+  } };
+  let active = 0;
+  let peak = 0;
+  let relatedReads = 0;
+  const result = await fetchIssue(async (path) => {
+    if (path.includes('TEAM-1?')) return { ok: true, json: async () => issue };
+    active += 1;
+    peak = Math.max(peak, active);
+    relatedReads += 1;
+    await new Promise((resolve) => setTimeout(resolve, 1));
+    active -= 1;
+    const key = path.match(/\/issue\/([^?]+)/)[1];
+    return { ok: true, json: async () => ({ key, fields: { status, resolution: { name: 'Fixed' } } }) };
+  }, 'TEAM-1');
+  assert.equal(result, issue);
+  assert.equal(relatedReads, 18);
+  assert.equal(peak, 4);
+});
+
 test('a green related status cannot hide unresolved or mismatched work', async () => {
   const issue = { key: 'TEAM-1', fields: {
     summary: 'Release checkout', description: null, assignee: null, duedate: null,

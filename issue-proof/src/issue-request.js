@@ -114,11 +114,19 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
           }
           return [key, detail.fields];
         };
-        const details = await Promise.all(keys.map(readRelated));
+        const readInBatches = async () => {
+          const results = [];
+          // Keep linked-work checks below Jira's burst limits.
+          for (let start = 0; start < keys.length; start += 4) {
+            results.push(...await Promise.all(keys.slice(start, start + 4).map(readRelated)));
+          }
+          return results;
+        };
+        const details = await readInBatches();
         if (keys.length) {
           // Complete both related-work reads before checking the parent again.
           // Otherwise a parent edit during the final related read can pass.
-          const confirmed = await Promise.all(keys.map(readRelated));
+          const confirmed = await readInBatches();
           const firstRead = new Map(details);
           if (confirmed.some(([key, fields]) => JSON.stringify(fields) !== JSON.stringify(firstRead.get(key)))) {
             throw new Error('Related Jira work changed during this check. Check again before handoff.');
