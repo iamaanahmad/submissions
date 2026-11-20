@@ -11,3 +11,22 @@ test('only the newest Jira request may update the panel', () => {
   gate.invalidate();
   assert.equal(gate.isCurrent(newIssue), false);
 });
+
+test('automatic refresh cannot replace a manual handoff check', () => {
+  const gate = createRequestGate();
+  const manual = gate.start({ manual: true });
+  assert.equal(gate.start(), null);
+  assert.equal(gate.isCurrent(manual), true);
+  gate.finish(manual);
+  const next = gate.start();
+  assert.equal(gate.isCurrent(next), true);
+});
+
+test('issue changes clear a pending manual check', () => {
+  const gate = createRequestGate();
+  const manual = gate.start({ manual: true });
+  gate.invalidate();
+  assert.equal(gate.isCurrent(manual), false);
+  const next = gate.start();
+  assert.equal(gate.isCurrent(next), true);
+});

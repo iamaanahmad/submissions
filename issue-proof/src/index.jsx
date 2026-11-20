@@ -47,7 +47,8 @@ function App() {
       setOffline(true);
       return;
     }
-    const request = requestGate.current.start();
+    const request = requestGate.current.start({ manual });
+    if (request === null) return;
     const changeVersionAtStart = unclearChangeVersion.current;
     setLoading(true);
     setError('');
@@ -64,6 +65,7 @@ function App() {
       }
     } finally {
       if (requestGate.current.isCurrent(request)) setLoading(false);
+      requestGate.current.finish(request);
     }
   }
 
@@ -131,6 +133,8 @@ function App() {
         setAutoRefreshUnavailable(true);
         setReport((current) => current ? { ...current, checkedManually: false } : current);
       } else if (active && isCurrentIssueChange(event, issueId)) {
+        // A Jira edit makes even an in-flight manual check stale.
+        requestGate.current.invalidate();
         refresh();
       }
     }, () => {
