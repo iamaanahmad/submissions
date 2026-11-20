@@ -65,6 +65,8 @@ test('Jira completed category accepts finished work but still rejects abandoned 
   };
   const complete = assessIssue({ key: 'TEAM-1', fields }, '2026-11-18');
   assert.equal(complete.passed, complete.total);
+  assert.match(complete.checks.find((check) => check.id === 'subtasks').detail, /Checked subtasks: TEAM-2/);
+  assert.match(complete.checks.find((check) => check.id === 'blockers').detail, /Checked blocking issues: TEAM-3/);
   const abandoned = assessIssue({ key: 'TEAM-1', fields: {
     ...fields,
     issuelinks: [{ ...fields.issuelinks[0], inwardIssue: {
@@ -1450,7 +1452,7 @@ test('keeps resolved blocking issues visible as checked evidence', () => {
   } }, '2026-11-08');
   assert.equal(report.total, 5);
   assert.equal(report.passed, 5);
-  assert.match(report.checks.find((check) => check.id === 'blockers').detail, /1 blocking issue checked/);
+  assert.match(report.checks.find((check) => check.id === 'blockers').detail, /Checked blocking issues: DEMO-4/);
 });
 
 test('treats an unresolved depends-on link as a handoff blocker', () => {

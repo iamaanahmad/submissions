@@ -290,7 +290,7 @@ export function assessIssue(issue, today = localToday()) {
       label: 'Subtasks are complete',
       passed: unfinished.length === 0,
       detail: unfinished.length ? `Finish ${unfinishedNames.join(', ')} before handoff.`
-          : `${subtasks.length} subtasks checked.`
+          : `Checked subtasks: ${subtasks.map((item) => item.key).join(', ')}.`
     });
   }
   if (openChecklistItems.length) {
@@ -308,7 +308,7 @@ export function assessIssue(issue, today = localToday()) {
       passed: blockers.length === 0,
       detail: blockers.length
         ? `Resolve ${blockers.map((item) => item.key || 'Linked issue').join(', ')} before handoff.`
-        : `${blockingIssues.length} blocking issue${blockingIssues.length === 1 ? '' : 's'} checked.`
+        : `Checked blocking issues: ${blockingIssues.map((item) => item.key).join(', ')}.`
     });
   }
   checks.push({
