@@ -26,6 +26,25 @@ test('a closed issue without completed work cannot pass handoff', () => {
   assert.equal(canceledStatus.checks.find((check) => check.id === 'status').passed, false);
 });
 
+test('a green Jira status with no resolution cannot clear handoff', () => {
+  const fields = {
+    summary: 'Release checkout',
+    assignee: { accountId: 'owner-1', active: true },
+    duedate: '2026-12-01',
+    description: 'Acceptance criteria: Five checkout tests passed and the receipt was saved.',
+    status: { name: 'Done', statusCategory: { key: 'done' } },
+    resolution: null,
+    issuetype: { subtask: false }, subtasks: [], issuelinks: []
+  };
+  const report = assessIssue({ key: 'TEAM-1', fields }, '2026-11-18');
+  assert.equal(report.checks.find((check) => check.id === 'status').passed, false);
+  assert.match(report.nextAction, /still marks this issue unresolved/);
+  const resolved = assessIssue({ key: 'TEAM-1', fields: {
+    ...fields, resolution: { name: 'Fixed' }
+  } }, '2026-11-18');
+  assert.equal(resolved.passed, resolved.total);
+});
+
 test('Jira completed category accepts finished work but still rejects abandoned work', () => {
   const fields = {
     summary: 'Release checkout',

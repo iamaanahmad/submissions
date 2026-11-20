@@ -88,7 +88,10 @@ export function assessIssue(issue, today = localToday()) {
     .some((name) => typeof name === 'string' && stoppedResolution.test(name.trim()));
   // Jira Cloud examples use both "done" and "completed" for the green status category.
   const isCompleted = (fields) => ['done', 'completed'].includes(fields?.status?.statusCategory?.key)
-    && !isStopped(fields);
+    && !isStopped(fields)
+    // The full issue reply includes resolution. An explicit null means Jira still
+    // treats this issue as unresolved, even when its status is green.
+    && (!Object.hasOwn(fields, 'resolution') || Boolean(fields.resolution?.name?.trim()));
   const unfinished = subtasks.filter((item) => !isCompleted(item.fields));
   const unfinishedNames = unfinished.map((item) => item.key || item.fields?.summary || 'Unnamed subtask');
   const openChecklistItems = [
@@ -314,6 +317,9 @@ export function assessIssue(issue, today = localToday()) {
     passed: done,
     detail: stopped
       ? `This issue was closed as ${fields.resolution?.name || fields.status?.name}. Complete the work before handoff.`
+      : ['done', 'completed'].includes(fields.status?.statusCategory?.key)
+        && Object.hasOwn(fields, 'resolution') && !fields.resolution?.name?.trim()
+        ? 'Jira still marks this issue unresolved. Set a completion resolution before handoff.'
       : done
       ? `${fields.status?.name || 'Done'} is the current status.`
       : `Move the issue to a done status after the work is verified. Current status: ${fields.status?.name || 'unknown'}.`
