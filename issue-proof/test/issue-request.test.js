@@ -264,6 +264,31 @@ test('embedded related resolution cannot hide a later unresolved Jira issue', as
   assert.equal(assessIssue(result, '2026-11-20').checks.find((check) => check.id === 'subtasks').passed, false);
 });
 
+test('fresh related status can clear an embedded stale blocker', async () => {
+  const issue = { key: 'TEAM-1', fields: {
+    summary: 'Release checkout', description: null, assignee: null, duedate: null,
+    status: { name: 'Done', statusCategory: { key: 'done' } }, resolution: { name: 'Fixed' },
+    issuetype: { subtask: false }, subtasks: [],
+    issuelinks: [{ type: { inward: 'is blocked by', outward: 'blocks' },
+      inwardIssue: { key: 'TEAM-2', fields: {
+        status: { name: 'In Progress', statusCategory: { key: 'indeterminate' } }
+      } } }]
+  } };
+  const requests = [];
+  const result = await fetchIssue(async (path) => {
+    requests.push(path);
+    return { ok: true, json: async () => path.includes('TEAM-2') ? {
+      key: 'TEAM-2', fields: {
+        status: { name: 'Done', statusCategory: { key: 'done' } }, resolution: { name: 'Fixed' }
+      }
+    } : issue };
+  }, 'TEAM-1');
+  assert.equal(requests.length, 3);
+  const blocker = assessIssue(result, '2026-11-20').checks.find((check) => check.id === 'blockers');
+  assert.equal(blocker.passed, true);
+  assert.match(blocker.detail, /TEAM-2/);
+});
+
 test('a changed main issue during related reads requires a fresh handoff check', async () => {
   const issue = { key: 'TEAM-1', fields: {
     summary: 'Release checkout', description: null, assignee: null, duedate: '2026-11-20',
