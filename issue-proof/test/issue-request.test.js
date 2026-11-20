@@ -362,6 +362,26 @@ test('Jira access errors retain their specific next step', async () => {
   );
 });
 
+test('related work rate limits and lost sign-in give the right recovery step', async () => {
+  const issue = { key: 'TEAM-1', fields: {
+    summary: 'Release checkout', description: null, assignee: null, duedate: null,
+    status: { name: 'Done', statusCategory: { key: 'done' } }, resolution: { name: 'Fixed' },
+    issuetype: { subtask: false }, issuelinks: [],
+    subtasks: [{ key: 'TEAM-2', fields: { status: { name: 'Done', statusCategory: { key: 'done' } } } }]
+  } };
+  await assert.rejects(fetchIssue(async (path) => path.includes('TEAM-2')
+    ? { ok: false, status: 429 }
+    : { ok: true, json: async () => issue }, 'TEAM-1'), /limiting requests.*Wait a moment/);
+  let mainReads = 0;
+  await assert.rejects(fetchIssue(async (path) => {
+    if (path.includes('TEAM-2')) return { ok: true, json: async () => ({ key: 'TEAM-2', fields: {
+      status: { name: 'Done', statusCategory: { key: 'done' } }, resolution: { name: 'Fixed' }
+    } }) };
+    mainReads += 1;
+    return mainReads === 1 ? { ok: true, json: async () => issue } : { ok: false, status: 401 };
+  }, 'TEAM-1'), /sign-in expired.*Sign in again/);
+});
+
 
 test('missing requested evidence fields require a retry, while empty fields remain valid', async () => {
   const fields = {

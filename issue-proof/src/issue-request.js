@@ -93,7 +93,11 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
           } catch {
             throw new Error('Jira could not check related work. Check your connection, then try again.');
           }
-          if (!response?.ok) throw new Error('Jira could not check related work. Check issue access, then try again.');
+          if (!response?.ok) {
+            throw new Error(typeof response?.status === 'number'
+              ? issueFetchError(response.status)
+              : 'Jira could not check related work. Check your connection, then try again.');
+          }
           let detail;
           try {
             detail = await response.json();
@@ -113,9 +117,18 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
           let latest;
           try {
             const response = await requestJira(path);
-            if (!response?.ok) throw new Error('Jira changed or could not be checked. Check again before handoff.');
-            latest = await response.json();
-          } catch {
+            if (!response?.ok) {
+              throw new Error(typeof response?.status === 'number'
+                ? issueFetchError(response.status)
+                : 'Jira could not recheck the main issue. Check your connection, then try again.');
+            }
+            try {
+              latest = await response.json();
+            } catch {
+              throw new Error('Jira returned an unreadable main issue. Check again.');
+            }
+          } catch (cause) {
+            if (cause.message?.startsWith('Jira ')) throw cause;
             throw new Error('Jira could not recheck the main issue. Check your connection, then try again.');
           }
           if (JSON.stringify(latest) !== parentSnapshot) {
