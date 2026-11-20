@@ -19,7 +19,8 @@ export function handoffStatus(report, { offline = false, autoRefreshUnavailable 
     || new Set(report.checks.map((check) => check.id)).size !== report.checks.length
     || report.checks.filter((check) => check.passed).length !== report.passed
     || typeof report.nextAction !== 'string' || !report.nextAction.trim()
-    || !Number.isSafeInteger(report.checkedAtMs) || report.checkedAtMs <= 0) {
+    || !Number.isSafeInteger(report.checkedAtMs) || report.checkedAtMs <= 0
+    || (Number.isFinite(monotonicNow) && !Number.isFinite(report.checkedAtMonotonicMs))) {
     return { ready: false, nextAction: 'Check again before handoff. The report is incomplete.' };
   }
   if (report.checkedAtMs > now) return { ready: false, nextAction: 'Check again before handoff. The device clock changed after the report.' };

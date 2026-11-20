@@ -73,6 +73,16 @@ test('an empty or inconsistent report cannot authorize handoff', () => {
   }
 });
 
+test('a missing elapsed-time stamp cannot authorize handoff in the browser', () => {
+  const now = Date.now();
+  const report = { ...passedReport, checkedAtMs: now };
+  const missing = handoffStatus(report, { now, monotonicNow: 1000 });
+  assert.equal(missing.ready, false);
+  assert.match(missing.nextAction, /report is incomplete/);
+  const current = handoffStatus({ ...report, checkedAtMonotonicMs: 1000 }, { now, monotonicNow: 1000 });
+  assert.equal(current.ready, true);
+});
+
 test('a report cannot claim handoff when its individual checks disagree with its totals', () => {
   for (const checks of [
     undefined,
