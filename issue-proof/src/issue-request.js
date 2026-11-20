@@ -71,7 +71,7 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
               || typeof link.outwardIssue.fields?.status?.statusCategory?.key !== 'string')))) {
           throw new Error('Jira returned an incomplete issue. Check again, or ask a project admin to check issue access.');
         }
-        // Jira's embedded subtask and issue-link summaries can omit resolution.
+        // Embedded subtask and issue-link summaries can be stale or omit resolution.
         // Read completed related issues directly before treating them as proof.
         const isBlockingLabel = (label) => /^(?:(?:is )?blocked by|(?:is )?depend(?:s|ent) (?:on|upon)|requires?)$/i.test(label?.trim() || '');
         const blockingIssues = issue.fields.issuelinks.flatMap((link) => {
@@ -80,8 +80,7 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
           return item ? [item] : [];
         });
         const related = [...issue.fields.subtasks, ...blockingIssues]
-          .filter((item) => ['done', 'completed'].includes(item.fields.status.statusCategory.key)
-          && !Object.hasOwn(item.fields, 'resolution'));
+          .filter((item) => ['done', 'completed'].includes(item.fields.status.statusCategory.key));
         const keys = [...new Set(related.map((item) => item.key))];
         if (keys.length > 20) {
           throw new Error('This issue has too many completed related issues to check safely. Review the links in Jira.');

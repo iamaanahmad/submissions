@@ -241,6 +241,29 @@ test('a green related status cannot hide unresolved or mismatched work', async (
   } }), 'TEAM-1'), /incomplete related work/);
 });
 
+test('embedded related resolution cannot hide a later unresolved Jira issue', async () => {
+  const issue = { key: 'TEAM-1', fields: {
+    summary: 'Release checkout', description: null, assignee: null, duedate: null,
+    status: { name: 'Done', statusCategory: { key: 'done' } }, resolution: { name: 'Fixed' },
+    issuetype: { subtask: false }, issuelinks: [],
+    subtasks: [{ key: 'TEAM-2', fields: {
+      status: { name: 'Done', statusCategory: { key: 'done' } }, resolution: { name: 'Fixed' }
+    } }]
+  } };
+  const requested = [];
+  const result = await fetchIssue(async (path) => {
+    requested.push(path);
+    return { ok: true, json: async () => path.includes('TEAM-1') ? issue : {
+      key: 'TEAM-2', fields: {
+        status: { name: 'In Progress', statusCategory: { key: 'indeterminate' } }, resolution: null
+      }
+    } };
+  }, 'TEAM-1');
+  assert.equal(requested.length, 2);
+  assert.equal(result.fields.subtasks[0].fields.resolution, null);
+  assert.equal(assessIssue(result, '2026-11-20').checks.find((check) => check.id === 'subtasks').passed, false);
+});
+
 test('missing Jira status names cannot hide cancelled child or linked work', async () => {
   const status = { name: 'Done', statusCategory: { key: 'done' } };
   const fields = {
