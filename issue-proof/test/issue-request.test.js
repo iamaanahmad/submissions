@@ -18,6 +18,22 @@ test('returns a Jira issue and safely encodes its key', async () => {
   assert.match(path, /resolution/);
 });
 
+test('a parent edit blocks handoff even without subtasks or blockers', async () => {
+  const issue = { key: 'TEAM-1', fields: {
+    summary: 'Check the release', description: null, assignee: null, duedate: null,
+    status: { name: 'Done', statusCategory: { key: 'done' } },
+    issuetype: { subtask: false }, subtasks: [], issuelinks: [], resolution: { name: 'Fixed' }
+  } };
+  let reads = 0;
+  await assert.rejects(fetchIssue(async () => ({
+    ok: true,
+    json: async () => ++reads === 1 ? issue : {
+      ...issue, fields: { ...issue.fields, duedate: '2026-11-22' }
+    }
+  }), 'TEAM-1'), /main Jira issue changed during this check/);
+  assert.equal(reads, 2);
+});
+
 test('a key lookup cannot show evidence from another issue', async () => {
   const issue = { key: 'OTHER-2', fields: {
     summary: 'Other work', description: null, assignee: null, duedate: null,

@@ -149,26 +149,28 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
           if (confirmed.some(([key, fields]) => stableSnapshot(fields) !== stableSnapshot(firstRead.get(key)))) {
             throw new Error('Related Jira work changed during this check. Check again before handoff.');
           }
-          let latest;
+        }
+        // Recheck the main issue even when it has no related work. A Jira edit
+        // during the first read must not become a passing handoff report.
+        let latest;
+        try {
+          const response = await requestJira(path);
+          if (!response?.ok) {
+            throw new Error(typeof response?.status === 'number'
+              ? issueFetchError(response.status)
+              : 'Jira could not recheck the main issue. Check your connection, then try again.');
+          }
           try {
-            const response = await requestJira(path);
-            if (!response?.ok) {
-              throw new Error(typeof response?.status === 'number'
-                ? issueFetchError(response.status)
-                : 'Jira could not recheck the main issue. Check your connection, then try again.');
-            }
-            try {
-              latest = await response.json();
-            } catch {
-              throw new Error('Jira returned an unreadable main issue. Check again.');
-            }
-          } catch (cause) {
-            if (cause?.message?.startsWith('Jira ')) throw cause;
-            throw new Error('Jira could not recheck the main issue. Check your connection, then try again.');
+            latest = await response.json();
+          } catch {
+            throw new Error('Jira returned an unreadable main issue. Check again.');
           }
-          if (stableSnapshot(latest) !== parentSnapshot) {
-            throw new Error('The main Jira issue changed during this check. Check again before handoff.');
-          }
+        } catch (cause) {
+          if (cause?.message?.startsWith('Jira ')) throw cause;
+          throw new Error('Jira could not recheck the main issue. Check your connection, then try again.');
+        }
+        if (stableSnapshot(latest) !== parentSnapshot) {
+          throw new Error('The main Jira issue changed during this check. Check again before handoff.');
         }
         const byKey = new Map(details);
         for (const item of related) item.fields = { ...item.fields, ...byKey.get(item.key) };
