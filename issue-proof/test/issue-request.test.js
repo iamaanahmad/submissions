@@ -282,6 +282,31 @@ test('a linked issue must keep its Jira ID across the direct read', async () => 
   await assert.rejects(fetchIssue(request, 'TEAM-1'), /incomplete related work/);
 });
 
+test('incomplete linked Jira replies give a retry step', async () => {
+  const status = { name: 'Done', statusCategory: { key: 'done' } };
+  const issue = { key: 'TEAM-1', fields: {
+    summary: 'Release checkout', description: null, assignee: null, duedate: null,
+    status, resolution: { name: 'Fixed' }, issuetype: { subtask: false },
+    subtasks: [{ key: 'TEAM-2', fields: { status } }], issuelinks: []
+  } };
+  for (const detail of [{ key: 'TEAM-2' }, { key: 'TEAM-2', fields: null }]) {
+    await assert.rejects(fetchIssue(async (path) => ({ ok: true, json: async () =>
+      path.includes('TEAM-2') ? detail : issue
+    }), 'TEAM-1'), /incomplete related work.*try again/);
+  }
+});
+
+test('blank related Jira keys cannot enter the handoff check', async () => {
+  const status = { name: 'Done', statusCategory: { key: 'done' } };
+  const issue = { key: 'TEAM-1', fields: {
+    summary: 'Release checkout', description: null, assignee: null, duedate: null,
+    status, resolution: { name: 'Fixed' }, issuetype: { subtask: false },
+    subtasks: [{ key: '  ', fields: { status } }], issuelinks: []
+  } };
+  await assert.rejects(fetchIssue(async () => ({ ok: true, json: async () => issue }), 'TEAM-1'),
+    /incomplete issue.*Check again/);
+});
+
 test('conflicting embedded IDs block a related issue before handoff', async () => {
   const status = { name: 'Done', statusCategory: { key: 'done' } };
   const issue = { key: 'TEAM-1', fields: {

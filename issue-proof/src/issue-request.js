@@ -32,7 +32,7 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
         } catch {
           throw new Error('Jira returned an unreadable issue. Check again, or ask a project admin to check issue access.');
         }
-        if (!issue || typeof issue.key !== 'string' || !issue.key
+        if (!issue || !hasText(issue.key)
           || (expectedIssueId != null && String(issue.id) !== String(expectedIssueId))
           || (/^\d+$/.test(String(issueKey)) && String(issue.id) !== String(issueKey))
           || (!/^\d+$/.test(String(issueKey)) && issue.key !== String(issueKey))
@@ -64,17 +64,17 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
           || !Array.isArray(issue.fields.subtasks)
           || !Array.isArray(issue.fields.issuelinks)
           || issue.fields.subtasks.some((item) =>
-            !item || typeof item.key !== 'string'
+            !item || !hasText(item.key)
             || !hasText(item.fields?.status?.name)
             || !hasText(item.fields?.status?.statusCategory?.key))
           || issue.fields.issuelinks.some((link) =>
             !link || typeof link.type?.inward !== 'string'
             || typeof link.type?.outward !== 'string'
             || Boolean(link.inwardIssue) === Boolean(link.outwardIssue)
-            || (link.inwardIssue && (typeof link.inwardIssue.key !== 'string'
+            || (link.inwardIssue && (!hasText(link.inwardIssue.key)
               || !hasText(link.inwardIssue.fields?.status?.name)
               || !hasText(link.inwardIssue.fields?.status?.statusCategory?.key)))
-            || (link.outwardIssue && (typeof link.outwardIssue.key !== 'string'
+            || (link.outwardIssue && (!hasText(link.outwardIssue.key)
               || !hasText(link.outwardIssue.fields?.status?.name)
               || !hasText(link.outwardIssue.fields?.status?.statusCategory?.key))))) {
           throw new Error('Jira returned an incomplete issue. Check again, or ask a project admin to check issue access.');
@@ -123,6 +123,7 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
           }
           if (detail?.key !== key
             || (expectedIds.has(key) && String(detail.id) !== expectedIds.get(key))
+            || !detail.fields || typeof detail.fields !== 'object' || Array.isArray(detail.fields)
             || !hasText(detail.fields?.status?.name)
             || !hasText(detail.fields?.status?.statusCategory?.key)
             || !Object.hasOwn(detail.fields, 'resolution')
