@@ -50,7 +50,7 @@ test('blocked Jira work cannot pass even when its status category is done', () =
       key: 'TEAM-3', fields: { status: complete, resolution: { name: 'Fixed' } }
     } }]
   };
-  for (const name of ['Blocked', 'On Hold', 'Paused', 'Waiting']) {
+  for (const name of ['Blocked', 'Blocked by vendor', 'On Hold', 'On Hold: review', 'Paused', 'Paused - scope change', 'Waiting', 'Waiting for QA']) {
     const parent = assessIssue({ key: 'TEAM-1', fields: { ...fields, status: { name, statusCategory: { key: 'done' } } } }, '2026-11-18');
     assert.equal(parent.checks.find((check) => check.id === 'status').passed, false, name);
     const child = assessIssue({ key: 'TEAM-1', fields: { ...fields,
