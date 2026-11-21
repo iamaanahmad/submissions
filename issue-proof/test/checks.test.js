@@ -38,6 +38,34 @@ test('a closed issue without completed work cannot pass handoff', () => {
   assert.equal(canceledStatus.checks.find((check) => check.id === 'status').passed, false);
 });
 
+test('blocked Jira work cannot pass even when its status category is done', () => {
+  const complete = { name: 'Done', statusCategory: { key: 'done' } };
+  const fields = {
+    summary: 'Release checkout', assignee: { accountId: 'owner-1', active: true },
+    duedate: '2026-12-01',
+    description: 'Acceptance criteria: Five checkout tests passed and the receipt was saved.',
+    status: complete, resolution: { name: 'Fixed' }, issuetype: { subtask: false },
+    subtasks: [{ key: 'TEAM-2', fields: { status: complete, resolution: { name: 'Fixed' } } }],
+    issuelinks: [{ type: { inward: 'is blocked by', outward: 'blocks' }, inwardIssue: {
+      key: 'TEAM-3', fields: { status: complete, resolution: { name: 'Fixed' } }
+    } }]
+  };
+  for (const name of ['Blocked', 'On Hold', 'Paused', 'Waiting']) {
+    const parent = assessIssue({ key: 'TEAM-1', fields: { ...fields, status: { name, statusCategory: { key: 'done' } } } }, '2026-11-18');
+    assert.equal(parent.checks.find((check) => check.id === 'status').passed, false, name);
+    const child = assessIssue({ key: 'TEAM-1', fields: { ...fields,
+      subtasks: [{ key: 'TEAM-2', fields: { status: { name, statusCategory: { key: 'done' } }, resolution: { name: 'Fixed' } } }]
+    } }, '2026-11-18');
+    assert.equal(child.checks.find((check) => check.id === 'subtasks').passed, false, name);
+    const blocker = assessIssue({ key: 'TEAM-1', fields: { ...fields,
+      issuelinks: [{ ...fields.issuelinks[0], inwardIssue: { key: 'TEAM-3', fields: {
+        status: { name, statusCategory: { key: 'done' } }, resolution: { name: 'Fixed' }
+      } } }]
+    } }, '2026-11-18');
+    assert.equal(blocker.checks.find((check) => check.id === 'blockers').passed, false, name);
+  }
+});
+
 test('a green Jira status with no resolution cannot clear handoff', () => {
   const fields = {
     summary: 'Release checkout',
