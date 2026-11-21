@@ -334,6 +334,32 @@ test('a changed main issue during related reads requires a fresh handoff check',
   assert.equal(parentReads, 2);
 });
 
+test('Jira field order changes do not falsely block an unchanged handoff', async () => {
+  const status = { name: 'Done', statusCategory: { key: 'done' } };
+  const relatedFields = { status, resolution: { name: 'Fixed' } };
+  const issue = { key: 'TEAM-1', fields: {
+    summary: 'Release checkout', description: null, assignee: null, duedate: null,
+    status, resolution: { name: 'Fixed' }, issuetype: { subtask: false },
+    subtasks: [{ key: 'TEAM-2', fields: { status } }], issuelinks: []
+  } };
+  let parentReads = 0;
+  let relatedReads = 0;
+  const result = await fetchIssue(async (path) => ({ ok: true, json: async () => {
+    if (path.includes('TEAM-2')) {
+      relatedReads += 1;
+      return { key: 'TEAM-2', fields: relatedReads === 1
+        ? relatedFields : { resolution: { name: 'Fixed' }, status: { statusCategory: { key: 'done' }, name: 'Done' } } };
+    }
+    parentReads += 1;
+    return parentReads === 1 ? issue : {
+      fields: { ...issue.fields, status: { statusCategory: { key: 'done' }, name: 'Done' } }, key: 'TEAM-1'
+    };
+  } }), 'TEAM-1');
+  assert.equal(result.key, 'TEAM-1');
+  assert.equal(parentReads, 2);
+  assert.equal(relatedReads, 2);
+});
+
 test('a parent edit during the second related read blocks handoff', async () => {
   const issue = { key: 'TEAM-1', fields: {
     summary: 'Release checkout', description: null, assignee: null, duedate: '2026-11-20',

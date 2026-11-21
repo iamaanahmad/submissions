@@ -1,6 +1,12 @@
 import { issueFetchError } from './issue-error.js';
 
 const hasText = (value) => typeof value === 'string' && value.trim().length > 0;
+const stableSnapshot = (value) => JSON.stringify(value, function (_key, item) {
+  if (item && !Array.isArray(item) && typeof item === 'object') {
+    return Object.fromEntries(Object.keys(item).sort().map((key) => [key, item[key]]));
+  }
+  return item;
+});
 
 export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expectedIssueId) {
   let timer;
@@ -87,7 +93,7 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
           throw new Error('This issue has too many related issues to check safely. Review the links in Jira.');
         }
         // Keep a snapshot before enriching embedded related issues below.
-        const parentSnapshot = JSON.stringify(issue);
+        const parentSnapshot = stableSnapshot(issue);
         const readRelated = async (key) => {
           let response;
           try {
@@ -128,7 +134,7 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
           // Otherwise a parent edit during the final related read can pass.
           const confirmed = await readInBatches();
           const firstRead = new Map(details);
-          if (confirmed.some(([key, fields]) => JSON.stringify(fields) !== JSON.stringify(firstRead.get(key)))) {
+          if (confirmed.some(([key, fields]) => stableSnapshot(fields) !== stableSnapshot(firstRead.get(key)))) {
             throw new Error('Related Jira work changed during this check. Check again before handoff.');
           }
           let latest;
@@ -148,7 +154,7 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
             if (cause?.message?.startsWith('Jira ')) throw cause;
             throw new Error('Jira could not recheck the main issue. Check your connection, then try again.');
           }
-          if (JSON.stringify(latest) !== parentSnapshot) {
+          if (stableSnapshot(latest) !== parentSnapshot) {
             throw new Error('The main Jira issue changed during this check. Check again before handoff.');
           }
         }
