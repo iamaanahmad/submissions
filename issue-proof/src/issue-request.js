@@ -130,7 +130,7 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
             || (detail.fields.resolution !== null && !hasText(detail.fields.resolution?.name))) {
             throw new Error('Jira returned incomplete related work. Check issue access, then try again.');
           }
-          return [key, detail.fields];
+          return [key, detail.fields, detail.id];
         };
         const readInBatches = async () => {
           const results = [];
@@ -146,7 +146,10 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
           // Otherwise a parent edit during the final related read can pass.
           const confirmed = await readInBatches();
           const firstRead = new Map(details);
-          if (confirmed.some(([key, fields]) => stableSnapshot(fields) !== stableSnapshot(firstRead.get(key)))) {
+          const firstIds = new Map(details.map(([key, , id]) => [key, id]));
+          if (confirmed.some(([key, fields, id]) =>
+            stableSnapshot(fields) !== stableSnapshot(firstRead.get(key))
+            || id !== firstIds.get(key))) {
             throw new Error('Related Jira work changed during this check. Check again before handoff.');
           }
         }

@@ -465,6 +465,22 @@ test('a linked issue changed during the main issue recheck cannot pass handoff',
   assert.equal(relatedReads, 2);
 });
 
+test('a related issue ID change cannot pass with unchanged status and resolution', async () => {
+  const status = { name: 'Done', statusCategory: { key: 'done' } };
+  const issue = { key: 'TEAM-1', fields: {
+    summary: 'Release checkout', description: null, assignee: null, duedate: null,
+    status, resolution: { name: 'Fixed' }, issuetype: { subtask: false }, issuelinks: [],
+    subtasks: [{ key: 'TEAM-2', fields: { status } }]
+  } };
+  let relatedReads = 0;
+  await assert.rejects(fetchIssue(async (path) => ({ ok: true, json: async () => {
+    if (!path.includes('TEAM-2')) return issue;
+    return { id: ++relatedReads === 1 ? '10002' : '10003', key: 'TEAM-2',
+      fields: { status, resolution: { name: 'Fixed' } } };
+  } }), 'TEAM-1'), /Related Jira work changed during this check/);
+  assert.equal(relatedReads, 2);
+});
+
 test('missing Jira status names cannot hide cancelled child or linked work', async () => {
   const status = { name: 'Done', statusCategory: { key: 'done' } };
   const fields = {
