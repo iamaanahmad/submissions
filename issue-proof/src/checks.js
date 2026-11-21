@@ -257,10 +257,10 @@ export function assessIssue(issue, today = localToday()) {
     {
       id: 'owner',
       label: 'An owner is assigned',
-      passed: Boolean(fields.assignee?.accountId) && fields.assignee.active !== false,
-      detail: fields.assignee?.active === false && fields.assignee?.accountId
+      passed: Boolean(fields.assignee?.accountId?.trim()) && fields.assignee.active !== false,
+      detail: fields.assignee?.active === false && fields.assignee?.accountId?.trim()
         ? `${fields.assignee.displayName || 'The assigned user'} is inactive in Jira. Assign an active owner before handoff.`
-        : fields.assignee?.accountId
+        : fields.assignee?.accountId?.trim()
           ? fields.assignee.displayName || 'An owner is assigned in Jira.'
           : 'Assign someone who owns the next step.'
     },

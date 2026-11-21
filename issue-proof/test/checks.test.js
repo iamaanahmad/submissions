@@ -3,6 +3,18 @@ import assert from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
 import { assessIssue } from '../src/checks.js';
 
+test('an owner ID containing only spaces cannot clear handoff', () => {
+  const report = assessIssue({ key: 'TEAM-1', fields: {
+    summary: 'Release checkout', assignee: { accountId: '   ', active: true },
+    duedate: '2026-12-01',
+    description: 'Acceptance criteria: Five checkout tests passed and the receipt was saved.',
+    status: { name: 'Done', statusCategory: { key: 'done' } },
+    resolution: { name: 'Fixed' }, issuetype: { subtask: false }, subtasks: [], issuelinks: []
+  } }, '2026-11-18');
+  assert.equal(report.checks.find((check) => check.id === 'owner').passed, false);
+  assert.match(report.nextAction, /Assign someone/);
+});
+
 test('a closed issue without completed work cannot pass handoff', () => {
   const fields = {
     summary: 'Release checkout',

@@ -49,7 +49,7 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
           || (issue.fields.assignee !== null
             && (typeof issue.fields.assignee !== 'object'
               || Array.isArray(issue.fields.assignee)
-              || typeof issue.fields.assignee.accountId !== 'string'
+              || !hasText(issue.fields.assignee.accountId)
               || typeof issue.fields.assignee.active !== 'boolean'))
           || !Object.hasOwn(issue.fields, 'duedate')
           || (issue.fields.duedate !== null && typeof issue.fields.duedate !== 'string')

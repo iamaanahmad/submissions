@@ -116,6 +116,7 @@ test('malformed Jira core fields require a retry instead of false missing eviden
     { assignee: 'account-123' }, { assignee: {} },
     { assignee: { accountId: 'account-123' } },
     { assignee: { accountId: 'account-123', active: 'false' } },
+    { assignee: { accountId: '   ', active: true } },
     { duedate: 20261114 }
   ]) {
     await assert.rejects(
