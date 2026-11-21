@@ -269,6 +269,31 @@ test('a green related status cannot hide unresolved or mismatched work', async (
   } }), 'TEAM-1'), /incomplete related work/);
 });
 
+test('a linked issue must keep its Jira ID across the direct read', async () => {
+  const status = { name: 'Done', statusCategory: { key: 'done' } };
+  const issue = { key: 'TEAM-1', fields: {
+    summary: 'Release checkout', description: null, assignee: null, duedate: null,
+    status, resolution: { name: 'Fixed' }, issuetype: { subtask: false },
+    subtasks: [{ id: '10002', key: 'TEAM-2', fields: { status } }], issuelinks: []
+  } };
+  const request = async (path) => ({ ok: true, json: async () => path.includes('TEAM-1') ? issue : {
+    id: '10003', key: 'TEAM-2', fields: { status, resolution: { name: 'Fixed' } }
+  } });
+  await assert.rejects(fetchIssue(request, 'TEAM-1'), /incomplete related work/);
+});
+
+test('conflicting embedded IDs block a related issue before handoff', async () => {
+  const status = { name: 'Done', statusCategory: { key: 'done' } };
+  const issue = { key: 'TEAM-1', fields: {
+    summary: 'Release checkout', description: null, assignee: null, duedate: null,
+    status, resolution: { name: 'Fixed' }, issuetype: { subtask: false },
+    subtasks: [{ id: '10002', key: 'TEAM-2', fields: { status } }],
+    issuelinks: [{ type: { inward: 'is blocked by', outward: 'blocks' },
+      inwardIssue: { id: '10003', key: 'TEAM-2', fields: { status } } }]
+  } };
+  await assert.rejects(fetchIssue(async () => ({ ok: true, json: async () => issue }), 'TEAM-1'), /conflicting related issues/);
+});
+
 test('embedded related resolution cannot hide a later unresolved Jira issue', async () => {
   const issue = { key: 'TEAM-1', fields: {
     summary: 'Release checkout', description: null, assignee: null, duedate: null,

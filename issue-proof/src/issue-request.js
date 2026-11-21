@@ -89,6 +89,15 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
         });
         const related = [...issue.fields.subtasks, ...blockingIssues];
         const keys = [...new Set(related.map((item) => item.key))];
+        const expectedIds = new Map();
+        for (const item of related) {
+          if (item.id == null) continue;
+          const id = String(item.id);
+          if (expectedIds.has(item.key) && expectedIds.get(item.key) !== id) {
+            throw new Error('Jira returned conflicting related issues. Check the links in Jira, then try again.');
+          }
+          expectedIds.set(item.key, id);
+        }
         if (keys.length > 20) {
           throw new Error('This issue has too many related issues to check safely. Review the links in Jira.');
         }
@@ -112,7 +121,9 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
           } catch {
             throw new Error('Jira returned unreadable related work. Try again.');
           }
-          if (detail?.key !== key || !hasText(detail.fields?.status?.name)
+          if (detail?.key !== key
+            || (expectedIds.has(key) && String(detail.id) !== expectedIds.get(key))
+            || !hasText(detail.fields?.status?.name)
             || !hasText(detail.fields?.status?.statusCategory?.key)
             || !Object.hasOwn(detail.fields, 'resolution')
             || (detail.fields.resolution !== null && !hasText(detail.fields.resolution?.name))) {
