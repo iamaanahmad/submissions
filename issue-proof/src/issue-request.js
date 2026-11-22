@@ -10,6 +10,7 @@ const stableSnapshot = (value) => JSON.stringify(value, function (_key, item) {
 
 export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expectedIssueId) {
   let timer;
+  let rejectTimeout;
   try {
     const fields = 'summary,description,assignee,duedate,subtasks,issuetype,issuelinks,status,resolution';
     const path = `/rest/api/3/issue/${encodeURIComponent(issueKey)}?fields=${fields}`;
@@ -101,6 +102,14 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
         if (keys.length > 20) {
           throw new Error('This issue has too many related issues to check safely. Review the links in Jira.');
         }
+        // Each group needs two direct reads. Allow time for those extra Jira
+        // round trips while keeping a hard limit on a stalled check.
+        if (keys.length) {
+          clearTimeout(timer);
+          const batches = Math.ceil(keys.length / 4);
+          timer = setTimeout(() => rejectTimeout(new Error('Jira took too long to respond. Check your connection, then try again.')),
+            Math.min(60000, timeoutMs * (1 + batches)));
+        }
         // Keep a snapshot before enriching embedded related issues below.
         const parentSnapshot = stableSnapshot(issue);
         const readRelated = async (key) => {
@@ -181,6 +190,7 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
         return issue;
       })(),
       new Promise((_, reject) => {
+        rejectTimeout = reject;
         timer = setTimeout(() => reject(new Error('Jira took too long to respond. Check your connection, then try again.')), timeoutMs);
       })
     ]);

@@ -1,5 +1,7 @@
 # Issue Proof
 
+Checks with linked Jira work allow extra time for two direct reads per issue, with a one-minute limit.
+
 When the browser reconnects, the panel checks the current Jira issue again. This also catches changes made while a prior report was visible and the connection was down. Manual Check again remains available.
 The prior report stays visible during a new check, but handoff stays blocked until it finishes. If the check fails, the panel clears the prior report and shows a retry step.
 While the browser is offline, the panel warns that a visible report may be out of date and withholds its success state. If Jira updates fail, a manual check restores the success state until another listener failure.
