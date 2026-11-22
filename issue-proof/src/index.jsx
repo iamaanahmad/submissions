@@ -63,6 +63,8 @@ function App() {
       }
     } catch (cause) {
       if (requestGate.current.isCurrent(request)) {
+        // A failed refresh cannot leave the previous issue evidence on screen.
+        setReport(null);
         setError(cause.message || 'The issue could not be checked.');
       }
     } finally {
