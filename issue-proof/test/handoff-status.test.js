@@ -6,7 +6,7 @@ const passedReport = {
   passed: 6, total: 6,
   checks: ['owner', 'deadline', 'acceptance', 'status', 'subtasks', 'blockers']
     .map((id) => ({ id, passed: true })),
-  checkedAtMs: Date.now(), nextAction: 'Hand off the issue.'
+  checkedAtMs: Date.now(), relatedWorkCount: 0, nextAction: 'Hand off the issue.'
 };
 
 test('a manual check cannot clear an unclear notice that arrived while Jira replied', () => {
@@ -33,6 +33,24 @@ test('linked work needs a manual check because panel events cover only the open 
   assert.match(handoffStatus(relatedReport).nextAction, /linked Jira work/);
   assert.equal(handoffStatus({ ...relatedReport, checkedManually: true }).ready, true);
   assert.equal(handoffStatus({ ...relatedReport, checkedManually: true }, { refreshPending: true }).ready, false);
+});
+
+test('linked work cannot disappear from a passing handoff report', () => {
+  for (const relatedWorkCount of [undefined, -1]) {
+    const verdict = handoffStatus({ ...passedReport, relatedWorkCount, checkedManually: true });
+    assert.equal(verdict.ready, false);
+    assert.match(verdict.nextAction, /report is incomplete/);
+  }
+  const missingLinkedChecks = handoffStatus({
+    ...passedReport,
+    relatedWorkCount: 1,
+    checks: passedReport.checks.filter((check) => !['subtasks', 'blockers'].includes(check.id)),
+    passed: 4,
+    total: 4,
+    checkedManually: true
+  });
+  assert.equal(missingLinkedChecks.ready, false);
+  assert.match(missingLinkedChecks.nextAction, /report is incomplete/);
 });
 
 test('a prior issue report cannot authorize handoff after Jira changes the open issue', () => {

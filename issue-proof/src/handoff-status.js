@@ -16,9 +16,12 @@ export function handoffStatus(report, { offline = false, autoRefreshUnavailable 
   if (requestError) return { ready: false, nextAction: 'Check again before handoff. The latest Jira check failed.' };
   if (!Number.isInteger(report.total) || report.total < 1
     || !Number.isInteger(report.passed) || report.passed < 0 || report.passed > report.total
+    || !Number.isInteger(report.relatedWorkCount) || report.relatedWorkCount < 0
     || !Array.isArray(report.checks) || report.checks.length !== report.total
     || report.checks.some((check) => typeof check?.passed !== 'boolean')
     || !['owner', 'deadline', 'acceptance', 'status'].every((id) => report.checks.some((check) => check.id === id))
+    || (report.relatedWorkCount > 0
+      && !report.checks.some((check) => check.id === 'subtasks' || check.id === 'blockers'))
     || new Set(report.checks.map((check) => check.id)).size !== report.checks.length
     || report.checks.filter((check) => check.passed).length !== report.passed
     || typeof report.nextAction !== 'string' || !report.nextAction.trim()
