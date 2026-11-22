@@ -122,6 +122,7 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
             throw new Error('Jira returned unreadable related work. Try again.');
           }
           if (detail?.key !== key
+            || !hasText(String(detail.id ?? ''))
             || (expectedIds.has(key) && String(detail.id) !== expectedIds.get(key))
             || !detail.fields || typeof detail.fields !== 'object' || Array.isArray(detail.fields)
             || !hasText(detail.fields?.status?.name)

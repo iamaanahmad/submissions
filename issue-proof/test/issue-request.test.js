@@ -185,10 +185,10 @@ test('incomplete child and linked issue statuses require a retry', async () => {
     issuetype: { subtask: false }, subtasks: [], issuelinks: [], resolution: null
   };
   const cases = [
-    { subtasks: [{ key: 'TEAM-2', fields: {} }] },
+    { subtasks: [{ id: '10002', key: 'TEAM-2', fields: {} }] },
     { subtasks: [{ fields: { status: { name: 'Done', statusCategory: { key: 'done' } } } }] },
-    { issuelinks: [{ type: { inward: 'is blocked by', outward: 'blocks' }, inwardIssue: { key: 'TEAM-3', fields: {} } }] },
-    { issuelinks: [{ inwardIssue: { key: 'TEAM-3', fields: { status: { name: 'Done', statusCategory: { key: 'done' } } } } }] }
+    { issuelinks: [{ type: { inward: 'is blocked by', outward: 'blocks' }, inwardIssue: { id: '10003', key: 'TEAM-3', fields: {} } }] },
+    { issuelinks: [{ inwardIssue: { id: '10003', key: 'TEAM-3', fields: { status: { name: 'Done', statusCategory: { key: 'done' } } } } }] }
   ];
   for (const changed of cases) {
     await assert.rejects(
@@ -204,7 +204,7 @@ test('a Jira link must identify one linked issue', async () => {
     issuetype: { subtask: false }, subtasks: [], issuelinks: [], resolution: null
   };
   const type = { inward: 'is blocked by', outward: 'blocks' };
-  const linked = { key: 'TEAM-3', fields: { status: { name: 'Done', statusCategory: { key: 'done' } } } };
+  const linked = { id: '10003', key: 'TEAM-3', fields: { status: { name: 'Done', statusCategory: { key: 'done' } } } };
   for (const link of [
     { type },
     { type, inwardIssue: linked, outwardIssue: linked }
@@ -220,16 +220,16 @@ test('complete child and linked issue statuses remain readable', async () => {
   const issue = { key: 'TEAM-1', fields: {
     summary: 'Check the release', description: null, assignee: null, duedate: null, status: { name: 'Done', statusCategory: { key: 'done' } },
     issuetype: { subtask: false },
-    subtasks: [{ key: 'TEAM-2', fields: { status: { name: 'Done', statusCategory: { key: 'done' } } } }],
+    subtasks: [{ id: '10002', key: 'TEAM-2', fields: { status: { name: 'Done', statusCategory: { key: 'done' } } } }],
     issuelinks: [{ type: { inward: 'is blocked by', outward: 'blocks' },
-      inwardIssue: { key: 'TEAM-3', fields: { status: { name: 'Done', statusCategory: { key: 'done' } } } } }], resolution: null
+      inwardIssue: { id: '10003', key: 'TEAM-3', fields: { status: { name: 'Done', statusCategory: { key: 'done' } } } } }], resolution: null
   } };
   const requested = [];
   const result = await fetchIssue(async (path) => {
     requested.push(path);
     const key = path.match(/\/issue\/([^?]+)/)[1];
     return { ok: true, json: async () => key === 'TEAM-1' ? issue : {
-      key, fields: { status: { name: 'Done', statusCategory: { key: 'done' } }, resolution: { name: 'Fixed' } }
+      id: `1000${key.split('-')[1]}`, key, fields: { status: { name: 'Done', statusCategory: { key: 'done' } }, resolution: { name: 'Fixed' } }
     } };
   }, 'TEAM-1');
   assert.equal(result, issue);
@@ -258,7 +258,7 @@ test('related Jira reads stay within a four-request burst', async () => {
     await new Promise((resolve) => setTimeout(resolve, 1));
     active -= 1;
     const key = path.match(/\/issue\/([^?]+)/)[1];
-    return { ok: true, json: async () => ({ key, fields: { status, resolution: { name: 'Fixed' } } }) };
+    return { ok: true, json: async () => ({ id: `1000${key.split('-')[1]}`, key, fields: { status, resolution: { name: 'Fixed' } } }) };
   }, 'TEAM-1');
   assert.equal(result, issue);
   assert.equal(relatedReads, 18);
@@ -270,10 +270,10 @@ test('a green related status cannot hide unresolved or mismatched work', async (
     summary: 'Release checkout', description: null, assignee: null, duedate: null,
     status: { name: 'Done', statusCategory: { key: 'done' } }, resolution: { name: 'Fixed' },
     issuetype: { subtask: false }, issuelinks: [],
-    subtasks: [{ key: 'TEAM-2', fields: { status: { name: 'Done', statusCategory: { key: 'done' } } } }]
+    subtasks: [{ id: '10002', key: 'TEAM-2', fields: { status: { name: 'Done', statusCategory: { key: 'done' } } } }]
   } };
   const request = async (path) => ({ ok: true, json: async () => path.includes('TEAM-1') ? issue : {
-    key: 'TEAM-2', fields: { status: { name: 'Done', statusCategory: { key: 'done' } }, resolution: null }
+    id: '10002', key: 'TEAM-2', fields: { status: { name: 'Done', statusCategory: { key: 'done' } }, resolution: null }
   } });
   const result = await fetchIssue(request, 'TEAM-1');
   assert.equal(result.fields.subtasks[0].fields.resolution, null);
@@ -298,14 +298,28 @@ test('a linked issue must keep its Jira ID across the direct read', async () => 
   await assert.rejects(fetchIssue(request, 'TEAM-1'), /incomplete related work/);
 });
 
-test('incomplete linked Jira replies give a retry step', async () => {
+test('a related Jira reply without an ID cannot pass handoff', async () => {
   const status = { name: 'Done', statusCategory: { key: 'done' } };
   const issue = { key: 'TEAM-1', fields: {
     summary: 'Release checkout', description: null, assignee: null, duedate: null,
     status, resolution: { name: 'Fixed' }, issuetype: { subtask: false },
     subtasks: [{ key: 'TEAM-2', fields: { status } }], issuelinks: []
   } };
-  for (const detail of [{ key: 'TEAM-2' }, { key: 'TEAM-2', fields: null }]) {
+  await assert.rejects(fetchIssue(async (path) => ({ ok: true, json: async () =>
+    path.includes('TEAM-2')
+      ? { key: 'TEAM-2', fields: { status, resolution: { name: 'Fixed' } } }
+      : issue
+  }), 'TEAM-1'), /incomplete related work/);
+});
+
+test('incomplete linked Jira replies give a retry step', async () => {
+  const status = { name: 'Done', statusCategory: { key: 'done' } };
+  const issue = { key: 'TEAM-1', fields: {
+    summary: 'Release checkout', description: null, assignee: null, duedate: null,
+    status, resolution: { name: 'Fixed' }, issuetype: { subtask: false },
+    subtasks: [{ id: '10002', key: 'TEAM-2', fields: { status } }], issuelinks: []
+  } };
+  for (const detail of [{ key: 'TEAM-2' }, { id: '10002', key: 'TEAM-2', fields: null }]) {
     await assert.rejects(fetchIssue(async (path) => ({ ok: true, json: async () =>
       path.includes('TEAM-2') ? detail : issue
     }), 'TEAM-1'), /incomplete related work.*try again/);
@@ -340,7 +354,7 @@ test('embedded related resolution cannot hide a later unresolved Jira issue', as
     summary: 'Release checkout', description: null, assignee: null, duedate: null,
     status: { name: 'Done', statusCategory: { key: 'done' } }, resolution: { name: 'Fixed' },
     issuetype: { subtask: false }, issuelinks: [],
-    subtasks: [{ key: 'TEAM-2', fields: {
+    subtasks: [{ id: '10002', key: 'TEAM-2', fields: {
       status: { name: 'Done', statusCategory: { key: 'done' } }, resolution: { name: 'Fixed' }
     } }]
   } };
@@ -348,7 +362,7 @@ test('embedded related resolution cannot hide a later unresolved Jira issue', as
   const result = await fetchIssue(async (path) => {
     requested.push(path);
     return { ok: true, json: async () => path.includes('TEAM-1') ? issue : {
-      key: 'TEAM-2', fields: {
+      id: '10002', key: 'TEAM-2', fields: {
         status: { name: 'In Progress', statusCategory: { key: 'indeterminate' } }, resolution: null
       }
     } };
@@ -364,7 +378,7 @@ test('fresh related status can clear an embedded stale blocker', async () => {
     status: { name: 'Done', statusCategory: { key: 'done' } }, resolution: { name: 'Fixed' },
     issuetype: { subtask: false }, subtasks: [],
     issuelinks: [{ type: { inward: 'is blocked by', outward: 'blocks' },
-      inwardIssue: { key: 'TEAM-2', fields: {
+      inwardIssue: { id: '10002', key: 'TEAM-2', fields: {
         status: { name: 'In Progress', statusCategory: { key: 'indeterminate' } }
       } } }]
   } };
@@ -372,7 +386,7 @@ test('fresh related status can clear an embedded stale blocker', async () => {
   const result = await fetchIssue(async (path) => {
     requests.push(path);
     return { ok: true, json: async () => path.includes('TEAM-2') ? {
-      key: 'TEAM-2', fields: {
+      id: '10002', key: 'TEAM-2', fields: {
         status: { name: 'Done', statusCategory: { key: 'done' } }, resolution: { name: 'Fixed' }
       }
     } : issue };
@@ -388,11 +402,11 @@ test('a changed main issue during related reads requires a fresh handoff check',
     summary: 'Release checkout', description: null, assignee: null, duedate: '2026-11-20',
     status: { name: 'Done', statusCategory: { key: 'done' } }, resolution: { name: 'Fixed' },
     issuetype: { subtask: false }, issuelinks: [],
-    subtasks: [{ key: 'TEAM-2', fields: { status: { name: 'Done', statusCategory: { key: 'done' } } } }]
+    subtasks: [{ id: '10002', key: 'TEAM-2', fields: { status: { name: 'Done', statusCategory: { key: 'done' } } } }]
   } };
   let parentReads = 0;
   await assert.rejects(fetchIssue(async (path) => ({ ok: true, json: async () => {
-    if (path.includes('TEAM-2')) return { key: 'TEAM-2', fields: {
+    if (path.includes('TEAM-2')) return { id: '10002', key: 'TEAM-2', fields: {
       status: { name: 'Done', statusCategory: { key: 'done' } }, resolution: { name: 'Fixed' }
     } };
     parentReads += 1;
@@ -407,14 +421,14 @@ test('Jira field order changes do not falsely block an unchanged handoff', async
   const issue = { key: 'TEAM-1', fields: {
     summary: 'Release checkout', description: null, assignee: null, duedate: null,
     status, resolution: { name: 'Fixed' }, issuetype: { subtask: false },
-    subtasks: [{ key: 'TEAM-2', fields: { status } }], issuelinks: []
+    subtasks: [{ id: '10002', key: 'TEAM-2', fields: { status } }], issuelinks: []
   } };
   let parentReads = 0;
   let relatedReads = 0;
   const result = await fetchIssue(async (path) => ({ ok: true, json: async () => {
     if (path.includes('TEAM-2')) {
       relatedReads += 1;
-      return { key: 'TEAM-2', fields: relatedReads === 1
+      return { id: '10002', key: 'TEAM-2', fields: relatedReads === 1
         ? relatedFields : { resolution: { name: 'Fixed' }, status: { statusCategory: { key: 'done' }, name: 'Done' } } };
     }
     parentReads += 1;
@@ -432,13 +446,13 @@ test('a parent edit during the second related read blocks handoff', async () => 
     summary: 'Release checkout', description: null, assignee: null, duedate: '2026-11-20',
     status: { name: 'Done', statusCategory: { key: 'done' } }, resolution: { name: 'Fixed' },
     issuetype: { subtask: false }, issuelinks: [],
-    subtasks: [{ key: 'TEAM-2', fields: { status: { name: 'Done', statusCategory: { key: 'done' } } } }]
+    subtasks: [{ id: '10002', key: 'TEAM-2', fields: { status: { name: 'Done', statusCategory: { key: 'done' } } } }]
   } };
   let relatedReads = 0;
   await assert.rejects(fetchIssue(async (path) => ({ ok: true, json: async () => {
     if (path.includes('TEAM-2')) {
       relatedReads += 1;
-      return { key: 'TEAM-2', fields: {
+      return { id: '10002', key: 'TEAM-2', fields: {
         status: { name: 'Done', statusCategory: { key: 'done' } }, resolution: { name: 'Fixed' }
       } };
     }
@@ -452,13 +466,13 @@ test('a linked issue changed during the main issue recheck cannot pass handoff',
     summary: 'Release checkout', description: null, assignee: null, duedate: null,
     status: { name: 'Done', statusCategory: { key: 'done' } }, resolution: { name: 'Fixed' },
     issuetype: { subtask: false }, issuelinks: [],
-    subtasks: [{ key: 'TEAM-2', fields: { status: { name: 'Done', statusCategory: { key: 'done' } } } }]
+    subtasks: [{ id: '10002', key: 'TEAM-2', fields: { status: { name: 'Done', statusCategory: { key: 'done' } } } }]
   } };
   let relatedReads = 0;
   await assert.rejects(fetchIssue(async (path) => ({ ok: true, json: async () => {
     if (!path.includes('TEAM-2')) return issue;
     relatedReads += 1;
-    return { key: 'TEAM-2', fields: relatedReads === 1
+    return { id: '10002', key: 'TEAM-2', fields: relatedReads === 1
       ? { status: { name: 'Done', statusCategory: { key: 'done' } }, resolution: { name: 'Fixed' } }
       : { status: { name: 'In Progress', statusCategory: { key: 'indeterminate' } }, resolution: null } };
   } }), 'TEAM-1'), /Related Jira work changed during this check/);
@@ -486,15 +500,15 @@ test('missing Jira status names cannot hide cancelled child or linked work', asy
   const fields = {
     summary: 'Check the release', description: null, assignee: null, duedate: null,
     status, issuetype: { subtask: false }, resolution: null,
-    subtasks: [{ key: 'TEAM-2', fields: { status } }],
+    subtasks: [{ id: '10002', key: 'TEAM-2', fields: { status } }],
     issuelinks: [{ type: { inward: 'is blocked by', outward: 'blocks' },
-      inwardIssue: { key: 'TEAM-3', fields: { status } } }]
+      inwardIssue: { id: '10003', key: 'TEAM-3', fields: { status } } }]
   };
   for (const changed of [
     { ...fields, status: { statusCategory: { key: 'done' } } },
-    { ...fields, subtasks: [{ key: 'TEAM-2', fields: { status: { statusCategory: { key: 'done' } } } }] },
+    { ...fields, subtasks: [{ id: '10002', key: 'TEAM-2', fields: { status: { statusCategory: { key: 'done' } } } }] },
     { ...fields, issuelinks: [{ ...fields.issuelinks[0], inwardIssue: {
-      key: 'TEAM-3', fields: { status: { statusCategory: { key: 'done' } } }
+      id: '10003', key: 'TEAM-3', fields: { status: { statusCategory: { key: 'done' } } }
     } }] }
   ]) {
     await assert.rejects(
@@ -521,14 +535,14 @@ test('blank Jira status and resolution values cannot appear as completed evidenc
     }) }), 'TEAM-1'), /Jira returned an incomplete issue/);
   }
   const parent = { key: 'TEAM-1', fields: { ...fields,
-    subtasks: [{ key: 'TEAM-2', fields: { status } }]
+    subtasks: [{ id: '10002', key: 'TEAM-2', fields: { status } }]
   } };
   for (const relatedFields of [
     { status: { ...status, name: ' ' }, resolution: { name: 'Fixed' } },
     { status, resolution: { name: ' ' } }
   ]) {
     await assert.rejects(fetchIssue(async (path) => ({ ok: true, json: async () =>
-      path.includes('TEAM-2') ? { key: 'TEAM-2', fields: relatedFields } : parent
+      path.includes('TEAM-2') ? { id: '10002', key: 'TEAM-2', fields: relatedFields } : parent
     }), 'TEAM-1'), /Jira returned incomplete related work/);
   }
 });
@@ -552,14 +566,14 @@ test('related work rate limits and lost sign-in give the right recovery step', a
     summary: 'Release checkout', description: null, assignee: null, duedate: null,
     status: { name: 'Done', statusCategory: { key: 'done' } }, resolution: { name: 'Fixed' },
     issuetype: { subtask: false }, issuelinks: [],
-    subtasks: [{ key: 'TEAM-2', fields: { status: { name: 'Done', statusCategory: { key: 'done' } } } }]
+    subtasks: [{ id: '10002', key: 'TEAM-2', fields: { status: { name: 'Done', statusCategory: { key: 'done' } } } }]
   } };
   await assert.rejects(fetchIssue(async (path) => path.includes('TEAM-2')
     ? { ok: false, status: 429 }
     : { ok: true, json: async () => issue }, 'TEAM-1'), /limiting requests.*Wait a moment/);
   let mainReads = 0;
   await assert.rejects(fetchIssue(async (path) => {
-    if (path.includes('TEAM-2')) return { ok: true, json: async () => ({ key: 'TEAM-2', fields: {
+    if (path.includes('TEAM-2')) return { ok: true, json: async () => ({ id: '10002', key: 'TEAM-2', fields: {
       status: { name: 'Done', statusCategory: { key: 'done' } }, resolution: { name: 'Fixed' }
     } }) };
     mainReads += 1;
