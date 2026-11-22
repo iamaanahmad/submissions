@@ -1,7 +1,12 @@
 import { issueFetchError } from './issue-error.js';
 
 const hasText = (value) => typeof value === 'string' && value.trim().length > 0;
-const stableSnapshot = (value) => JSON.stringify(value, function (_key, item) {
+const stableSnapshot = (value) => JSON.stringify(value, function (key, item) {
+  // Jira can return the same relationships in a different order on reread.
+  // Their contents matter for handoff, but their display order does not.
+  if ((key === 'subtasks' || key === 'issuelinks') && Array.isArray(item)) {
+    return [...item].sort((left, right) => stableSnapshot(left).localeCompare(stableSnapshot(right)));
+  }
   if (item && !Array.isArray(item) && typeof item === 'object') {
     return Object.fromEntries(Object.keys(item).sort().map((key) => [key, item[key]]));
   }

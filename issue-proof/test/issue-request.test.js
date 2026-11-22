@@ -34,6 +34,34 @@ test('a parent edit blocks handoff even without subtasks or blockers', async () 
   assert.equal(reads, 2);
 });
 
+test('reordered unchanged Jira relationships do not block handoff', async () => {
+  const child = (id, key) => ({ id, key, fields: { status: {
+    name: 'Done', statusCategory: { key: 'done' }
+  } } });
+  const base = { key: 'TEAM-1', fields: {
+    summary: 'Check the release', description: null, assignee: null, duedate: null,
+    status: { name: 'Done', statusCategory: { key: 'done' } },
+    issuetype: { subtask: false }, subtasks: [child('2', 'TEAM-2'), child('3', 'TEAM-3')],
+    issuelinks: [], resolution: { name: 'Fixed' }
+  } };
+  let parentReads = 0;
+  const result = await fetchIssue(async (path) => {
+    if (path.includes('/issue/TEAM-1?')) {
+      parentReads += 1;
+      return { ok: true, json: async () => parentReads === 1 ? base : {
+        ...base, fields: { ...base.fields, subtasks: [...base.fields.subtasks].reverse() }
+      } };
+    }
+    const key = path.includes('TEAM-2') ? 'TEAM-2' : 'TEAM-3';
+    return { ok: true, json: async () => ({
+      id: key === 'TEAM-2' ? '2' : '3', key,
+      fields: { status: { name: 'Done', statusCategory: { key: 'done' } }, resolution: { name: 'Fixed' } }
+    }) };
+  }, 'TEAM-1');
+  assert.equal(result.key, 'TEAM-1');
+  assert.equal(parentReads, 2);
+});
+
 test('a key lookup cannot show evidence from another issue', async () => {
   const issue = { key: 'OTHER-2', fields: {
     summary: 'Other work', description: null, assignee: null, duedate: null,
