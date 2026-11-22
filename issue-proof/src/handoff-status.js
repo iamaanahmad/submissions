@@ -36,5 +36,8 @@ export function handoffStatus(report, { offline = false, autoRefreshUnavailable 
   if (today && report.checkedDay !== today) return { ready: false, nextAction: 'Check again before handoff. The report was checked on a previous day.' };
   if (now - report.checkedAtMs > 5 * 60 * 1000) return { ready: false, nextAction: 'Check again before handoff. The report is more than five minutes old.' };
   if (autoRefreshUnavailable && !report.checkedManually) return { ready: false, nextAction: 'Select Check again before handoff because Jira changes may be missing.' };
+  if (report.relatedWorkCount > 0 && !report.checkedManually) {
+    return { ready: false, nextAction: 'Select Check again before handoff to verify linked Jira work.' };
+  }
   return { ready: report.passed === report.total, nextAction: report.nextAction };
 }

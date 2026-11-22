@@ -331,6 +331,7 @@ export function assessIssue(issue, today = localToday()) {
   return {
     issueKey: issue?.key || '',
     summary: fields.summary || '',
+    relatedWorkCount: subtasks.length + blockingIssues.length,
     passed,
     total: checks.length,
     checks,

@@ -27,6 +27,14 @@ test('a passing report is ready only while Jira checks can stay current', () => 
   assert.equal(handoffStatus({ ...passedReport, checkedManually: true }, { autoRefreshUnavailable: true, offline: true }).ready, false);
 });
 
+test('linked work needs a manual check because panel events cover only the open issue', () => {
+  const relatedReport = { ...passedReport, relatedWorkCount: 1 };
+  assert.equal(handoffStatus(relatedReport).ready, false);
+  assert.match(handoffStatus(relatedReport).nextAction, /linked Jira work/);
+  assert.equal(handoffStatus({ ...relatedReport, checkedManually: true }).ready, true);
+  assert.equal(handoffStatus({ ...relatedReport, checkedManually: true }, { refreshPending: true }).ready, false);
+});
+
 test('a prior issue report cannot authorize handoff after Jira changes the open issue', () => {
   const report = { ...passedReport, contextIssueId: '10001', contextIssueKey: 'DEMO-1' };
   assert.equal(handoffStatus(report, { currentIssueId: '10001', currentIssueKey: 'DEMO-1' }).ready, true);

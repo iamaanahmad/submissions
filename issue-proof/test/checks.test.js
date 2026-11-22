@@ -26,6 +26,7 @@ test('a closed issue without completed work cannot pass handoff', () => {
     issuetype: { subtask: false }, subtasks: [], issuelinks: []
   };
   const complete = assessIssue({ key: 'TEAM-1', fields }, '2026-11-18');
+  assert.equal(complete.relatedWorkCount, 0);
   assert.equal(complete.checks.find((check) => check.id === 'status').passed, true);
   for (const resolution of ['Won\'t Do', 'Won\'t Fix', 'Won\'t Complete', 'Not Done', 'Not Planned', 'Cannot Complete', 'Incomplete', 'Deferred', 'Unresolved', 'Duplicate', 'Can\'t Reproduce', 'Canceled']) {
     const report = assessIssue({ key: 'TEAM-1', fields: { ...fields, resolution: { name: resolution } } }, '2026-11-18');
@@ -52,6 +53,7 @@ test('blocked Jira work cannot pass even when its status category is done', () =
   };
   for (const name of ['Blocked', 'Blocked by vendor', 'On Hold', 'On Hold: review', 'Paused', 'Paused - scope change', 'Waiting', 'Waiting for QA']) {
     const parent = assessIssue({ key: 'TEAM-1', fields: { ...fields, status: { name, statusCategory: { key: 'done' } } } }, '2026-11-18');
+    assert.equal(parent.relatedWorkCount, 2);
     assert.equal(parent.checks.find((check) => check.id === 'status').passed, false, name);
     const child = assessIssue({ key: 'TEAM-1', fields: { ...fields,
       subtasks: [{ key: 'TEAM-2', fields: { status: { name, statusCategory: { key: 'done' } }, resolution: { name: 'Fixed' } } }]
