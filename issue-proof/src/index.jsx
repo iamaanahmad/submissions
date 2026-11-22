@@ -9,6 +9,7 @@ import { refreshWhenFocused, refreshWhenVisible } from './visibility-refresh.js'
 import { refreshWhileVisible } from './periodic-refresh.js';
 import { refreshWhenOnline } from './online-refresh.js';
 import { handoffStatus, manualCheckIsCurrent } from './handoff-status.js';
+import { handoffSummary } from './handoff-summary.js';
 
 function App() {
   const context = useProductContext();
@@ -24,6 +25,7 @@ function App() {
   const requestGate = useRef(createRequestGate());
   const unclearChangeVersion = useRef(0);
   const handoff = handoffStatus(report, { offline, autoRefreshUnavailable, refreshPending: loading, requestError: Boolean(error), currentIssueId: issueId, currentIssueKey: issueKey, today: localToday(), now: Date.now(), monotonicNow: performance.now() });
+  const summary = handoffSummary(report, handoff);
 
   useEffect(() => {
     if (!report?.checkedAtMs) return;
@@ -172,6 +174,9 @@ function App() {
       <SectionMessage appearance={handoff.ready ? 'success' : 'warning'}>
         <Text>Next action: {handoff.nextAction}</Text>
       </SectionMessage>
+      {summary && <SectionMessage appearance="success">
+        <Text>Handoff summary: {summary}</Text>
+      </SectionMessage>}
       {report.checks.map((check) => <Stack key={check.id} space="space.050">
         <Lozenge appearance={check.passed ? 'success' : 'moved'}>{check.passed ? 'Found' : 'Missing'}</Lozenge>
         <Text>{check.label}. {check.detail}</Text>
