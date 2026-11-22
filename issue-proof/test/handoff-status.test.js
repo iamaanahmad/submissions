@@ -111,6 +111,14 @@ test('an empty or inconsistent report cannot authorize handoff', () => {
   }
 });
 
+test('an unknown check cannot stand in for Jira evidence', () => {
+  const checks = passedReport.checks.map((check) => ({ ...check }));
+  checks[4] = { id: 'unverified', passed: true };
+  const verdict = handoffStatus({ ...passedReport, checks });
+  assert.equal(verdict.ready, false);
+  assert.match(verdict.nextAction, /report is incomplete/);
+});
+
 test('a missing elapsed-time stamp cannot authorize handoff in the browser', () => {
   const now = Date.now();
   const report = { ...passedReport, checkedAtMs: now };

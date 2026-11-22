@@ -19,7 +19,8 @@ export function handoffStatus(report, { offline = false, autoRefreshUnavailable 
     || !Number.isInteger(report.passed) || report.passed < 0 || report.passed > report.total
     || !Number.isInteger(report.relatedWorkCount) || report.relatedWorkCount < 0
     || !Array.isArray(report.checks) || report.checks.length !== report.total
-    || report.checks.some((check) => typeof check?.passed !== 'boolean')
+    || report.checks.some((check) => typeof check?.passed !== 'boolean'
+      || !['owner', 'deadline', 'acceptance', 'checklist', 'subtasks', 'blockers', 'status'].includes(check.id))
     || !['owner', 'deadline', 'acceptance', 'status'].every((id) => report.checks.some((check) => check.id === id))
     || (report.relatedWorkCount > 0
       && !report.checks.some((check) => check.id === 'subtasks' || check.id === 'blockers'))
