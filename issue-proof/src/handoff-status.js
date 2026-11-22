@@ -8,6 +8,9 @@ export function handoffStatus(report, { offline = false, autoRefreshUnavailable 
     || report.contextIssueId !== currentIssueId)) {
     return { ready: false, nextAction: 'Check this Jira issue before handoff. The visible report belongs to another issue.' };
   }
+  if (currentIssueKey !== undefined && (currentIssueId === undefined || currentIssueId === null || String(currentIssueId).trim() === '')) {
+    return { ready: false, nextAction: 'Jira did not identify this issue. Reopen the issue before handoff.' };
+  }
   if (offline) return { ready: false, nextAction: 'Reconnect, then check the Jira issue before handoff.' };
   if (refreshPending) return { ready: false, nextAction: 'Wait for the current Jira check before handoff.' };
   if (requestError) return { ready: false, nextAction: 'Check again before handoff. The latest Jira check failed.' };

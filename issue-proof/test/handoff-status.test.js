@@ -49,6 +49,15 @@ test('a prior issue report cannot authorize handoff after Jira changes the open 
   }
 });
 
+test('a manual check cannot authorize handoff when Jira omits the open issue ID', () => {
+  const report = { ...passedReport, contextIssueId: undefined, contextIssueKey: 'DEMO-1', checkedManually: true };
+  const verdict = handoffStatus(report, {
+    currentIssueId: undefined, currentIssueKey: 'DEMO-1', autoRefreshUnavailable: true
+  });
+  assert.equal(verdict.ready, false);
+  assert.match(verdict.nextAction, /Jira did not identify this issue/);
+});
+
 test('a visible prior report cannot authorize handoff while a newer Jira check runs or fails', () => {
   const pending = handoffStatus(passedReport, { refreshPending: true });
   assert.equal(pending.ready, false);

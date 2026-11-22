@@ -89,6 +89,7 @@ If Jira's change listener cannot start, the panel warns that the report may be s
 If Jira sends an incomplete change notice for the current issue, the panel also withholds a passing handoff state until a manual recheck.
 The panel requests the issue by its stable Jira ID when available. If Jira changes the issue key after a move, the panel shows the current key and its checks.
 If Jira returns a different issue ID, the panel asks for a retry instead of showing another issue's evidence.
+If Jira omits the open issue ID, even a manual check cannot authorize handoff. Reopen the issue to restore its identity.
 
 ## Contest status
 
