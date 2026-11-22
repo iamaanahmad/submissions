@@ -15,6 +15,7 @@ export function handoffStatus(report, { offline = false, autoRefreshUnavailable 
   if (refreshPending) return { ready: false, nextAction: 'Wait for the current Jira check before handoff.' };
   if (requestError) return { ready: false, nextAction: 'Check again before handoff. The latest Jira check failed.' };
   if (!Number.isInteger(report.total) || report.total < 1
+    || typeof report.issueKey !== 'string' || !report.issueKey.trim()
     || !Number.isInteger(report.passed) || report.passed < 0 || report.passed > report.total
     || !Number.isInteger(report.relatedWorkCount) || report.relatedWorkCount < 0
     || !Array.isArray(report.checks) || report.checks.length !== report.total

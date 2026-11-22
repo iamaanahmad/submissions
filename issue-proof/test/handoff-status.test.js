@@ -4,6 +4,7 @@ import { handoffStatus, manualCheckIsCurrent } from '../src/handoff-status.js';
 
 const passedReport = {
   passed: 6, total: 6,
+  issueKey: 'DEMO-1',
   checks: ['owner', 'deadline', 'acceptance', 'status', 'subtasks', 'blockers']
     .map((id) => ({ id, passed: true })),
   checkedAtMs: Date.now(), relatedWorkCount: 0, nextAction: 'Hand off the issue.'
@@ -92,6 +93,8 @@ test('a failing or missing report never becomes ready', () => {
 
 test('an empty or inconsistent report cannot authorize handoff', () => {
   for (const counts of [
+    { issueKey: '' },
+    { issueKey: undefined },
     { passed: 0, total: 0 },
     { passed: 7, total: 6 },
     { passed: -1, total: 6 },
