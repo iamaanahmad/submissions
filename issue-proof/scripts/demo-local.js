@@ -49,11 +49,22 @@ const staleLinkedIssue = {
   }
 };
 
+const inactiveOwnerIssue = {
+  ...baseIssue,
+  id: '10005',
+  key: 'DEMO-5',
+  fields: {
+    ...baseIssue.fields,
+    summary: 'Hand off the finished Jira change',
+    assignee: { accountId: 'former-owner', displayName: 'Former owner', active: false }
+  }
+};
+
 export async function demoReports() {
   const today = new Date();
   const target = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7);
   const dueDate = localToday(target);
-  return Promise.all([baseIssue, blockedIssue, staleLinkedIssue].map(async (fixture) => {
+  return Promise.all([baseIssue, blockedIssue, staleLinkedIssue, inactiveOwnerIssue].map(async (fixture) => {
     const issue = { ...fixture, fields: { ...fixture.fields, duedate: dueDate } };
     const requestJira = async (path) => ({
       ok: true,

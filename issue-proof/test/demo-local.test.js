@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { demoReports } from '../scripts/demo-local.js';
 
-test('local walkthrough checks completed, unfinished, and reopened linked Jira work', async () => {
-  const [ready, blocked, reopenedLink] = await demoReports();
+test('local walkthrough checks completed, unfinished, reopened, and unowned Jira work', async () => {
+  const [ready, blocked, reopenedLink, inactiveOwner] = await demoReports();
   assert.equal(ready.ready, true);
   assert.equal(ready.passed, ready.total);
   assert.equal(blocked.ready, false);
@@ -12,4 +12,7 @@ test('local walkthrough checks completed, unfinished, and reopened linked Jira w
   assert.equal(reopenedLink.ready, false);
   assert.ok(reopenedLink.passed < reopenedLink.total);
   assert.match(reopenedLink.nextAction, /DEMO-4/);
+  assert.equal(inactiveOwner.ready, false);
+  assert.ok(inactiveOwner.passed < inactiveOwner.total);
+  assert.match(inactiveOwner.nextAction, /inactive in Jira/i);
 });
