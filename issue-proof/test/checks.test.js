@@ -15,6 +15,22 @@ test('an owner ID containing only spaces cannot clear handoff', () => {
   assert.match(report.nextAction, /Assign someone/);
 });
 
+test('a labeled failed tally cannot count as completed acceptance evidence', () => {
+  const fields = {
+    summary: 'Release checkout', assignee: { accountId: 'owner-1', active: true },
+    duedate: '2026-12-01',
+    status: { name: 'Done', statusCategory: { key: 'done' } },
+    resolution: { name: 'Fixed' }, issuetype: { subtask: false },
+    subtasks: [], issuelinks: []
+  };
+  for (const tally of ['Tests: 1 failure', 'Checks = 2 failures', 'Results: 3 failures']) {
+    const report = assessIssue({ key: 'TEAM-1', fields: {
+      ...fields, description: `Acceptance criteria: Five tests passed; ${tally}.`
+    } }, '2026-11-23');
+    assert.equal(report.checks.find((check) => check.id === 'acceptance').passed, false, tally);
+  }
+});
+
 test('a closed issue without completed work cannot pass handoff', () => {
   const fields = {
     summary: 'Release checkout',
