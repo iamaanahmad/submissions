@@ -74,8 +74,8 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
             || !hasText(item.fields?.status?.name)
             || !hasText(item.fields?.status?.statusCategory?.key))
           || issue.fields.issuelinks.some((link) =>
-            !link || typeof link.type?.inward !== 'string'
-            || typeof link.type?.outward !== 'string'
+            !link || !hasText(link.type?.inward)
+            || !hasText(link.type?.outward)
             || Boolean(link.inwardIssue) === Boolean(link.outwardIssue)
             || (link.inwardIssue && (!hasText(link.inwardIssue.key)
               || !hasText(link.inwardIssue.fields?.status?.name)

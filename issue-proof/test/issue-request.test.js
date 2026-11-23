@@ -546,6 +546,26 @@ test('missing Jira status names cannot hide cancelled child or linked work', asy
   }
 });
 
+test('blank Jira link labels cannot hide a blocking issue', async () => {
+  const status = { name: 'Done', statusCategory: { key: 'done' } };
+  const fields = {
+    summary: 'Check the release', description: null, assignee: null, duedate: null,
+    status, issuetype: { subtask: false }, resolution: { name: 'Fixed' },
+    subtasks: [], issuelinks: [{
+      type: { inward: 'is blocked by', outward: 'blocks' },
+      inwardIssue: { id: '10002', key: 'TEAM-2', fields: { status } }
+    }]
+  };
+  for (const type of [
+    { inward: ' ', outward: 'blocks' },
+    { inward: 'is blocked by', outward: '' }
+  ]) {
+    await assert.rejects(fetchIssue(async () => ({ ok: true, json: async () => ({
+      key: 'TEAM-1', fields: { ...fields, issuelinks: [{ ...fields.issuelinks[0], type }] }
+    }) }), 'TEAM-1'), /Jira returned an incomplete issue/);
+  }
+});
+
 test('blank Jira status and resolution values cannot appear as completed evidence', async () => {
   const status = { name: 'Done', statusCategory: { key: 'done' } };
   const fields = {
