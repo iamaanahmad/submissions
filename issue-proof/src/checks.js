@@ -85,7 +85,7 @@ export function assessIssue(issue, today = localToday()) {
     })).filter((block) => block.text)
     : description.split('\n').map((text) => ({ node: null, text: text.trim(), heading: false })).filter((block) => block.text);
   const subtasks = fields.subtasks || [];
-  const stoppedResolution = /^(?:won['’]?t (?:do|fix|complete)|will not do|not (?:done|planned)|cannot complete|incomplete|deferred|unresolved|cancelled|canceled|duplicate|rejected|declined|can['’]?t reproduce|cannot reproduce|out of scope|obsolete|abandoned|blocked|on hold|paused|waiting)$/i;
+  const stoppedResolution = /^(?:won['’]?t (?:do|fix|complete|implement)|will not (?:do|implement)|not (?:done|planned|a bug)|by design|cannot complete|incomplete|deferred|unresolved|cancelled|canceled|duplicate|rejected|declined|can['’]?t reproduce|cannot reproduce|out of scope|obsolete|abandoned|blocked|on hold|paused|waiting)$/i;
   const stalledStatus = /^(?:blocked|on hold|paused|waiting)(?:\b|\s*[:\u2013\u2014-])/i;
   const isStopped = (fields) => [fields?.status?.name, fields?.resolution?.name]
     .some((name) => typeof name === 'string' && (stoppedResolution.test(name.trim())
