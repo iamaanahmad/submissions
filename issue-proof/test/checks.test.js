@@ -51,7 +51,7 @@ test('a reason appended to a dismissed resolution still blocks parent and relate
       key: 'TEAM-3', fields: { status: done, resolution: { name: 'Fixed' } }
     } }]
   };
-  for (const name of ["Won't Do - no longer needed", 'By Design: intended behavior', 'Duplicate – tracked elsewhere']) {
+  for (const name of ["Won't Do - no longer needed", 'By Design: intended behavior', 'Duplicate – tracked elsewhere', "Won't Do (out of scope)", 'By Design (expected behavior)']) {
     const parent = assessIssue({ key: 'TEAM-1', fields: { ...fields, resolution: { name } } }, '2026-11-18');
     assert.equal(parent.checks.find((check) => check.id === 'status').passed, false, name);
     const child = assessIssue({ key: 'TEAM-1', fields: { ...fields,

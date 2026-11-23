@@ -87,7 +87,7 @@ export function assessIssue(issue, today = localToday()) {
   const subtasks = fields.subtasks || [];
   // Teams often append a reason to a dismissed resolution. The reason must
   // not turn a green Jira status into evidence that the work is complete.
-  const stoppedResolution = /^(?:won['’]?t (?:do|fix|complete|implement)|will not (?:do|implement)|not (?:done|planned|a bug)|by design|cannot complete|incomplete|deferred|unresolved|cancelled|canceled|duplicate|rejected|declined|can['’]?t reproduce|cannot reproduce|out of scope|obsolete|abandoned|blocked|on hold|paused|waiting)(?:\s*[:\u2013\u2014-]\s+\S.*)?$/i;
+  const stoppedResolution = /^(?:won['’]?t (?:do|fix|complete|implement)|will not (?:do|implement)|not (?:done|planned|a bug)|by design|cannot complete|incomplete|deferred|unresolved|cancelled|canceled|duplicate|rejected|declined|can['’]?t reproduce|cannot reproduce|out of scope|obsolete|abandoned|blocked|on hold|paused|waiting)(?:\s*[:\u2013\u2014-]\s+\S.*|\s*\([^)]*\S[^)]*\))?$/i;
   const stalledStatus = /^(?:blocked|on hold|paused|waiting)(?:\b|\s*[:\u2013\u2014-])/i;
   const isStopped = (fields) => [fields?.status?.name, fields?.resolution?.name]
     .some((name) => typeof name === 'string' && (stoppedResolution.test(name.trim())
