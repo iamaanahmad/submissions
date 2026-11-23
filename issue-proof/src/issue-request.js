@@ -76,18 +76,18 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
             !item || !hasText(item.key) || !hasJiraId(item.id)
             || !hasText(item.fields?.status?.name)
             || !hasText(item.fields?.status?.statusCategory?.key))
-          || issue.fields.issuelinks.some((link) =>
-            !link || !hasText(link.type?.inward)
-            || !hasText(link.type?.outward)
-            || Boolean(link.inwardIssue) === Boolean(link.outwardIssue)
-            || (link.inwardIssue && (!hasText(link.inwardIssue.key)
-              || !hasJiraId(link.inwardIssue.id)
-              || !hasText(link.inwardIssue.fields?.status?.name)
-              || !hasText(link.inwardIssue.fields?.status?.statusCategory?.key)))
-            || (link.outwardIssue && (!hasText(link.outwardIssue.key)
-              || !hasJiraId(link.outwardIssue.id)
-              || !hasText(link.outwardIssue.fields?.status?.name)
-              || !hasText(link.outwardIssue.fields?.status?.statusCategory?.key))))) {
+          || issue.fields.issuelinks.some((link) => {
+            if (!link || !hasText(link.type?.inward) || !hasText(link.type?.outward)
+              || Boolean(link.inwardIssue) === Boolean(link.outwardIssue)) return true;
+            const linked = link.inwardIssue || link.outwardIssue;
+            const label = link.inwardIssue ? link.type.inward : link.type.outward;
+            // Only links that can block handoff need complete issue evidence.
+            // Jira may omit details for unrelated links that we never assess.
+            return isBlockingLinkLabel(label) && (!hasText(linked.key)
+              || !hasJiraId(linked.id)
+              || !hasText(linked.fields?.status?.name)
+              || !hasText(linked.fields?.status?.statusCategory?.key));
+          })) {
           throw new Error('Jira returned an incomplete issue. Check again, or ask a project admin to check issue access.');
         }
         // Embedded subtask and issue-link summaries can be stale in either direction.

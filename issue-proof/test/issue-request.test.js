@@ -97,6 +97,38 @@ test('an issue this issue causes is not treated as its blocker', () => {
   assert.equal(assessIssue(issue).checks.some((check) => check.id === 'blockers'), false);
 });
 
+test('an unrelated link without status evidence does not block a Jira handoff', async () => {
+  const issue = { id: '10001', key: 'TEAM-1', fields: {
+    summary: 'Release the fix', description: null, assignee: null, duedate: null,
+    status: { name: 'Done', statusCategory: { key: 'done' } }, resolution: { name: 'Fixed' },
+    issuetype: { subtask: false }, subtasks: [],
+    issuelinks: [{ type: { inward: 'relates to', outward: 'relates to' }, outwardIssue: {
+      id: '10002', key: 'TEAM-2'
+    } }]
+  } };
+  const paths = [];
+  const result = await fetchIssue(async (path) => {
+    paths.push(path);
+    return { ok: true, json: async () => issue };
+  }, 'TEAM-1', 15000, '10001');
+  assert.equal(result.key, 'TEAM-1');
+  assert.equal(paths.length, 2);
+  assert.equal(assessIssue(result).checks.some((check) => check.id === 'blockers'), false);
+});
+
+test('a blocking link still needs status evidence', async () => {
+  const issue = { id: '10001', key: 'TEAM-1', fields: {
+    summary: 'Release the fix', description: null, assignee: null, duedate: null,
+    status: { name: 'Done', statusCategory: { key: 'done' } }, resolution: { name: 'Fixed' },
+    issuetype: { subtask: false }, subtasks: [],
+    issuelinks: [{ type: { inward: 'is blocked by', outward: 'blocks' }, inwardIssue: {
+      id: '10002', key: 'TEAM-2'
+    } }]
+  } };
+  await assert.rejects(fetchIssue(async () => ({ ok: true, json: async () => issue }),
+    'TEAM-1', 15000, '10001'), /incomplete issue/);
+});
+
 test('a key lookup cannot show evidence from another issue', async () => {
   const issue = { key: 'OTHER-2', fields: {
     summary: 'Other work', description: null, assignee: null, duedate: null,
@@ -399,7 +431,7 @@ test('a related Jira reply without an ID cannot pass handoff', async () => {
   }), 'TEAM-1'), /incomplete related work/);
 });
 
-test('related work without an embedded Jira ID cannot pass handoff', async () => {
+test('subtasks and blocking links without an embedded Jira ID cannot pass handoff', async () => {
   const status = { name: 'Done', statusCategory: { key: 'done' } };
   const base = { key: 'TEAM-1', fields: {
     summary: 'Release checkout', description: null, assignee: null, duedate: null,
@@ -409,8 +441,7 @@ test('related work without an embedded Jira ID cannot pass handoff', async () =>
   const related = { key: 'TEAM-2', fields: { status } };
   const cases = [
     { subtasks: [related] },
-    { issuelinks: [{ type: { inward: 'is blocked by', outward: 'blocks' }, inwardIssue: related }] },
-    { issuelinks: [{ type: { inward: 'is blocked by', outward: 'blocks' }, outwardIssue: related }] }
+    { issuelinks: [{ type: { inward: 'is blocked by', outward: 'blocks' }, inwardIssue: related }] }
   ];
   for (const fields of cases) {
     let reads = 0;
