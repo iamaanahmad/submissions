@@ -88,10 +88,13 @@ export function assessIssue(issue, today = localToday()) {
   // Teams often append a reason to a dismissed resolution. The reason must
   // not turn a green Jira status into evidence that the work is complete.
   const stoppedResolution = /^(?:won['’]?t (?:do|fix|complete|implement)|will not (?:do|implement)|not (?:done|planned|a bug)|by design|cannot complete|incomplete|deferred|unresolved|cancelled|canceled|duplicate|rejected|declined|can['’]?t reproduce|cannot reproduce|out of scope|obsolete|abandoned|blocked|on hold|paused|waiting)(?:\s*[:\u2013\u2014-]\s+\S.*|\s*\([^)]*\S[^)]*\))?$/i;
+  // A green Jira category can still carry a resolution that says work awaits proof.
+  const unfinishedResolution = /\b(?:pending|awaiting|needs?|requires?|incomplete|blocked)\s+(?:qa|uat|tests?|testing|review|approval|verification|sign-off|release|deployment)\b/i;
   const stalledStatus = /^(?:blocked|on hold|paused|waiting)(?:\b|\s*[:\u2013\u2014-])/i;
   const isStopped = (fields) => [fields?.status?.name, fields?.resolution?.name]
     .some((name) => typeof name === 'string' && (stoppedResolution.test(name.trim())
-      || (name === fields?.status?.name && stalledStatus.test(name.trim()))));
+      || (name === fields?.status?.name && stalledStatus.test(name.trim()))
+      || (name === fields?.resolution?.name && unfinishedResolution.test(name.trim()))));
   // Jira Cloud examples use both "done" and "completed" for the green status category.
   const isCompleted = (fields) => ['done', 'completed'].includes(fields?.status?.statusCategory?.key)
     && !isStopped(fields)

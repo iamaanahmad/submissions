@@ -71,6 +71,37 @@ test('a reason appended to a dismissed resolution still blocks parent and relate
   assert.equal(complete.passed, complete.total);
 });
 
+test('a resolution that still awaits proof blocks parent and related work', () => {
+  const done = { name: 'Done', statusCategory: { key: 'done' } };
+  const base = {
+    summary: 'Release checkout', assignee: { accountId: 'owner-1', active: true },
+    duedate: '2026-12-01', description: 'Acceptance criteria: Five checkout tests passed and the receipt was saved.',
+    status: done, resolution: { name: 'Fixed' }, issuetype: { subtask: false },
+    subtasks: [{ key: 'TEAM-2', fields: { status: done, resolution: { name: 'Fixed' } } }],
+    issuelinks: [{ type: { inward: 'is blocked by', outward: 'blocks' }, inwardIssue: {
+      key: 'TEAM-3', fields: { status: done, resolution: { name: 'Fixed' } }
+    } }]
+  };
+  for (const name of ['Fixed (pending QA)', 'Resolved - awaiting approval', 'Done: requires verification']) {
+    const parent = assessIssue({ key: 'TEAM-1', fields: { ...base, resolution: { name } } }, '2026-11-18');
+    assert.equal(parent.checks.find((check) => check.id === 'status').passed, false, name);
+    const child = assessIssue({ key: 'TEAM-1', fields: { ...base,
+      subtasks: [{ key: 'TEAM-2', fields: { status: done, resolution: { name } } }]
+    } }, '2026-11-18');
+    assert.equal(child.checks.find((check) => check.id === 'subtasks').passed, false, name);
+    const blocker = assessIssue({ key: 'TEAM-1', fields: { ...base,
+      issuelinks: [{ ...base.issuelinks[0], inwardIssue: { key: 'TEAM-3', fields: {
+        status: done, resolution: { name }
+      } } }]
+    } }, '2026-11-18');
+    assert.equal(blocker.checks.find((check) => check.id === 'blockers').passed, false, name);
+  }
+  const complete = assessIssue({ key: 'TEAM-1', fields: { ...base,
+    resolution: { name: 'Fixed after QA' }
+  } }, '2026-11-18');
+  assert.equal(complete.passed, complete.total);
+});
+
 test('blocked Jira work cannot pass even when its status category is done', () => {
   const complete = { name: 'Done', statusCategory: { key: 'done' } };
   const fields = {
