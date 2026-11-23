@@ -2,6 +2,7 @@ import { issueFetchError } from './issue-error.js';
 import { isBlockingLinkLabel } from './issue-links.js';
 
 const hasText = (value) => typeof value === 'string' && value.trim().length > 0;
+const hasJiraId = (value) => /^(?:0|[1-9]\d*)$/.test(String(value ?? ''));
 const stableSnapshot = (value) => JSON.stringify(value, function (key, item) {
   // Jira can return the same relationships in a different order on reread.
   // Their contents matter for handoff, but their display order does not.
@@ -71,7 +72,7 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
           || !Array.isArray(issue.fields.subtasks)
           || !Array.isArray(issue.fields.issuelinks)
           || issue.fields.subtasks.some((item) =>
-            !item || !hasText(item.key) || !hasText(String(item.id ?? ''))
+            !item || !hasText(item.key) || !hasJiraId(item.id)
             || !hasText(item.fields?.status?.name)
             || !hasText(item.fields?.status?.statusCategory?.key))
           || issue.fields.issuelinks.some((link) =>
@@ -79,11 +80,11 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
             || !hasText(link.type?.outward)
             || Boolean(link.inwardIssue) === Boolean(link.outwardIssue)
             || (link.inwardIssue && (!hasText(link.inwardIssue.key)
-              || !hasText(String(link.inwardIssue.id ?? ''))
+              || !hasJiraId(link.inwardIssue.id)
               || !hasText(link.inwardIssue.fields?.status?.name)
               || !hasText(link.inwardIssue.fields?.status?.statusCategory?.key)))
             || (link.outwardIssue && (!hasText(link.outwardIssue.key)
-              || !hasText(String(link.outwardIssue.id ?? ''))
+              || !hasJiraId(link.outwardIssue.id)
               || !hasText(link.outwardIssue.fields?.status?.name)
               || !hasText(link.outwardIssue.fields?.status?.statusCategory?.key))))) {
           throw new Error('Jira returned an incomplete issue. Check again, or ask a project admin to check issue access.');
@@ -138,7 +139,7 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
             throw new Error('Jira returned unreadable related work. Try again.');
           }
           if (detail?.key !== key
-            || !hasText(String(detail.id ?? ''))
+            || !hasJiraId(detail.id)
             || (expectedIds.has(key) && String(detail.id) !== expectedIds.get(key))
             || !detail.fields || typeof detail.fields !== 'object' || Array.isArray(detail.fields)
             || !hasText(detail.fields?.status?.name)

@@ -604,6 +604,27 @@ test('missing Jira status names cannot hide cancelled child or linked work', asy
   }
 });
 
+test('malformed related Jira IDs cannot count as checked work', async () => {
+  const status = { name: 'Done', statusCategory: { key: 'done' } };
+  const child = { id: '10002', key: 'TEAM-2', fields: { status } };
+  const link = { type: { inward: 'is blocked by', outward: 'blocks' }, inwardIssue: child };
+  const fields = {
+    summary: 'Check the release', description: null, assignee: null, duedate: null,
+    status, issuetype: { subtask: false }, resolution: { name: 'Fixed' },
+    subtasks: [child], issuelinks: [link]
+  };
+  for (const badId of ['unknown', ' ', {}, -1]) {
+    for (const changed of [
+      { ...fields, subtasks: [{ ...child, id: badId }] },
+      { ...fields, issuelinks: [{ ...link, inwardIssue: { ...child, id: badId } }] }
+    ]) {
+      await assert.rejects(fetchIssue(async () => ({ ok: true, json: async () => ({
+        key: 'TEAM-1', fields: changed
+      }) }), 'TEAM-1'), /Jira returned an incomplete issue/);
+    }
+  }
+});
+
 test('blank Jira link labels cannot hide a blocking issue', async () => {
   const status = { name: 'Done', statusCategory: { key: 'done' } };
   const fields = {
