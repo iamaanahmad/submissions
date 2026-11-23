@@ -21,6 +21,7 @@ const baseIssue = {
 
 const blockedIssue = {
   ...baseIssue,
+  id: '10002',
   key: 'DEMO-2',
   fields: {
     ...baseIssue.fields,
@@ -31,13 +32,38 @@ const blockedIssue = {
   }
 };
 
+const staleLinkedIssue = {
+  ...baseIssue,
+  id: '10003',
+  key: 'DEMO-3',
+  fields: {
+    ...baseIssue.fields,
+    summary: 'Release the Jira change',
+    issuelinks: [{
+      type: { inward: 'is blocked by', outward: 'blocks' },
+      inwardIssue: {
+        id: '10004', key: 'DEMO-4',
+        fields: { status: { name: 'Done', statusCategory: { key: 'done' } } }
+      }
+    }]
+  }
+};
+
 export async function demoReports() {
   const today = new Date();
   const target = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 7);
   const dueDate = localToday(target);
-  return Promise.all([baseIssue, blockedIssue].map(async (fixture) => {
+  return Promise.all([baseIssue, blockedIssue, staleLinkedIssue].map(async (fixture) => {
     const issue = { ...fixture, fields: { ...fixture.fields, duedate: dueDate } };
-    const requestJira = async () => ({ ok: true, json: async () => structuredClone(issue) });
+    const requestJira = async (path) => ({
+      ok: true,
+      json: async () => path.includes('/issue/DEMO-4?')
+        ? {
+          id: '10004', key: 'DEMO-4',
+          fields: { status: { name: 'In progress', statusCategory: { key: 'indeterminate' } }, resolution: null }
+        }
+        : structuredClone(issue)
+    });
     const result = assessIssue(await fetchIssue(requestJira, issue.id, 15000, issue.id), localToday(today));
     const checkedAtMs = Date.now();
     const report = {
