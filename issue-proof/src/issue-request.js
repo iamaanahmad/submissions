@@ -46,7 +46,7 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
           || (/^\d+$/.test(String(issueKey)) && String(issue.id) !== String(issueKey))
           || (!/^\d+$/.test(String(issueKey)) && issue.key !== String(issueKey))
           || !issue.fields || typeof issue.fields !== 'object' || Array.isArray(issue.fields)
-          || typeof issue.fields.summary !== 'string'
+          || !hasText(issue.fields.summary)
           || !Object.hasOwn(issue.fields, 'description')
           || (issue.fields.description !== null
             && typeof issue.fields.description !== 'string'

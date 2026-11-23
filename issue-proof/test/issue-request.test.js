@@ -175,6 +175,18 @@ test('does not show incomplete Jira data as missing handoff evidence', async () 
   }
 });
 
+test('a blank Jira summary cannot produce a handoff report', async () => {
+  const fields = {
+    summary: '   ', description: null, assignee: null, duedate: null,
+    status: { name: 'Done', statusCategory: { key: 'done' } },
+    issuetype: { subtask: false }, subtasks: [], issuelinks: [], resolution: { name: 'Fixed' }
+  };
+  await assert.rejects(
+    fetchIssue(async () => ({ ok: true, json: async () => ({ key: 'TEAM-1', fields }) }), 'TEAM-1'),
+    /Jira returned an incomplete issue.*Check again/
+  );
+});
+
 test('unreadable Jira replies show a retry action instead of a parser error', async () => {
   await assert.rejects(
     fetchIssue(async () => ({ ok: true, json: async () => { throw new SyntaxError('Unexpected token'); } }), 'TEAM-1'),
