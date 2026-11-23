@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { demoReports } from '../scripts/demo-local.js';
 
-test('local walkthrough shows a completed issue and an unfinished handoff', () => {
-  const [ready, blocked] = demoReports();
+test('local walkthrough checks Jira replies and shows a completed issue and an unfinished handoff', async () => {
+  const [ready, blocked] = await demoReports();
   assert.equal(ready.ready, true);
   assert.equal(ready.passed, ready.total);
   assert.equal(blocked.ready, false);
