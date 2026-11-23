@@ -71,7 +71,7 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
           || !Array.isArray(issue.fields.subtasks)
           || !Array.isArray(issue.fields.issuelinks)
           || issue.fields.subtasks.some((item) =>
-            !item || !hasText(item.key)
+            !item || !hasText(item.key) || !hasText(String(item.id ?? ''))
             || !hasText(item.fields?.status?.name)
             || !hasText(item.fields?.status?.statusCategory?.key))
           || issue.fields.issuelinks.some((link) =>
@@ -79,9 +79,11 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
             || !hasText(link.type?.outward)
             || Boolean(link.inwardIssue) === Boolean(link.outwardIssue)
             || (link.inwardIssue && (!hasText(link.inwardIssue.key)
+              || !hasText(String(link.inwardIssue.id ?? ''))
               || !hasText(link.inwardIssue.fields?.status?.name)
               || !hasText(link.inwardIssue.fields?.status?.statusCategory?.key)))
             || (link.outwardIssue && (!hasText(link.outwardIssue.key)
+              || !hasText(String(link.outwardIssue.id ?? ''))
               || !hasText(link.outwardIssue.fields?.status?.name)
               || !hasText(link.outwardIssue.fields?.status?.statusCategory?.key))))) {
           throw new Error('Jira returned an incomplete issue. Check again, or ask a project admin to check issue access.');

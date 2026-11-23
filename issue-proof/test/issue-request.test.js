@@ -307,7 +307,7 @@ test('related Jira reads stay within a four-request burst', async () => {
     summary: 'Release checkout', description: null, assignee: null, duedate: null,
     status, resolution: { name: 'Fixed' }, issuetype: { subtask: false }, issuelinks: [],
     subtasks: Array.from({ length: 9 }, (_, index) => ({
-      key: `TEAM-${index + 2}`, fields: { status }
+      id: `1000${index + 2}`, key: `TEAM-${index + 2}`, fields: { status }
     }))
   } };
   let active = 0;
@@ -366,13 +366,36 @@ test('a related Jira reply without an ID cannot pass handoff', async () => {
   const issue = { key: 'TEAM-1', fields: {
     summary: 'Release checkout', description: null, assignee: null, duedate: null,
     status, resolution: { name: 'Fixed' }, issuetype: { subtask: false },
-    subtasks: [{ key: 'TEAM-2', fields: { status } }], issuelinks: []
+    subtasks: [{ id: '10002', key: 'TEAM-2', fields: { status } }], issuelinks: []
   } };
   await assert.rejects(fetchIssue(async (path) => ({ ok: true, json: async () =>
     path.includes('TEAM-2')
       ? { key: 'TEAM-2', fields: { status, resolution: { name: 'Fixed' } } }
       : issue
   }), 'TEAM-1'), /incomplete related work/);
+});
+
+test('related work without an embedded Jira ID cannot pass handoff', async () => {
+  const status = { name: 'Done', statusCategory: { key: 'done' } };
+  const base = { key: 'TEAM-1', fields: {
+    summary: 'Release checkout', description: null, assignee: null, duedate: null,
+    status, resolution: { name: 'Fixed' }, issuetype: { subtask: false },
+    subtasks: [], issuelinks: []
+  } };
+  const related = { key: 'TEAM-2', fields: { status } };
+  const cases = [
+    { subtasks: [related] },
+    { issuelinks: [{ type: { inward: 'is blocked by', outward: 'blocks' }, inwardIssue: related }] },
+    { issuelinks: [{ type: { inward: 'is blocked by', outward: 'blocks' }, outwardIssue: related }] }
+  ];
+  for (const fields of cases) {
+    let reads = 0;
+    await assert.rejects(fetchIssue(async () => {
+      reads += 1;
+      return { ok: true, json: async () => ({ ...base, fields: { ...base.fields, ...fields } }) };
+    }, 'TEAM-1'), /incomplete issue/);
+    assert.equal(reads, 1);
+  }
 });
 
 test('incomplete linked Jira replies give a retry step', async () => {
@@ -547,14 +570,14 @@ test('a related issue ID change cannot pass with unchanged status and resolution
   const issue = { key: 'TEAM-1', fields: {
     summary: 'Release checkout', description: null, assignee: null, duedate: null,
     status, resolution: { name: 'Fixed' }, issuetype: { subtask: false }, issuelinks: [],
-    subtasks: [{ key: 'TEAM-2', fields: { status } }]
+    subtasks: [{ id: '10002', key: 'TEAM-2', fields: { status } }]
   } };
   let relatedReads = 0;
   await assert.rejects(fetchIssue(async (path) => ({ ok: true, json: async () => {
     if (!path.includes('TEAM-2')) return issue;
     return { id: ++relatedReads === 1 ? '10002' : '10003', key: 'TEAM-2',
       fields: { status, resolution: { name: 'Fixed' } } };
-  } }), 'TEAM-1'), /Related Jira work changed during this check/);
+  } }), 'TEAM-1'), /incomplete related work/);
   assert.equal(relatedReads, 2);
 });
 
