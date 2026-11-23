@@ -41,6 +41,7 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
           throw new Error('Jira returned an unreadable issue. Check again, or ask a project admin to check issue access.');
         }
         if (!issue || !hasText(issue.key)
+          || (expectedIssueId != null && !hasJiraId(issue.id))
           || (expectedIssueId != null && String(issue.id) !== String(expectedIssueId))
           || (/^\d+$/.test(String(issueKey)) && String(issue.id) !== String(issueKey))
           || (!/^\d+$/.test(String(issueKey)) && issue.key !== String(issueKey))

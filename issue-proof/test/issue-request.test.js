@@ -109,6 +109,18 @@ test('a key lookup cannot show evidence from another issue', async () => {
   );
 });
 
+test('a Jira context cannot certify a nonnumeric issue ID', async () => {
+  const issue = { id: 'not-an-id', key: 'TEAM-1', fields: {
+    summary: 'Release the fix', description: null, assignee: null, duedate: null,
+    status: { name: 'Done', statusCategory: { key: 'done' } },
+    issuetype: { subtask: false }, subtasks: [], issuelinks: [], resolution: { name: 'Fixed' }
+  } };
+  await assert.rejects(
+    fetchIssue(async () => ({ ok: true, json: async () => issue }), 'TEAM-1', 15000, 'not-an-id'),
+    /Jira returned an incomplete issue/
+  );
+});
+
 test('returns the current key when Jira resolves an issue by stable ID', async () => {
   let path;
   const issue = { id: '10042', key: 'NEW-42', fields: {
