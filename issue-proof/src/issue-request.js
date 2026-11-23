@@ -1,4 +1,5 @@
 import { issueFetchError } from './issue-error.js';
+import { isBlockingLinkLabel } from './issue-links.js';
 
 const hasText = (value) => typeof value === 'string' && value.trim().length > 0;
 const stableSnapshot = (value) => JSON.stringify(value, function (key, item) {
@@ -87,10 +88,9 @@ export async function fetchIssue(requestJira, issueKey, timeoutMs = 15000, expec
         }
         // Embedded subtask and issue-link summaries can be stale in either direction.
         // Read all related work directly before deciding whether it blocks handoff.
-        const isBlockingLabel = (label) => /^(?:(?:is )?blocked by|(?:is )?depend(?:s|ent) (?:on|upon)|requires?)$/i.test(label?.trim() || '');
         const blockingIssues = issue.fields.issuelinks.flatMap((link) => {
-          const item = isBlockingLabel(link.type.inward) ? link.inwardIssue
-            : isBlockingLabel(link.type.outward) ? link.outwardIssue : null;
+          const item = isBlockingLinkLabel(link.type.inward) ? link.inwardIssue
+            : isBlockingLinkLabel(link.type.outward) ? link.outwardIssue : null;
           return item ? [item] : [];
         });
         const related = [...issue.fields.subtasks, ...blockingIssues];

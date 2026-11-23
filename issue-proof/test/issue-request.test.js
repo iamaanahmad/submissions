@@ -62,6 +62,41 @@ test('reordered unchanged Jira relationships do not block handoff', async () => 
   assert.equal(parentReads, 2);
 });
 
+test('an unresolved cause is checked as a blocker before handoff', async () => {
+  const cause = { id: '10002', key: 'TEAM-2', fields: {
+    status: { name: 'In Progress', statusCategory: { key: 'indeterminate' } }
+  } };
+  const issue = { id: '10001', key: 'TEAM-1', fields: {
+    summary: 'Release the fix', description: null, assignee: null, duedate: null,
+    status: { name: 'Done', statusCategory: { key: 'done' } }, resolution: { name: 'Fixed' },
+    issuetype: { subtask: false }, subtasks: [],
+    issuelinks: [{ type: { inward: 'is caused by', outward: 'causes' }, inwardIssue: cause }]
+  } };
+  const paths = [];
+  const result = await fetchIssue(async (path) => {
+    paths.push(path);
+    return { ok: true, json: async () => path.includes('/issue/TEAM-2?') ? {
+      ...cause, fields: { ...cause.fields, resolution: null }
+    } : issue };
+  }, 'TEAM-1');
+  const blocker = assessIssue(result).checks.find((check) => check.id === 'blockers');
+  assert.equal(paths.filter((path) => path.includes('/issue/TEAM-2?')).length, 2);
+  assert.equal(blocker.passed, false);
+  assert.match(blocker.detail, /TEAM-2/);
+});
+
+test('an issue this issue causes is not treated as its blocker', () => {
+  const issue = { key: 'TEAM-1', fields: {
+    summary: 'Release the fix', description: null, assignee: null, duedate: null,
+    status: { name: 'Done', statusCategory: { key: 'done' } }, resolution: { name: 'Fixed' },
+    issuetype: { subtask: false }, subtasks: [],
+    issuelinks: [{ type: { inward: 'is caused by', outward: 'causes' }, outwardIssue: {
+      id: '10002', key: 'TEAM-2', fields: { status: { name: 'In Progress', statusCategory: { key: 'indeterminate' } } }
+    } }]
+  } };
+  assert.equal(assessIssue(issue).checks.some((check) => check.id === 'blockers'), false);
+});
+
 test('a key lookup cannot show evidence from another issue', async () => {
   const issue = { key: 'OTHER-2', fields: {
     summary: 'Other work', description: null, assignee: null, duedate: null,

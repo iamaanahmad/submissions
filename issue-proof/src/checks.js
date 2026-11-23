@@ -1,3 +1,5 @@
+import { isBlockingLinkLabel } from './issue-links.js';
+
 function adfText(value) {
   if (!value) return '';
   if (typeof value === 'string') return value;
@@ -101,9 +103,8 @@ export function assessIssue(issue, today = localToday()) {
     ...openTextChecklistLabels(withoutInlineCode(withoutFencedCode(adfText(checklistDescription))))
   ];
   const blockingIssues = (fields.issuelinks || []).flatMap((link) => {
-    const isBlockingLabel = (label) => /^(?:(?:is )?blocked by|(?:is )?depend(?:s|ent) (?:on|upon)|requires?)$/i.test(label?.trim() || '');
-    const isInwardBlocker = isBlockingLabel(link.type?.inward);
-    const isOutwardBlocker = isBlockingLabel(link.type?.outward);
+    const isInwardBlocker = isBlockingLinkLabel(link.type?.inward);
+    const isOutwardBlocker = isBlockingLinkLabel(link.type?.outward);
     const linkedIssue = isInwardBlocker ? link.inwardIssue
       : isOutwardBlocker ? link.outwardIssue : null;
     return linkedIssue ? [linkedIssue] : [];
