@@ -202,6 +202,8 @@ test('cancelled child work and duplicate blockers do not count as complete', () 
   assert.equal(report.checks.find((check) => check.id === 'blockers').passed, false);
   assert.match(report.checks.find((check) => check.id === 'subtasks').detail, /TEAM-2/);
   assert.match(report.checks.find((check) => check.id === 'blockers').detail, /TEAM-3/);
+  assert.match(report.checks.find((check) => check.id === 'subtasks').detail, /TEAM-2 \(Done \/ Won't Do\)/);
+  assert.match(report.checks.find((check) => check.id === 'blockers').detail, /TEAM-3 \(Done \/ Duplicate\)/);
   assert.equal(report.passed < report.total, true);
 });
 

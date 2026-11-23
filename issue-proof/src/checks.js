@@ -102,7 +102,6 @@ export function assessIssue(issue, today = localToday()) {
     // treats this issue as unresolved, even when its status is green.
     && (!Object.hasOwn(fields, 'resolution') || Boolean(fields.resolution?.name?.trim()));
   const unfinished = subtasks.filter((item) => !isCompleted(item.fields));
-  const unfinishedNames = unfinished.map((item) => item.key || item.fields?.summary || 'Unnamed subtask');
   const openChecklistItems = [
     ...openTaskLabels(checklistDescription),
     ...openTextChecklistLabels(withoutInlineCode(withoutFencedCode(adfText(checklistDescription))))
@@ -115,6 +114,15 @@ export function assessIssue(issue, today = localToday()) {
     return linkedIssue ? [linkedIssue] : [];
   });
   const blockers = blockingIssues.filter((item) => !isCompleted(item.fields));
+  const blockedWork = (item) => {
+    const key = item.key || 'Linked issue';
+    const status = item.fields?.status?.name?.trim();
+    const resolution = item.fields?.resolution?.name?.trim();
+    if (!status && !resolution) return key;
+    const reason = resolution && resolution !== status
+      ? `${status || 'Unknown status'} / ${resolution}` : status || resolution;
+    return `${key} (${reason})`;
+  };
   const parsedDate = typeof fields.duedate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(fields.duedate)
     ? new Date(`${fields.duedate}T00:00:00Z`) : null;
   const dueDate = parsedDate && !Number.isNaN(parsedDate.valueOf())
@@ -297,7 +305,7 @@ export function assessIssue(issue, today = localToday()) {
       id: 'subtasks',
       label: 'Subtasks are complete',
       passed: unfinished.length === 0,
-      detail: unfinished.length ? `Finish ${unfinishedNames.join(', ')} before handoff.`
+      detail: unfinished.length ? `Finish ${unfinished.map(blockedWork).join(', ')} before handoff.`
           : `Checked subtasks: ${subtasks.map((item) => item.key).join(', ')}.`
     });
   }
@@ -315,7 +323,7 @@ export function assessIssue(issue, today = localToday()) {
       label: 'Blocking issues are complete',
       passed: blockers.length === 0,
       detail: blockers.length
-        ? `Resolve ${blockers.map((item) => item.key || 'Linked issue').join(', ')} before handoff.`
+        ? `Resolve ${blockers.map(blockedWork).join(', ')} before handoff.`
         : `Checked blocking issues: ${blockingIssues.map((item) => item.key).join(', ')}.`
     });
   }
