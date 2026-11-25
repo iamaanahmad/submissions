@@ -1,5 +1,20 @@
 # Issue Proof
 
+Issue Proof is a Forge panel that checks whether a Jira issue is ready for handoff. It checks the owner, deadline, acceptance evidence, subtasks, and blocking links against fresh Jira replies. It shows the first action needed when handoff is unsafe.
+
+## What judges can verify
+
+1. Open an issue in Jira and select **Issue Proof** in the issue panel.
+2. Select **Check again**. The panel reads the current issue and related work.
+3. Complete the owner, deadline, acceptance, and blocker evidence. A ready handoff shows the checked issue key and time.
+4. Reopen a blocking subtask or deactivate its owner. A new check blocks handoff and names the reason.
+
+The local walkthrough reproduces ready, unfinished, reopened-blocker, and inactive-owner cases with simulated Jira replies. It is not a live Jira installation. Run it with `npm run demo:local` after `npm install`.
+
+**Contest status:** Source checks pass locally. Forge registration, a live Jira installation, judge access, a public video, and a Devpost receipt remain unverified.
+
+## How the safety check works
+
 Checks with linked Jira work allow extra time for two direct reads per issue, with a one-minute limit.
 
 When the browser reconnects, the panel checks the current Jira issue again. This also catches changes made while a prior report was visible and the connection was down. Manual Check again remains available.
