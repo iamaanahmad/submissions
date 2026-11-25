@@ -5,6 +5,7 @@ Awaaz Kit is a two-app starter kit for small shops. [Order Awaaz](https://awaazk
 - [Project source, license, and Kiro files](https://github.com/iamaanahmad/awaaz-kit)
 - [Checked 72.9-second typed demo](https://youtu.be/wPdiOcr6eKI)
 - [Project description and Kiro write-up](./devpost-entry.md)
+- [Checked speech-model feasibility probe](./voice-model-probe/README.md)
 - [Kiroween 2026 rules](https://kiroween.devpost.com/rules)
 
 The public demo shows typed input. The current live provider does not transcribe speech. Real voice capture remains unverified.

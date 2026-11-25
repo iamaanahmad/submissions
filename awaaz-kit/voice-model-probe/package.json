@@ -1,0 +1,12 @@
+{
+  "name": "awaaz-kit-voice-model-probe",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "transcribe": "node transcribe.mjs"
+  },
+  "dependencies": {
+    "onnxruntime-web": "^1.23.2",
+    "shruti-onnx": "0.2.0"
+  }
+}
