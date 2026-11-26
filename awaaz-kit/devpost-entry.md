@@ -17,7 +17,7 @@ The shared packages handle language normalization, intent extraction, catalog ma
 3. Compare the two app folders in the [public source](https://github.com/iamaanahmad/awaaz-kit/tree/main/apps). The [reuse proof](https://github.com/iamaanahmad/awaaz-kit/blob/main/docs/reuse-proof.md) traces their shared engine imports.
 4. Watch the replacement public demo once Amaan records and publishes it. Confirm its link before adding it to the entry.
 
-The on-device speech model downloaded in a browser check, but that browser had no microphone. Live speech and phone performance remain unverified. The replacement demo must show only behavior that was checked on the recorded device. It must not present a sample as recognized speech.
+The on-device speech model downloaded in a browser check, but that browser had no microphone. A [reproducible model benchmark](https://github.com/iamaanahmad/awaaz-kit/blob/main/docs/model-benchmark.md) measured 25.4% word error rate on 20 real Hindi-English lecture clips. Those clips are not shop requests, and the test ran on a desktop. Live app speech, shop-order accuracy, and phone performance remain unverified. The replacement demo must show only behavior that was checked on the recorded device. It must not present a sample as recognized speech.
 
 ## How Kiro was used
 
@@ -27,7 +27,7 @@ Kiro steering files in `.kiro/steering` define the two-app scope, package bounda
 
 The [requirements](https://github.com/iamaanahmad/awaaz-kit/blob/main/.kiro/specs/awaaz-kit/requirements.md) set the review and storage rules. The [design](https://github.com/iamaanahmad/awaaz-kit/blob/main/.kiro/specs/awaaz-kit/design.md) turns them into two workflows. The [task list](https://github.com/iamaanahmad/awaaz-kit/blob/main/.kiro/specs/awaaz-kit/tasks.md) ties implementation work back to those numbered rules. The [journal](https://github.com/iamaanahmad/awaaz-kit/blob/main/docs/kiro-journal.md) records where those checks changed the build.
 
-Property-based tests found a real storage bug: a finalized bill item could be deleted. The fix added database delete guards. The exact counterexample and fix are recorded in `docs/kiro-journal.md`. The speech-model benchmark remains pending; Kiro's plan did not turn that open measurement into a claim of working voice.
+Property-based tests found a real storage bug: a finalized bill item could be deleted. The fix added database delete guards. The exact counterexample and fix are recorded in `docs/kiro-journal.md`. The model benchmark measures lecture clips, not the Awaaz Kit voice flow on a phone. It does not prove working shop speech.
 
 ## Links and final checks
 
