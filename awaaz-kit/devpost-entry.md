@@ -10,6 +10,13 @@ Both apps accept typed Hindi, Hinglish, and English requests. Labelled sample ph
 
 The shared packages handle language normalization, intent extraction, catalog matching, review gates, local storage, and sync. The two apps live in `apps/order-awaaz` and `apps/bill-awaaz`. A small appointment adapter in `examples/appointment-workflow` shows how a third workflow can reuse the engine without changing its packages. It is an example, not a third submitted app.
 
+## Judge path
+
+1. Open [Order Awaaz](https://awaazkit.vercel.app/order/) and use a labelled sample or type `do kilo aata aur ek litre Amul`. The app asks you to choose an Amul product before you can confirm the order.
+2. Open [Bill Awaaz](https://awaazkit.vercel.app/bill/) and type `तीन किलो आलू और दो किलो प्याज और एक किलो टमाटर`. Review the three lines and the ₹200.00 total before saving the cash memo.
+3. Compare the two app folders in the [public source](https://github.com/iamaanahmad/awaaz-kit/tree/main/apps). The [reuse proof](https://github.com/iamaanahmad/awaaz-kit/blob/main/docs/reuse-proof.md) traces their shared engine imports.
+4. Watch the [72.9-second public demo](https://youtu.be/wPdiOcr6eKI). It shows typed input in both apps. It does not show working speech recognition.
+
 Voice transcription is an unfinished part of this build. The shipping `scripted` provider does not transcribe speech. An on-device provider exists behind the same interface, but its target-device benchmark is pending. The demo must show typed input and labelled samples as such. It must not present a sample as recognized speech.
 
 ## How Kiro was used
@@ -17,6 +24,8 @@ Voice transcription is an unfinished part of this build. The shipping `scripted`
 The build follows one requirements-first Kiro spec in `.kiro/specs/awaaz-kit`. Its numbered requirements became a design, task list, and property tests. This made safety rules testable. For example, an unresolved product or quantity blocks confirmation, and storage accepts only a confirmed action.
 
 Kiro steering files in `.kiro/steering` define the two-app scope, package boundaries, privacy rules, and test conventions. Hooks in `.kiro/hooks` run focused checks for billing, the shared engine, and storage or sync work. The repo keeps the spec, steering, hooks, and a factual development journal in `docs/kiro-journal.md` so judges can inspect how the workflow shaped the code.
+
+The [requirements](https://github.com/iamaanahmad/awaaz-kit/blob/main/.kiro/specs/awaaz-kit/requirements.md) set the review and storage rules. The [design](https://github.com/iamaanahmad/awaaz-kit/blob/main/.kiro/specs/awaaz-kit/design.md) turns them into two workflows. The [task list](https://github.com/iamaanahmad/awaaz-kit/blob/main/.kiro/specs/awaaz-kit/tasks.md) ties implementation work back to those numbered rules. The [journal](https://github.com/iamaanahmad/awaaz-kit/blob/main/docs/kiro-journal.md) records where those checks changed the build.
 
 Property-based tests found a real storage bug: a finalized bill item could be deleted. The fix added database delete guards. The exact counterexample and fix are recorded in `docs/kiro-journal.md`. The speech-model benchmark remains pending; Kiro's plan did not turn that open measurement into a claim of working voice.
 
