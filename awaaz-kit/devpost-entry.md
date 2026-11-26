@@ -15,9 +15,9 @@ The shared packages handle language normalization, intent extraction, catalog ma
 1. Open [Order Awaaz](https://awaazkit.vercel.app/order/) and use a labelled sample or type `do kilo aata aur ek litre Amul`. The app asks you to choose an Amul product before you can confirm the order.
 2. Open [Bill Awaaz](https://awaazkit.vercel.app/bill/) and type `तीन किलो आलू और दो किलो प्याज और एक किलो टमाटर`. Review the three lines and the ₹200.00 total before saving the cash memo.
 3. Compare the two app folders in the [public source](https://github.com/iamaanahmad/awaaz-kit/tree/main/apps). The [reuse proof](https://github.com/iamaanahmad/awaaz-kit/blob/main/docs/reuse-proof.md) traces their shared engine imports.
-4. Watch the [72.9-second public demo](https://youtu.be/wPdiOcr6eKI). It shows typed input in both apps. It does not show working speech recognition.
+4. Watch the replacement public demo once Amaan records and publishes it. Confirm its link before adding it to the entry.
 
-Voice transcription is an unfinished part of this build. The shipping `scripted` provider does not transcribe speech. An on-device provider exists behind the same interface, but its target-device benchmark is pending. The demo must show typed input and labelled samples as such. It must not present a sample as recognized speech.
+The on-device speech model downloaded in a browser check, but that browser had no microphone. Live speech and phone performance remain unverified. The replacement demo must show only behavior that was checked on the recorded device. It must not present a sample as recognized speech.
 
 ## How Kiro was used
 
@@ -33,7 +33,7 @@ Property-based tests found a real storage bug: a finalized bill item could be de
 
 - Live apps: https://awaazkit.vercel.app/order/ and https://awaazkit.vercel.app/bill/
 - Public source: https://github.com/iamaanahmad/awaaz-kit
-- Public YouTube video: https://youtu.be/wPdiOcr6eKI (checked 72.9-second typed demo; voice is unverified).
+- Public YouTube video: pending Amaan's replacement recording and link check. The prior typed demo was deleted at his request.
 - Devpost receipt: none verified. Record the platform URL and submission time after entry.
 - Confirm the entrant's sponsor and judge ties before submission.
 
