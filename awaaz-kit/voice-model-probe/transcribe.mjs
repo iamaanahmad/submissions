@@ -1,10 +1,11 @@
 import fs from 'node:fs';
+import { spawnSync } from 'node:child_process';
 import * as ort from 'onnxruntime-web';
 import { createShruti, decodeWav } from 'shruti-onnx';
 
 const [file, ...args] = process.argv.slice(2);
 if (!file) {
-  console.error('Usage: npm run transcribe -- <16-kHz-mono.wav> [--language auto|en|hi] [--expected "words"]');
+  console.error('Usage: npm run transcribe -- <recording> [--language auto|en|hi] [--expected "words"]');
   process.exit(2);
 }
 
@@ -38,7 +39,17 @@ ort.env.wasm.numThreads = 1;
 const start = performance.now();
 const asr = await createShruti({ ort, language: 'hindi' });
 const loadMs = Math.round(performance.now() - start);
-const bytes = fs.readFileSync(file);
+if (!fs.existsSync(file)) throw new Error(`Recording not found: ${file}`);
+// Normalize phone recordings in memory. No converted audio is written to disk.
+const converted = spawnSync('ffmpeg', [
+  '-nostdin', '-hide_banner', '-loglevel', 'error', '-i', file,
+  '-ac', '1', '-ar', '16000', '-f', 'wav', '-c:a', 'pcm_s16le', 'pipe:1',
+], { maxBuffer: 64 * 1024 * 1024 });
+if (converted.error) throw new Error(`Could not run ffmpeg: ${converted.error.message}`);
+if (converted.status !== 0) {
+  throw new Error(`Could not decode recording: ${converted.stderr.toString().trim()}`);
+}
+const bytes = converted.stdout;
 const audio = decodeWav(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.length));
 const inferenceStart = performance.now();
 const result = await asr.transcribe(audio, { language });
