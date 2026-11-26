@@ -4,6 +4,7 @@ Awaaz Kit is a two-app starter kit for small shops. [Order Awaaz](https://awaazk
 
 - [Project source, license, and Kiro files](https://github.com/iamaanahmad/awaaz-kit)
 - Public demo: pending Amaan's replacement recording and link check.
+- [Replacement demo recording guide](./demo-recording-guide.md)
 - [Project description and Kiro write-up](./devpost-entry.md)
 - [Checked speech-model feasibility probe](./voice-model-probe/README.md)
 - [Kiroween 2026 rules](https://kiroween.devpost.com/rules)
