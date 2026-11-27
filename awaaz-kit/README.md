@@ -14,8 +14,8 @@ Awaaz Kit is a two-app starter kit for small shops. [Order Awaaz](https://awaazk
 
 ## Judge walkthrough
 
-1. Open [Order Awaaz](https://awaazkit.vercel.app/order/) and choose a labelled sample or type a shopping request. Review the matched items and confirm the order.
-2. Open [Bill Awaaz](https://awaazkit.vercel.app/bill/) and choose a labelled sample or type a bill request. Review the lines and total before saving the cash memo.
+1. Open [Order Awaaz](https://awaazkit.vercel.app/order/). If its catalog is empty, select **Load demo shop**. Choose a labelled sample or type a shopping request. Review the matched items and confirm the order.
+2. Open [Bill Awaaz](https://awaazkit.vercel.app/bill/). If its catalog is empty, use **Reset demo** on the About page. Choose a labelled sample or type a bill request. Review the lines and total before saving the cash memo.
 3. Watch the replacement public demo after Amaan records it and its link is checked. Until then, use the two live apps above.
 4. Inspect the [Kiro specification](https://github.com/iamaanahmad/awaaz-kit/tree/main/.kiro/specs/awaaz-kit), [steering and hooks](https://github.com/iamaanahmad/awaaz-kit/tree/main/.kiro), and [development journal](https://github.com/iamaanahmad/awaaz-kit/blob/main/docs/kiro-journal.md) to see how the two apps were built and checked.
 
