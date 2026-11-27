@@ -16,6 +16,6 @@ Awaaz Kit is a two-app starter kit for small shops. [Order Awaaz](https://awaazk
 3. Watch the replacement public demo after Amaan records it and its link is checked. Until then, use the two live apps above.
 4. Inspect the [Kiro specification](https://github.com/iamaanahmad/awaaz-kit/tree/main/.kiro/specs/awaaz-kit), [steering and hooks](https://github.com/iamaanahmad/awaaz-kit/tree/main/.kiro), and [development journal](https://github.com/iamaanahmad/awaaz-kit/blob/main/docs/kiro-journal.md) to see how the two apps were built and checked.
 
-The typed flows work in the live apps. The on-device speech model downloaded in a browser check, but that browser had no microphone. Live voice capture remains unverified.
+The typed flows work in the live apps. A November 27 desktop check fed synthetic English audio through the live microphone path. The order app transcribed it and found two items. Real human shop speech, Hindi or Hinglish shop accuracy, and phone performance remain unverified.
 
 This folder is the entry-copy package. The application source lives in the linked Awaaz Kit repository. No Devpost submission receipt is claimed here.
