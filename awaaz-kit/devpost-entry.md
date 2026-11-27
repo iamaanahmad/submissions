@@ -12,8 +12,8 @@ The shared packages handle language normalization, intent extraction, catalog ma
 
 ## Judge path
 
-1. Open [Order Awaaz](https://awaazkit.vercel.app/order/) and use a labelled sample or type `do kilo aata aur ek litre Amul`. The app asks you to choose an Amul product before you can confirm the order.
-2. Open [Bill Awaaz](https://awaazkit.vercel.app/bill/) and type `तीन किलो आलू और दो किलो प्याज और एक किलो टमाटर`. Review the three lines and the ₹200.00 total before saving the cash memo.
+1. Open [Order Awaaz](https://awaazkit.vercel.app/order/). If the catalog is empty, select **Load demo shop**. Use a labelled sample or type `do kilo aata aur ek litre Amul`. The app asks you to choose an Amul product before you can confirm the order.
+2. Open [Bill Awaaz](https://awaazkit.vercel.app/bill/). If the catalog is empty, use **Reset demo** on its About page. Type `तीन किलो आलू और दो किलो प्याज और एक किलो टमाटर`. Review the three lines and the ₹200.00 total before saving the cash memo.
 3. Compare the two app folders in the [public source](https://github.com/iamaanahmad/awaaz-kit/tree/main/apps). The [reuse proof](https://github.com/iamaanahmad/awaaz-kit/blob/main/docs/reuse-proof.md) traces their shared engine imports.
 4. Watch the replacement public demo once Amaan records and publishes it. Confirm its link before adding it to the entry.
 
