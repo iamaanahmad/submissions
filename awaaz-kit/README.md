@@ -1,6 +1,6 @@
 # Awaaz Kit · Kiroween entry package
 
-Awaaz Kit is a two-app starter kit for small shops. [Order Awaaz](https://awaazkit.vercel.app/order/) builds checked orders. [Bill Awaaz](https://awaazkit.vercel.app/bill/) builds checked cash memos.
+Awaaz Kit is a two-app starter kit for small shops. [Order Awaaz](https://awaazkit.vercel.app/order/) builds checked orders. [Bill Awaaz](https://awaazkit.vercel.app/bill/) builds checked cash memos. The checked judge path uses typed requests. Human shop speech and phone microphone performance remain unverified.
 
 - [Project source, license, and Kiro files](https://github.com/iamaanahmad/awaaz-kit)
 - Public demo: pending Amaan's replacement recording and link check.

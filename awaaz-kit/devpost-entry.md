@@ -4,7 +4,7 @@ Category: Skeleton Crew
 
 ## Project description
 
-Awaaz Kit helps small shops turn a customer's shopping request into a checked order or cash memo. The starter kit powers two separate web apps from one shared engine. Order Awaaz builds orders. Bill Awaaz builds cash memos with exact totals.
+Awaaz Kit helps small shops turn a customer's shopping request into a checked order or cash memo. The starter kit powers two separate web apps from one shared engine. Order Awaaz builds orders. Bill Awaaz builds cash memos with exact totals. The checked judge path uses typed requests. Human shop speech and phone microphone performance remain unverified.
 
 Both apps accept typed Hindi, Hinglish, and English requests. Labelled sample phrases let judges try the flow without a microphone. The app turns a request into editable lines, flags unclear products or quantities, and waits for explicit confirmation before saving anything. It stores work on the device first. Optional Appwrite sync starts only after the user opts in and signs in.
 
